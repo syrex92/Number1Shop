@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36511.14 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CacheService", "CacheService\CacheService.csproj", "{B3CA2A42-0568-4D80-8D36-EB748352E58A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B3CA2A42-0568-4D80-8D36-EB748352E58A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3CA2A42-0568-4D80-8D36-EB748352E58A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3CA2A42-0568-4D80-8D36-EB748352E58A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3CA2A42-0568-4D80-8D36-EB748352E58A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {75ABFCB6-B0B5-468E-ACAA-34452BE27D36}
+	EndGlobalSection
+EndGlobal
