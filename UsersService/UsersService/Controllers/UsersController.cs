@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using UsersService.Application.Services;
@@ -11,18 +12,18 @@ namespace UsersService.Controllers
     [Authorize]
     public class UsersController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IAuthService _authService;
 
-        public UsersController(IUserService userService)
+        public UsersController(IAuthService authService)
         {
-            _userService = userService;
+            _authService = authService;
         }
 
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfile()
         {
             var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
-            var user = await _userService.GetByIdAsync(userId);
+            var user = await _authService.GetByIdAsync(userId);
 
             if (user == null)
                 return NotFound();
@@ -34,7 +35,6 @@ namespace UsersService.Controllers
                 user.Role
             });
         }
-        public async Tassk<IActionResult> Register()
 
         [HttpGet("admin-only")]
         [Authorize(Roles = "Admin")]

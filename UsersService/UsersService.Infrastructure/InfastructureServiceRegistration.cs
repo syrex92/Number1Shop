@@ -20,7 +20,7 @@ namespace UsersService.Infrastructure
         public static IServiceCollection AddInfastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IJwtService, JwtService>();
-            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAuthService, AuthService>();
             var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>();
             var key = Encoding.ASCII.GetBytes(jwtSettings.Secret);
 

@@ -17,10 +17,20 @@ namespace UsersService.Controllers
             _jwtService = jwtService;
         }
 
+        [HttpPost("Register")]
+        public async Task<IActionResult> Register([FromBody] RegisterUserRequest request)
+        {
+            await _authService.RegisterAsync(request);
+            return Ok();
+        }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var user = await _authService.AuthenticateAsync(request.Email, request.Password);
+            if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+                return BadRequest("Не заполнены обязательные поля!");
+
+            var user = await _authService.LoginAsync(request);
 
             if (user == null)
                 return Unauthorized("Invalid username or password");
