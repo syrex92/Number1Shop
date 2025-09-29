@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace UsersService.Domain.Models
 {
-    internal class RegisterRequest
+    public class RegisterRequest
     {
     }
 }
