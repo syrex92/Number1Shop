@@ -34,6 +34,7 @@ namespace UsersService.Controllers
                 user.Role
             });
         }
+        public async Tassk<IActionResult> Register()
 
         [HttpGet("admin-only")]
         [Authorize(Roles = "Admin")]

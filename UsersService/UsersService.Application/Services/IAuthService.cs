@@ -2,7 +2,7 @@
 
 namespace UsersService.Application.Services
 {
-    public interface IUserService
+    public interface IAuthService
     {
         public Task<User?> AuthenticateAsync(string email, string password);
         public Task<User?> GetByIdAsync(Guid id);

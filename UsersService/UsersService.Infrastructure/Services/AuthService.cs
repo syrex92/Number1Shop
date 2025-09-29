@@ -9,11 +9,11 @@ using UsersService.Domain.Models;
 
 namespace UsersService.Infrastructure.Services
 {
-    public class UserService : IUserService
+    public class AuthService : IUserService
     {
         private readonly IUserRepository _repository;
 
-        public UserService(IUserRepository repository)
+        public AuthService(IUserRepository repository)
         {
             _repository = repository;
         }

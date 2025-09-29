@@ -8,19 +8,19 @@ namespace UsersService.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IAuthService _authService;
         private readonly IJwtService _jwtService;
 
-        public AuthController(IUserService userService, IJwtService jwtService)
+        public AuthController(IAuthService authService, IJwtService jwtService)
         {
-            _userService = userService;
+            _authService = authService;
             _jwtService = jwtService;
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var user = await _userService.AuthenticateAsync(request.Email, request.Password);
+            var user = await _authService.AuthenticateAsync(request.Email, request.Password);
 
             if (user == null)
                 return Unauthorized("Invalid username or password");
