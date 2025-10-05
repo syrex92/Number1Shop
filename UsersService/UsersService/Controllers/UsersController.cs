@@ -12,18 +12,18 @@ namespace UsersService.Controllers
     [Authorize]
     public class UsersController : ControllerBase
     {
-        private readonly IAuthService _authService;
+        private readonly IUserService _userService;
 
-        public UsersController(IAuthService authService)
+        public UsersController(IUserService userService)
         {
-            _authService = authService;
+            _userService = userService;
         }
 
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfile()
         {
             var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
-            var user = await _authService.GetByIdAsync(userId);
+            var user = await _userService.GetUserByIdAsync(userId);
 
             if (user == null)
                 return NotFound();
@@ -32,7 +32,6 @@ namespace UsersService.Controllers
             {
                 user.Id,
                 user.UserName,
-                user.Role
             });
         }
 

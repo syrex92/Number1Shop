@@ -8,8 +8,9 @@ using UsersService.Domain.Models;
 
 namespace UsersService.Application.Persistence
 {
-    public interface IUserRepository : IRepository<User>
+    public interface ITokenRepository : IRepository<RefreshToken>
     {
-        Task<User> GetByEmailAsync(string email);
+        Task<IEnumerable<RefreshToken>> GetAllTokenAsync(Guid userId);
+        Task<RefreshToken?> GetTokenAsync(string refreshToken, Guid id);
     }
 }

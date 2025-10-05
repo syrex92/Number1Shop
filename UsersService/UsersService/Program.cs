@@ -1,5 +1,8 @@
-using UsersService.Persistence;
+using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 using UsersService.Infrastructure;
+using UsersService.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +12,55 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddPersistanceServices(builder.Configuration);
 builder.Services.AddInfastructureServices(builder.Configuration);
-builder.Services.AddSwaggerGen(); // Добавляем генератор Swagger
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Authentication API",
+        Version = "v1",
+        Description = "JWT Authentication Microservice"
+    });
+
+    // Добавляем JWT поддержку в Swagger
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter JWT Token in format: Bearer [token]"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+
+    // Включаем XML комментарии
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
+}); 
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
 
 var app = builder.Build();
 
@@ -19,12 +70,27 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger(); // Включаем middleware для генерации Swagger JSON
     app.UseSwaggerUI(); // Включаем Swagger UI
     app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1");
+        options.OAuthClientId("swagger-ui");
+        options.OAuthAppName("Swagger UI");
+    });
+}
+else
+{
+    app.UseExceptionHandler("/error");
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// 11. Global Error Handling Endpoint
+app.Map("/error", () => Results.Problem("An error occurred.", statusCode: 500));
 
 app.Run();

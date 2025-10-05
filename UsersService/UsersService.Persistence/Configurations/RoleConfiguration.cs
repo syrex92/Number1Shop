@@ -25,6 +25,11 @@ namespace UsersService.Persistence.Configurations
             // Индексы
             builder.HasIndex(r => r.RoleName)
                 .IsUnique();
+
+            builder.HasMany(r => r.Users)
+    .WithMany(u => u.Roles)
+    .UsingEntity<UserRole>();
+
         }
     }
 }

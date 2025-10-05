@@ -30,9 +30,6 @@ namespace UsersService.Persistence.Configurations
                 .IsRequired()
                 .HasMaxLength(255);
 
-            builder.Property(u => u.RoleId)
-                .IsRequired();
-
             // Индексы
             builder.HasIndex(u => u.UserName)
                 .IsUnique();
@@ -40,13 +37,9 @@ namespace UsersService.Persistence.Configurations
             builder.HasIndex(u => u.Email)
                 .IsUnique();
 
-            builder.HasIndex(u => u.RoleId);
-
-            // Связь один-ко-многим с Role
-            builder.HasOne(u => u.Role)
-                .WithMany(r => r.Users)
-                .HasForeignKey(u => u.RoleId)
-                .OnDelete(DeleteBehavior.Restrict); 
+            builder.HasMany(u => u.Roles)
+           .WithMany(r => r.Users)
+           .UsingEntity<UserRole>();
         }
     }
 }

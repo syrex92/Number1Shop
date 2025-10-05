@@ -7,8 +7,10 @@ using UsersService.Domain.Models;
 
 namespace UsersService.Application.Services
 {
-    public interface IJwtService
+    public interface IUserService
     {
-        public string GenerateToken(User user);
+        Task<User> GetUserByEmailAsync(string email);
+        Task<User> GetUserByIdAsync(Guid email);
+        bool VerifyPassword(User user, string password);
     }
 }
