@@ -13,26 +13,16 @@ namespace UsersService.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<UserRole> builder)
         {
-            // Настройка имени таблицы (опционально)
             builder.ToTable("UserRoles");
 
             // Составной первичный ключ
             builder.HasKey(ur => new { ur.UserId, ur.RoleId });
 
-            // Настройка связи с User
-            builder.HasOne(ur => ur.User)
-                .WithMany()  // Без указания навигационного свойства
-                .HasForeignKey(ur => ur.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // Связи уже настроены в User и Role конфигурациях
+            // Дополнительная настройка не требуется
 
-            // Настройка связи с Role
-            builder.HasOne(ur => ur.Role)
-                .WithMany()  // Без указания навигационного свойства
-                .HasForeignKey(ur => ur.RoleId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-
-
+            builder.Property(ur => ur.CreatedAt)
+                .IsRequired();
         }
     }
 }

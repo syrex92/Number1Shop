@@ -19,6 +19,9 @@ namespace UsersService.Persistence
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<ITokenRepository, TokenRepository>();
+            // Регистрация сидера
+            services.AddScoped<IDataSeeder, DataSeeder>();
             return services;
         }
     }

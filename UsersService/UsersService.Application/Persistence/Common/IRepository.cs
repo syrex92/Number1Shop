@@ -12,7 +12,9 @@ namespace UsersService.Application.Persistence.Common
         Task<IEnumerable<T>> GetAllAsync();
         Task<T> GetByIdAsync(Guid id);
         Task<T> AddAsync(T item);
+        Task AddAllAsync(IEnumerable<T> items);
         Task<T> UpdateAsync(T item);
         Task<bool> RemoveAsync(Guid id);
+        Task<bool> AnyAsync();
     }
 }

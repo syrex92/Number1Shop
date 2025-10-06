@@ -15,6 +15,9 @@ namespace UsersService.Infrastructure
         public static IServiceCollection AddInfastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IUserService, UserService>();
+
+
             var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>();
             var key = Encoding.ASCII.GetBytes(jwtSettings.Secret);
 

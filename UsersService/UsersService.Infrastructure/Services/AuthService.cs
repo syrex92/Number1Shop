@@ -46,7 +46,7 @@ namespace UsersService.Infrastructure.Services
             // Добавляем роль из связанной таблицы
             if (user.ToString().FirstOrDefault() != null)
             {
-                claims.Add(new Claim(ClaimTypes.Role, user.Roles.FirstOrDefault().RoleName));
+                claims.Add(new Claim(ClaimTypes.Role, user.UserRoles.Select(x => x.Role).FirstOrDefault().RoleName));
             }
 
             var tokenDescriptor = new SecurityTokenDescriptor

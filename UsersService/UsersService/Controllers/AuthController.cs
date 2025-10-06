@@ -62,7 +62,7 @@ namespace UsersService.Controllers
                         RefreshTokenExpiresIn = (int)TimeSpan.FromDays(45).TotalSeconds,
                         RefreshTokenExpiresAt = refreshTokenExpiration,
                         Username = user.UserName,
-                        Role = user.Roles.FirstOrDefault()?.RoleName ?? string.Empty
+                        Role = user.UserRoles.Select(x => x.Role).FirstOrDefault()?.RoleName ?? string.Empty
                     }
                 };
 
@@ -270,7 +270,7 @@ namespace UsersService.Controllers
                         RefreshTokenExpiresIn = (int)TimeSpan.FromDays(45).TotalSeconds,
                         RefreshTokenExpiresAt = refreshTokenExpiration,
                         Username = user.UserName,
-                        Role = user.Roles.FirstOrDefault()?.RoleName ?? string.Empty
+                        Role = user.UserRoles.Select(x => x.Role).FirstOrDefault()?.RoleName ?? string.Empty
                     }
                 });
             }

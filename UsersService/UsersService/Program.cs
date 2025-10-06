@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using UsersService.Extensions;
 using UsersService.Infrastructure;
 using UsersService.Persistence;
 
@@ -67,15 +68,16 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger(); // Включаем middleware для генерации Swagger JSON
-    app.UseSwaggerUI(); // Включаем Swagger UI
-    app.MapOpenApi();
+    app.UseSwagger(); 
+    app.UseSwaggerUI(); 
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1");
         options.OAuthClientId("swagger-ui");
         options.OAuthAppName("Swagger UI");
     });
+    // Инициализация базы данных
+    await app.InitializeDatabaseAsync();
 }
 else
 {

@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UsersService.Domain.Common;
 
 namespace UsersService.Domain.Models
 {
-    public class UserRole
+    public class UserRole : BaseEntity
     {
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public int UserId { get; set; }
-        public virtual User User { get; set; }
-        public int RoleId { get; set; }
-        public virtual Role Role { get; set; }
+        public Guid UserId { get; set; }
+        public User User { get; set; }
+        public Guid RoleId { get; set; }
+        public Role Role { get; set; }
     }
 }
