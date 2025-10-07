@@ -1,17 +1,31 @@
+using CatalogService.Api.Interfaces;
+using CatalogService.Api.Services;
+using CatalogService.Core.Domain.Interfaces;
+using CatalogService.DataAccess.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddScoped<IProductService, ProductsService>();
 
+builder.Services.AddScoped<IProductsRepository, ProductsRepository>();
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+
+builder.Services.AddSwaggerGen(c =>
+{
+    var xmlPath = $"{AppContext.BaseDirectory}{Path.DirectorySeparatorChar}{builder.Environment.ApplicationName}.xml";
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath, true);
+    }
+});
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
