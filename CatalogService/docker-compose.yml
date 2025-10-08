@@ -1,0 +1,20 @@
+services:
+  catalogservice.api:
+    image: ${DOCKER_REGISTRY-}catalogserviceapi
+    build:
+      context: .
+      dockerfile: CatalogService/Dockerfile
+    depends_on:
+      - postgres_catalog
+  postgres_catalog:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: catalog_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:

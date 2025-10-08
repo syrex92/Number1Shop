@@ -33,6 +33,19 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<DataContext>();
+    await db.Database.EnsureCreatedAsync();
+
+    //var pendingMigrations = await db.Database.GetPendingMigrationsAsync();
+
+    //if (pendingMigrations.Any())
+    //{
+    //    await db.Database.MigrateAsync();
+    //}
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

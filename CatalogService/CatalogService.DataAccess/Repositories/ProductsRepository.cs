@@ -42,7 +42,7 @@ namespace CatalogService.DataAccess.Repositories
                 return await GetProductsWithPaging(page.Value, pageSize.Value).ToListAsync();
             }
 
-            return await _dataContext.Products.ToListAsync();
+            return await _dataContext.Products.Include(p => p.ProductImages).Include(p => p.Category).ToListAsync();
         }
 
         public async Task<List<Product>> GetProductsByCategoryAsync(string categoryName, int? page, int? pageSize)
@@ -54,7 +54,7 @@ namespace CatalogService.DataAccess.Repositories
                 return await query.Where(p => p.Category.Name.ToLower() == categoryName.ToLower()).ToListAsync();
             }
 
-            return await _dataContext.Products.ToListAsync();
+            return await _dataContext.Products.Include(p => p.ProductImages).Include(p => p.Category).ToListAsync();
         }
 
         public async Task<Product> UpdateAsync(Product product)
