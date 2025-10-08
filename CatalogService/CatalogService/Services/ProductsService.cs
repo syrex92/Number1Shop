@@ -3,6 +3,7 @@ using CatalogService.Api.Mappers;
 using CatalogService.Api.Models;
 using CatalogService.Core.Domain.Entities;
 using CatalogService.Core.Domain.Interfaces;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace CatalogService.Api.Services
 {
@@ -69,6 +70,7 @@ namespace CatalogService.Api.Services
             if (updateDto.ImagesUrls.Any())
             {
                 existProduct.ProductImages.Clear();
+                existProduct.ProductImages = updateDto.ImagesUrls.Select(i => new ProductImage { ImageUrl = i.ToString() }).ToList();
             }
 
             existProduct.UpdatedAt = DateTime.UtcNow;
