@@ -10,17 +10,17 @@ RUN apt-get -y install curl
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["FavoriteService/Shop.FavoriteService.csproj", "FavoriteService/"]
-RUN dotnet restore "FavoriteService/Shop.FavoriteService.csproj"
+COPY ["FavoriteService/FavoriteService/FavoriteService.csproj", "FavoriteService/"]
+RUN dotnet restore "FavoriteService/FavoriteService.csproj"
 COPY . .
 WORKDIR "/src/FavoriteService"
-RUN dotnet build "Shop.FavoriteService.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "FavoriteService.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Shop.FavoriteService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "FavoriteService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Shop.FavoriteService.dll"]
+ENTRYPOINT ["dotnet", "FavoriteService.dll"]
