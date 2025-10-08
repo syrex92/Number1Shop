@@ -25,13 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogService.Core", "Cata
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogService.DataAccess", "CatalogService\CatalogService.DataAccess\CatalogService.DataAccess.csproj", "{21F2AB40-43B3-4074-BB40-77279C9ACDB0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OrdersService", "OrdersService", "{E2628109-D5A5-4C04-8067-3EB328EF2B3D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrdersService", "OrdersService\OrdersService\OrdersService.csproj", "{30305129-8260-4EE4-8876-06EEBB6A3CD6}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrdersService.Core", "OrdersService\OrdersService.Core\OrdersService.Core.csproj", "{2DF7F6D8-BC53-44D0-97E4-40E4041C407A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrdersService.DataAccess", "OrdersService\OrdersService.DataAccess\OrdersService.DataAccess.csproj", "{0082B502-8BD5-4298-803A-CCC7AFFB4DDA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrdersService", "OrdersService\OrdersService.csproj", "{30305129-8260-4EE4-8876-06EEBB6A3CD6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StorageService", "StorageService", "{D663F2D7-9E5B-44E9-9E67-0158CB5DE4E8}"
 EndProject
