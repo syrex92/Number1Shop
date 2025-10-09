@@ -10,6 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 var connection = builder.Configuration.GetConnectionString("DefaultConnection")
            ?? throw new InvalidProgramException("No connection for data base");
 
+var conn = connection
+    .Replace("{USERNAME}", builder.Configuration["mysecretconfig:postgres-username"])
+    .Replace("{PASSWORD}", builder.Configuration["mysecretconfig:postgres-password"]);
+
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(connection
     .Replace("{USERNAME}", builder.Configuration["mysecretconfig:postgres-username"])
@@ -17,6 +21,7 @@ builder.Services.AddDbContext<DataContext>(options =>
     );
 
 builder.Services.AddScoped<IProductService, ProductsService>();
+builder.Services.AddScoped<ICategoriesService, CategoriesService>();
 
 builder.Services.AddScoped<IProductsRepository, ProductsRepository>();
 builder.Services.AddScoped<ICategoriesRepository, CategoriesRepository>();

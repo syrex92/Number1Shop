@@ -18,5 +18,15 @@ namespace CatalogService.Api.Mappers
                 ImagesUrls = product.ProductImages.Select(pi => pi.ImageUrl).ToList(),
             };
         }
+
+        internal static CategoryDto ToDto(this Category category)
+        {
+            return new CategoryDto
+            {
+                Id = category.Id,
+                Name = category.Name,
+                Products = category.Products.Select(p => p.ToDto()).ToList()
+            };
+        }
     }
 }
