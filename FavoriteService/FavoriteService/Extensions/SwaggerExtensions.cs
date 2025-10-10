@@ -9,6 +9,7 @@ internal static class SwaggerExtensions
     {
         services.AddSwaggerGen(c =>
         {
+            c.SwaggerDoc("", new OpenApiInfo { Title = "Shop.FavoriteService.Extensions", Version = "v1" });
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "FavoriteList API", Version = "v1", Description = "Shop.FavoriteList Service API" });
 
             var basePath = AppContext.BaseDirectory;

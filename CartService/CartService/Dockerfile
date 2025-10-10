@@ -13,17 +13,17 @@ ARG BUILD_CONFIGURATION=Release
 
 
 WORKDIR /src
-COPY ["CartService/Shop.CartService.csproj", "CartService/"]
-RUN dotnet restore "CartService/Shop.CartService.csproj"
+COPY ["CartService/CartService/CartService.csproj", "CartService/"]
+RUN dotnet restore "CartService/CartService.csproj"
 COPY . .
 WORKDIR "/src/CartService"
-RUN dotnet build "Shop.CartService.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "CartService.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Shop.CartService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "CartService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Shop.CartService.dll"]
+ENTRYPOINT ["dotnet", "CartService.dll"]
