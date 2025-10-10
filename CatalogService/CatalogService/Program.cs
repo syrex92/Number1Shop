@@ -1,23 +1,16 @@
-using CatalogService.Api.Interfaces;
-using CatalogService.Api.Services;
 using CatalogService.Core.Domain.Interfaces;
 using CatalogService.DataAccess.Data;
 using CatalogService.DataAccess.Repositories;
+using CatalogService.Interfaces;
+using CatalogService.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connection = builder.Configuration.GetConnectionString("DefaultConnection")
-           ?? throw new InvalidProgramException("No connection for data base");
-
-var conn = connection
-    .Replace("{USERNAME}", builder.Configuration["mysecretconfig:postgres-username"])
-    .Replace("{PASSWORD}", builder.Configuration["mysecretconfig:postgres-password"]);
+var connection = builder.Configuration["CONNECTION_STRING"] ?? throw new InvalidProgramException("No connection for data base");
 
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseNpgsql(connection
-    .Replace("{USERNAME}", builder.Configuration["mysecretconfig:postgres-username"])
-    .Replace("{PASSWORD}", builder.Configuration["mysecretconfig:postgres-password"]))
+    options.UseNpgsql(connection)
     );
 
 builder.Services.AddScoped<IProductService, ProductsService>();
@@ -40,8 +33,10 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<DataContext>();
-    await db.Database.EnsureCreatedAsync();
+    using var context = scope.ServiceProvider.GetRequiredService<DataContext>();
+    if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
+        await context.Database.EnsureDeletedAsync();
+    await context.Database.EnsureCreatedAsync();
 
     //var pendingMigrations = await db.Database.GetPendingMigrationsAsync();
 

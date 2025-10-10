@@ -1,10 +1,10 @@
-﻿using CatalogService.Api.Interfaces;
-using CatalogService.Api.Mappers;
-using CatalogService.Api.Models;
-using CatalogService.Core.Domain.Entities;
+﻿using CatalogService.Core.Domain.Entities;
 using CatalogService.Core.Domain.Interfaces;
+using CatalogService.Interfaces;
+using CatalogService.Mappers;
+using CatalogService.Models;
 
-namespace CatalogService.Api.Services
+namespace CatalogService.Services
 {
     public class ProductsService : IProductService
     {

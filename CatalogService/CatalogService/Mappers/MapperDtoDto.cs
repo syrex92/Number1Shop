@@ -1,7 +1,7 @@
-﻿using CatalogService.Api.Models;
-using CatalogService.Core.Domain.Entities;
+﻿using CatalogService.Core.Domain.Entities;
+using CatalogService.Models;
 
-namespace CatalogService.Api.Mappers
+namespace CatalogService.Mappers
 {
     internal static class MapperDtoDto
     {

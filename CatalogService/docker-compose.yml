@@ -1,6 +1,8 @@
 services:
-  catalogservice.api:
-    image: ${DOCKER_REGISTRY-}catalogserviceapi
+  catalog-service:
+    image: shop-catalog-service
+    environment:
+      CONNECTION_STRING: Host=postgres_catalog:5432;Username=postgres;Password=postgres;Database=catalog_db
     build:
       context: .
       dockerfile: CatalogService/Dockerfile

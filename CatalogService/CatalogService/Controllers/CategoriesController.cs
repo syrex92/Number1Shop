@@ -1,7 +1,7 @@
-using CatalogService.Api.Interfaces;
+using CatalogService.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CatalogService.Api.Controllers;
+namespace CatalogService.Controllers;
 
 [ApiController]
 [Route("[controller]")]

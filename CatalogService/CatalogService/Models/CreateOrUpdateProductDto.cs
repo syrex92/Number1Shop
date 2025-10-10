@@ -1,4 +1,4 @@
-﻿namespace CatalogService.Api.Models
+﻿namespace CatalogService.Models
 {
     public class CreateOrUpdateProductDto : BaseProduct
     {

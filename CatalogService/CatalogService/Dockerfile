@@ -12,21 +12,21 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["CatalogService/CatalogService.Api.csproj", "CatalogService/"]
+COPY ["CatalogService/CatalogService.csproj", "CatalogService/"]
 COPY ["CatalogService.Core/CatalogService.Core.csproj", "CatalogService.Core/"]
 COPY ["CatalogService.DataAccess/CatalogService.DataAccess.csproj", "CatalogService.DataAccess/"]
-RUN dotnet restore "./CatalogService/CatalogService.Api.csproj"
+RUN dotnet restore "./CatalogService/CatalogService.csproj"
 COPY . .
 WORKDIR "/src/CatalogService"
-RUN dotnet build "./CatalogService.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./CatalogService.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./CatalogService.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./CatalogService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "CatalogService.Api.dll"]
+ENTRYPOINT ["dotnet", "CatalogService.dll"]

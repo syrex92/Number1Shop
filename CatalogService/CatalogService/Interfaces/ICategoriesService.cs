@@ -1,6 +1,6 @@
-﻿using CatalogService.Api.Models;
+﻿using CatalogService.Models;
 
-namespace CatalogService.Api.Interfaces
+namespace CatalogService.Interfaces
 {
     public interface ICategoriesService
     {
