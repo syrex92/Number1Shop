@@ -12,9 +12,9 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["CatalogService/CatalogService.csproj", "CatalogService/"]
-COPY ["CatalogService.Core/CatalogService.Core.csproj", "CatalogService.Core/"]
-COPY ["CatalogService.DataAccess/CatalogService.DataAccess.csproj", "CatalogService.DataAccess/"]
+COPY ["CatalogService/CatalogService/CatalogService.csproj", "CatalogService/"]
+COPY ["CatalogService/CatalogService.Core/CatalogService.Core.csproj", "CatalogService.Core/"]
+COPY ["CatalogService/CatalogService.DataAccess/CatalogService.DataAccess.csproj", "CatalogService.DataAccess/"]
 RUN dotnet restore "./CatalogService/CatalogService.csproj"
 COPY . .
 WORKDIR "/src/CatalogService"

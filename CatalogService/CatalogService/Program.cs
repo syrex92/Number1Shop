@@ -7,11 +7,16 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connection = builder.Configuration["CONNECTION_STRING"] ?? throw new InvalidProgramException("No connection for data base");
-
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseNpgsql(connection)
-    );
+{
+    if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Test"))
+    {
+        options
+            .UseSqlite("Data Source=catalog-service-db.db");
+    }
+    else
+        options.UseNpgsql(builder.Configuration["CONNECTION_STRING"] ?? throw new InvalidProgramException("No connection for data base"));
+});
 
 builder.Services.AddScoped<IProductService, ProductsService>();
 builder.Services.AddScoped<ICategoriesService, CategoriesService>();

@@ -56,6 +56,30 @@
       - shop-network
       - shop-pg-network
   
+  catalog-service:
+    image: shop-catalog-service
+    build:
+      context: .
+      dockerfile: CatalogService/CatalogService/Dockerfile
+    pull_policy: build
+    environment:
+      CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=CartDb
+
+    healthcheck:
+      test: "curl -f http://localhost:8080/health"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - shop-network
+      - shop-pg-network
+  
   postgres:
     image: postgres:latest
     environment:
