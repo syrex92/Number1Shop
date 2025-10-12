@@ -85,8 +85,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CartService.Tests", "CartSe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FavoriteService.Tests", "FavoriteService\FavoriteService.Tests\FavoriteService.Tests.csproj", "{11415579-876E-4071-B181-FB89F482AB6F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserService.Tests", "UserService.Tests\UserService.Tests.csproj", "{DC911953-A40A-45E2-A5B7-702C0B318984}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -185,10 +183,6 @@ Global
 		{11415579-876E-4071-B181-FB89F482AB6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11415579-876E-4071-B181-FB89F482AB6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11415579-876E-4071-B181-FB89F482AB6F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DC911953-A40A-45E2-A5B7-702C0B318984}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DC911953-A40A-45E2-A5B7-702C0B318984}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DC911953-A40A-45E2-A5B7-702C0B318984}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DC911953-A40A-45E2-A5B7-702C0B318984}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -218,7 +212,6 @@ Global
 		{727B50B7-A82E-491C-9987-906E64586F8F} = {9382D81A-6EDC-45A9-B9A0-E702D9A722D7}
 		{4E57898A-18B3-42AB-B448-7FE3371482DD} = {055C864F-3CFB-45B3-98BE-4094D99D1CE0}
 		{11415579-876E-4071-B181-FB89F482AB6F} = {A64B14F5-777A-4832-9952-E6D0185BCC6E}
-		{DC911953-A40A-45E2-A5B7-702C0B318984} = {1BE6DA30-8EA6-4F2F-B419-36684C0C04E6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DF83A644-69EE-48D4-AE71-08C71A7ED927}
