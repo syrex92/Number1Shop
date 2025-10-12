@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace UsersService.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,8 +15,8 @@ namespace UsersService.Persistence.Migrations
                 name: "Roles",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    RoleName = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false)
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    RoleName = table.Column<string>(type: "TEXT", maxLength: 150, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -27,10 +27,10 @@ namespace UsersService.Persistence.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserName = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
-                    Email = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
-                    PasswordHash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false)
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    UserName = table.Column<string>(type: "TEXT", maxLength: 150, nullable: false),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 150, nullable: false),
+                    PasswordHash = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -41,13 +41,13 @@ namespace UsersService.Persistence.Migrations
                 name: "RefreshTokens",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    TokenHash = table.Column<string>(type: "text", nullable: false),
-                    Expires = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    RevokedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    IsRevoked = table.Column<bool>(type: "boolean", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    TokenHash = table.Column<string>(type: "TEXT", nullable: false),
+                    Expires = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    RevokedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Created = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    IsRevoked = table.Column<bool>(type: "INTEGER", nullable: false),
+                    UserId = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -64,10 +64,10 @@ namespace UsersService.Persistence.Migrations
                 name: "UserRoles",
                 columns: table => new
                 {
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    RoleId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Id = table.Column<Guid>(type: "uuid", nullable: false)
+                    UserId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    RoleId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

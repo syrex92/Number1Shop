@@ -1,16 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using UsersService.Application.Persistence;
-using UsersService.Application.Persistence.Common;
 using UsersService.Application.Services;
 using UsersService.Domain.Models;
 
@@ -38,7 +33,7 @@ namespace UsersService.Infrastructure.Services
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Sid, user.Id.ToString()),
+                new Claim(ClaimTypes.Sid, user.Id.ToString("D")),
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.Email, user.Email)
             };

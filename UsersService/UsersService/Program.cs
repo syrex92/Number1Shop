@@ -11,8 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
-builder.Services.AddPersistanceServices(builder.Configuration);
-builder.Services.AddInfastructureServices(builder.Configuration);
+builder.Services.AddPersistanceServices(builder.Configuration, builder.Environment);
+builder.Services.AddInfastructureServices(builder.Configuration, builder.Environment);
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
@@ -65,7 +65,7 @@ builder.Services.AddResponseCompression(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
 {
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -95,3 +95,8 @@ app.MapControllers();
 app.Map("/error", () => Results.Problem("An error occurred.", statusCode: 500));
 
 app.Run();
+
+/// <summary>
+/// Для тестов
+/// </summary>
+public abstract partial class Program;

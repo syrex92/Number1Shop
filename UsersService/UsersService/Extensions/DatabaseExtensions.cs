@@ -16,9 +16,9 @@ namespace UsersService.Extensions
                 var context = services.GetRequiredService<DataBaseContext>();
                 var seeder = services.GetRequiredService<IDataSeeder>();
 
-                // Применяем миграции (опционально)
-                await context.Database.MigrateAsync();
-
+                context.Database.EnsureDeleted();
+                context.Database.EnsureCreated();
+                
                 // Заполняем начальными данными
                 await seeder.SeedAsync();
             }

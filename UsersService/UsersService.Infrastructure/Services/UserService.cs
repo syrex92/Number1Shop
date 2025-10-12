@@ -1,9 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UsersService.Application.Persistence;
 using UsersService.Application.Services;
 using UsersService.Domain.Models;
@@ -16,6 +11,14 @@ namespace UsersService.Infrastructure.Services
         public UserService(IUserRepository repository)
         {
             _repository = repository;
+        }
+
+        /// <summary>
+        /// Добавление нового User
+        /// </summary>
+        public async Task<User> AddUser(User user)
+        {
+            return await _repository.AddAsync(user);
         }
 
         /// <summary>

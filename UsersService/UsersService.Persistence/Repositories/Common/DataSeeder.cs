@@ -2,13 +2,14 @@
 using Microsoft.Extensions.Logging;
 using UsersService.Application.Persistence;
 using UsersService.Application.Persistence.Common;
+using UsersService.Domain;
 using UsersService.Domain.Models;
 
 namespace UsersService.Persistence.Repositories.Common
 {
     public class DataSeeder : IDataSeeder
     {
-        public static string AdminPassword = "1234";
+
 
         private readonly IUserRepository _userRepository;
         private readonly IRoleRepository _roleRepository;
@@ -39,16 +40,12 @@ namespace UsersService.Persistence.Repositories.Common
             }
         }
 
+
         private async Task SeedRolesAsync()
         {
             if (!await _roleRepository.AnyAsync())
             {
-                var roles = new List<Role>
-            {
-                new Role { RoleName = "User" },
-                new Role { RoleName = "Admin" }
-            };
-                await _roleRepository.AddAllAsync(roles);
+                await _roleRepository.AddAllAsync(SeedModels.Roles);
 
                 _logger.LogInformation("Seeded roles: User, Admin");
             }
@@ -66,21 +63,18 @@ namespace UsersService.Persistence.Repositories.Common
                     throw new InvalidOperationException("Admin role not found during seeding");
                 }
 
-                var adminUser = new User
+                var adminUser = SeedModels.Admin;
+                adminUser.UserRoles = new List<UserRole>
                 {
-                    UserName = "admin",
-                    Email = "admin@example.com",
-                    UserRoles = new List<UserRole>
+                    new UserRole
                     {
-                        new UserRole
-                        {
-                            RoleId = adminRole.Id,
-                            Role = adminRole,
-                            CreatedAt = DateTime.UtcNow
-                        }
+                        RoleId = adminRole.Id,
+                        Role = adminRole,
+                        CreatedAt = DateTime.UtcNow
                     }
-                };
-                adminUser.PasswordHash = _passwordHasher.HashPassword(adminUser, AdminPassword);
+                }
+            ;
+                adminUser.PasswordHash = _passwordHasher.HashPassword(adminUser, SeedModels.AdminPassword);
 
                 await _userRepository.AddAsync(adminUser);
 

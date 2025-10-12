@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using UsersService.Persistence.DataContext;
 
 #nullable disable
@@ -12,43 +11,39 @@ using UsersService.Persistence.DataContext;
 namespace UsersService.Persistence.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    [Migration("20251006184253_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251012133552_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
-
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
 
             modelBuilder.Entity("UsersService.Domain.Models.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Expires")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("IsRevoked")
-                        .HasColumnType("boolean");
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("RevokedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("TokenHash")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -61,12 +56,12 @@ namespace UsersService.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("RoleName")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -80,22 +75,22 @@ namespace UsersService.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -111,16 +106,16 @@ namespace UsersService.Persistence.Migrations
             modelBuilder.Entity("UsersService.Domain.Models.UserRole", b =>
                 {
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid>("RoleId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("UserId", "RoleId");
 

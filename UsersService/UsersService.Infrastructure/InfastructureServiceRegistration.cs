@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using UsersService.Application.Services;
@@ -12,7 +13,7 @@ namespace UsersService.Infrastructure
 {
     public static class InfastructureServiceRegistration
     {
-        public static IServiceCollection AddInfastructureServices(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddInfastructureServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
         {
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
