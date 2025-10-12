@@ -27,9 +27,9 @@ namespace UsersService.Infrastructure.Services
             return await _repository.GetByEmailAsync(email);
         }
 
-        public async Task<User> GetUserByIdAsync(Guid id)
+        public async Task<User?> GetUserByIdAsync(Guid id)
         {
-            return await _repository.GetByIdAsync(id);
+            return await _repository.GetUserByIdAsync(id);
         }
 
         /// <summary>

@@ -36,7 +36,7 @@ namespace UsersService.Controllers
                     return Unauthorized("Invalid email.");
 
                 // проверяем его пароль
-                if (_userService.VerifyPassword(user, request.Password))
+                if (!_userService.VerifyPassword(user, request.Password))
                     return Unauthorized("Invalid password");
 
                 var accessToken = _authService.GetAccessToken(user);
@@ -91,7 +91,7 @@ namespace UsersService.Controllers
                     return BadRequest(new { message = "Request body is required" });
 
                 // Извлечение идентификатора пользователя
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userIdClaim = User.FindFirst(ClaimTypes.Sid)?.Value;
                 if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
                 {
                     _logger.LogWarning("Invalid user ID claim in logout request");
@@ -189,7 +189,7 @@ namespace UsersService.Controllers
                 }
 
                 // 3. Извлечение userId из claims
-                var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userIdClaim = principal.FindFirst(ClaimTypes.Sid)?.Value;
                 if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
                 {
                     _logger.LogWarning("Invalid user ID in token claims. OperationId");

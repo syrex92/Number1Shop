@@ -10,6 +10,7 @@ namespace UsersService.Application.Persistence
 {
     public interface IUserRepository : IRepository<User>
     {
-        Task<User> GetByEmailAsync(string email);
+        Task<User?> GetByEmailAsync(string email);
+        Task<User?> GetUserByIdAsync(Guid id);
     }
 }

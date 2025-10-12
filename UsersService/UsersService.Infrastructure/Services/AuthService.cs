@@ -38,13 +38,13 @@ namespace UsersService.Infrastructure.Services
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Sid, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.Email, user.Email)
             };
 
             // Добавляем роль из связанной таблицы
-            if (user.ToString().FirstOrDefault() != null)
+            if (user.UserRoles.FirstOrDefault() != null)
             {
                 claims.Add(new Claim(ClaimTypes.Role, user.UserRoles.Select(x => x.Role).FirstOrDefault().RoleName));
             }
@@ -71,8 +71,8 @@ namespace UsersService.Infrastructure.Services
         }
         public async Task<bool> AddRefreshTokenAsync(string refreshToken, Guid id)
         {
-            // Хэшируем refresh token аналогично паролю
-            var refreshTokenHash = _passwordHasher.HashPassword(null, refreshToken);
+            // Используем SHA256 для хэширования refresh token
+            var refreshTokenHash = HashRefreshToken(refreshToken);
 
             var refreshTokenEntity = new RefreshToken
             {
@@ -88,7 +88,7 @@ namespace UsersService.Infrastructure.Services
 
         public async Task<bool> ValidateRefreshTokenAsync(string refreshToken, Guid userId)
         {
-            var tokenHash = _passwordHasher.HashPassword(null, refreshToken);
+            var tokenHash = HashRefreshToken(refreshToken);
             var tokenDb = await _repositoryToken.GetTokenAsync(tokenHash, userId);
 
             return tokenDb != null;
@@ -96,21 +96,15 @@ namespace UsersService.Infrastructure.Services
 
         public async Task<bool> RevokeRefreshTokenAsync(string refreshToken, Guid userId)
         {
-            var tokensDB = await _repositoryToken.GetAllTokenAsync(userId);
+            var tokenHash = HashRefreshToken(refreshToken);
+            var tokenDb = await _repositoryToken.GetTokenAsync(tokenHash, userId);
 
-            foreach (var token in tokensDB)
+            if (tokenDb != null && !tokenDb.IsRevoked)
             {
-                var result = _passwordHasher.VerifyHashedPassword(null, token.TokenHash, refreshToken);
-
-                // Если токен найден и валиден - отзываем его
-                if (result != PasswordVerificationResult.Failed)
-                {
-                    token.IsRevoked = true; // Помечаем как отозванный
-                    token.RevokedAt = DateTime.UtcNow; // Записываем время отзыва
-
-                    await _repositoryToken.UpdateAsync(token);
-                    return true;
-                }
+                tokenDb.IsRevoked = true;
+                tokenDb.RevokedAt = DateTime.UtcNow;
+                await _repositoryToken.UpdateAsync(tokenDb);
+                return true;
             }
             return false;
         }
@@ -148,6 +142,15 @@ namespace UsersService.Infrastructure.Services
             }
 
             return principal;
+
+        }
+        // Единый метод для хэширования refresh token
+        private string HashRefreshToken(string refreshToken)
+        {
+            using var sha256 = SHA256.Create();
+            var bytes = Encoding.UTF8.GetBytes(refreshToken);
+            var hash = sha256.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
         }
     }
 }
