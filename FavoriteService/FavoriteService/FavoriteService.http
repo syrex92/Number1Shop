@@ -1,6 +1,0 @@
-@FavoriteService_HostAddress = http://localhost:5088
-
-GET {{FavoriteService_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
