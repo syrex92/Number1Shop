@@ -7,25 +7,53 @@ using UsersService.Domain.Common;
 
 namespace UsersService.Domain.Models
 {
+    /// <summary>
+    /// Модель refresh token для управления сессиями пользователей
+    /// Хранит хэшированные refresh tokens с информацией об их сроке действия и статусе
+    /// </summary>
     public class RefreshToken : BaseEntity
     {
-        // Хэшированная строка refresh-токена.
+        /// <summary>
+        /// Хэшированное значение refresh token
+        /// Хранится в безопасном виде для верификации при обновлении access token
+        /// </summary>
         public string TokenHash { get; set; }
-        
-        // Дата и время истечения срока действия токена.
+
+        /// <summary>
+        /// Дата и время истечения срока действия токена
+        /// После этой даты токен становится невалидным и не может быть использован
+        /// </summary>
         public DateTime Expires { get; set; }
 
-        // Дата и время отзыва токена.
+        /// <summary>
+        /// Дата и время отзыва токена
+        /// Заполняется при явном выходе пользователя или отзыве токена
+        /// </summary>
         public DateTime RevokedAt { get; set; }
 
-        // Дата и время создания токена.
+        /// <summary>
+        /// Дата и время создания токена
+        /// </summary>
         public DateTime Created { get; set; }
 
-        // Флаг, был ли токен отозван.
+        /// <summary>
+        /// Флаг, указывающий был ли токен отозван
+        /// True - токен отозван и не может быть использован
+        /// False - токен активен и может использоваться для обновления access token
+        /// </summary>
         public bool IsRevoked { get; set; }
-        
-        //Внешний ключ на Users
+
+        /// <summary>
+        /// Внешний ключ для связи с пользователем
+        /// Идентификатор пользователя, которому принадлежит токен
+        /// </summary>
         public Guid UserId { get; set; }
+
+        /// <summary>
+        /// Навигационное свойство для пользователя
+        /// Пользователь, связанный с данным refresh token
+        /// </summary>
         public User User { get; set; }
     }
+
 }

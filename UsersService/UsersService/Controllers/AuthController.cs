@@ -22,6 +22,15 @@ namespace UsersService.Controllers
             _userService = userService;
         }
 
+        /// <summary>
+        /// Аутентификация пользователя и выдача токенов доступа
+        /// </summary>
+        /// <param name="request">Данные для входа (email и пароль)</param>
+        /// <returns>Access token и refresh token при успешной аутентификации</returns>
+        /// <response code="200">Успешный вход, возвращены токены</response>
+        /// <response code="400">Не заполнены обязательные поля</response>
+        /// <response code="401">Неверный email или пароль</response>
+        /// <response code="500">Внутренняя ошибка сервера</response>
         [HttpPost("login")]
         public async Task<IActionResult> LogIn([FromBody] LoginRequest request)
         {
@@ -81,6 +90,15 @@ namespace UsersService.Controllers
             }
         }
 
+        /// <summary>
+        /// Выход пользователя из системы и отзыв токенов
+        /// </summary>
+        /// <param name="request">Данные для выхода (refresh token и флаг отзыва всех сессий)</param>
+        /// <returns>Результат операции выхода</returns>
+        /// <response code="200">Успешный выход из системы</response>
+        /// <response code="400">Отсутствует refresh token</response>
+        /// <response code="401">Невалидный токен аутентификации</response>
+        /// <response code="500">Внутренняя ошибка сервера</response>
         [HttpPost("logout")]
         [Authorize]
         public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
@@ -115,7 +133,7 @@ namespace UsersService.Controllers
                 if (!isRevoke)
                     _logger.LogWarning("Failed to revoke refresh token for user {0}.", userId);
 
-                // Дополнительные действия 
+                // Дополнительные действия для отзыва всех сессий
                 if (request.RevokeAllSessions)
                 {
                     await _authService.RevokeAllForUserAsync(userId);
@@ -144,6 +162,15 @@ namespace UsersService.Controllers
             }
         }
 
+        /// <summary>
+        /// Обновление access token с использованием refresh token
+        /// </summary>
+        /// <param name="request">Текущие access token и refresh token</param>
+        /// <returns>Новая пара токенов доступа</returns>
+        /// <response code="200">Токены успешно обновлены</response>
+        /// <response code="400">Отсутствуют обязательные токены</response>
+        /// <response code="401">Невалидные или просроченные токены</response>
+        /// <response code="500">Внутренняя ошибка сервера</response>
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
         {

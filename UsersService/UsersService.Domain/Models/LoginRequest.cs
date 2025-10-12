@@ -6,9 +6,21 @@ using System.Threading.Tasks;
 
 namespace UsersService.Domain.Models
 {
+    /// <summary>
+    /// Модель запроса для аутентификации пользователя
+    /// </summary>
     public class LoginRequest
     {
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
+        /// <summary>
+        /// Email пользователя
+        /// </summary>
+        /// <example>user@example.com</example>
+        public string Email { get; set; }
+
+        /// <summary>
+        /// Пароль пользователя
+        /// </summary>
+        /// <example>password123</example>
+        public string Password { get; set; }
     }
 }
