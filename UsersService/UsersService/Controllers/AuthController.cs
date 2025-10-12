@@ -11,11 +11,11 @@ namespace UsersService.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly ILogger<AuthController> _logger;
+        private readonly IAppLogger<AuthController> _logger;
         private readonly IAuthService _authService;
         private readonly IUserService _userService;
 
-        public AuthController(ILogger<AuthController> logger, IAuthService authService, IUserService userService)
+        public AuthController(IAppLogger<AuthController> logger, IAuthService authService, IUserService userService)
         {
             _logger = logger;
             _authService = authService;
@@ -79,7 +79,7 @@ namespace UsersService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during login for email {0}", request.Email);
+                _logger.LogError(ex.Message, "Error during login for email {0}", request.Email);
 
                 return StatusCode(500, new LoginResponse
                 {
@@ -152,7 +152,7 @@ namespace UsersService.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "unknown";
 
-                _logger.LogError(ex, "Unexpected error during logout for user {UserId}", userId);
+                _logger.LogError(ex.Message, "Unexpected error during logout for user {UserId}", userId);
 
                 return StatusCode(500, new
                 {
@@ -303,7 +303,7 @@ namespace UsersService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error during token refresh.");
+                _logger.LogError(ex.Message, "Unexpected error during token refresh.");
 
                 return StatusCode(500, new BaseResponse
                 {

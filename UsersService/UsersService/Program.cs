@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Host.AddLoggerServices(builder.Configuration, builder.Environment); // регистрация Log
 builder.Services.AddPersistanceServices(builder.Configuration, builder.Environment);
 builder.Services.AddInfastructureServices(builder.Configuration, builder.Environment);
 builder.Services.AddSwaggerGen(options =>
@@ -91,7 +92,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// 11. Global Error Handling Endpoint
+// Global Error Handling Endpoint
 app.Map("/error", () => Results.Problem("An error occurred.", statusCode: 500));
 
 app.Run();
@@ -99,4 +100,4 @@ app.Run();
 /// <summary>
 /// Для тестов
 /// </summary>
-public abstract partial class Program;
+public abstract partial class Program { };
