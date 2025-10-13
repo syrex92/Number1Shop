@@ -76,14 +76,14 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
         options.OAuthClientId("swagger-ui");
         options.OAuthAppName("Swagger UI");
     });
-    // Инициализация базы данных
-    await app.InitializeDatabaseAsync();
 }
 else
 {
     app.UseExceptionHandler("/error");
     app.UseHsts();
 }
+// Инициализация базы данных
+await app.InitializeDatabaseAsync();
 
 app.UseHttpsRedirection();
 

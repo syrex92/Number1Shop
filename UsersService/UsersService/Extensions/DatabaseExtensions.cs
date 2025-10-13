@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using UsersService.Application.Persistence.Common;
+﻿using UsersService.Application.Persistence.Common;
 using UsersService.Persistence.DataContext;
 
 namespace UsersService.Extensions
@@ -16,11 +15,14 @@ namespace UsersService.Extensions
                 var context = services.GetRequiredService<DataBaseContext>();
                 var seeder = services.GetRequiredService<IDataSeeder>();
 
-                context.Database.EnsureDeleted();
-                context.Database.EnsureCreated();
-                
-                // Заполняем начальными данными
-                await seeder.SeedAsync();
+                if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
+                {
+                    context.Database.EnsureDeleted();
+                    context.Database.EnsureCreated();
+
+                    // Заполняем начальными данными
+                    await seeder.SeedAsync();
+                }
             }
             catch (Exception ex)
             {

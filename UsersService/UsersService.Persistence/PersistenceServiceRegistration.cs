@@ -19,11 +19,11 @@ namespace UsersService.Persistence
             {
                 if (environment.IsDevelopment() || environment.IsEnvironment("Test"))
                 {
-                    options.UseSqlite("Data Source=auth-service-db.db");
+                    options.UseSqlite("Data Source=authDB.db");
                 }
                 else
                 {
-                    options.UseNpgsql(configuration.GetConnectionString("AppDBcontext"));
+                    options.UseNpgsql(configuration.GetConnectionString("CONNECTION_STRING"));
                 }
             });
 

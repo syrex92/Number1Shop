@@ -5,9 +5,9 @@ namespace UsersService.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class HealhController : ControllerBase
+    public class HealthController : ControllerBase
     {
-        public HealhController()
+        public HealthController()
         {
         }
         /// <summary>
