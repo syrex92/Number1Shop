@@ -72,8 +72,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{72
 	ProjectSection(SolutionItems) = preProject
 		ApiGate\services\cart-location.conf = ApiGate\services\cart-location.conf
 		ApiGate\services\cart-upstream.conf = ApiGate\services\cart-upstream.conf
+		ApiGate\services\catalog-location.conf = ApiGate\services\catalog-location.conf
+		ApiGate\services\catalog-upstream.conf = ApiGate\services\catalog-upstream.conf
 		ApiGate\services\favorite-location.conf = ApiGate\services\favorite-location.conf
 		ApiGate\services\favorite-upstream.conf = ApiGate\services\favorite-upstream.conf
+		ApiGate\services\users-location.conf = ApiGate\services\users-location.conf
+		ApiGate\services\users-upstream.conf = ApiGate\services\users-upstream.conf
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deploy", "Deploy", "{67275947-0B6C-4299-971D-9294542F8B9F}"

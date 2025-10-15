@@ -25,7 +25,6 @@ namespace CatalogService.Mappers
             {
                 Id = category.Id,
                 Name = category.Name,
-                Products = category.Products.Select(p => p.ToDto()).ToList()
             };
         }
     }

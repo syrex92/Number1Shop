@@ -30,13 +30,12 @@ namespace CatalogService.DataAccess.Repositories
 
         public async Task<Category?> GetCategoryByIdAsync(Guid categoryId)
         {
-            return await _dataContext.Categories.Include(c => c.Products)
-                .FirstOrDefaultAsync(p => p.Id == categoryId);
+            return await _dataContext.Categories.FirstOrDefaultAsync(p => p.Id == categoryId);
         }
 
         public async Task<List<Category>> GetCategoriesAsync()
         {
-            return await _dataContext.Categories.Include(c => c.Products).ToListAsync();
+            return await _dataContext.Categories.ToListAsync();
         }
 
         public async Task<Category> UpdateAsync(Category category)
@@ -48,8 +47,7 @@ namespace CatalogService.DataAccess.Repositories
 
         public async Task<Category?> GetCategoryByNameAsync(string name)
         {
-            return await _dataContext.Categories.Include(c => c.Products)
-                .FirstOrDefaultAsync(p => p.Name.ToLower() == name.ToLower());
+            return await _dataContext.Categories.FirstOrDefaultAsync(p => p.Name.ToLower() == name.ToLower());
         }
     }
 }

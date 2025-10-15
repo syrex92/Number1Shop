@@ -35,26 +35,26 @@ namespace CatalogService.DataAccess.Repositories
                 .FirstOrDefaultAsync(p => p.Id == productId);
         }
 
-        public async Task<List<Product>> GetProductsAsync(int? page, int? pageSize)
+        public async Task<List<Product>> GetProductsAsync(Guid? categoryId = null, string? categoryName = null, int? page = null, int? pageSize = null)
         {
-            if (page.HasValue && pageSize.HasValue)
+            var query = _dataContext.Products.Include(p => p.ProductImages).Include(p => p.Category).AsQueryable();
+
+            if (categoryId.HasValue)
             {
-                return await GetProductsWithPaging(page.Value, pageSize.Value).ToListAsync();
+                query = query.Where(p => p.CategoryId == categoryId);
             }
 
-            return await _dataContext.Products.Include(p => p.ProductImages).Include(p => p.Category).ToListAsync();
-        }
-
-        public async Task<List<Product>> GetProductsByCategoryAsync(string categoryName, int? page, int? pageSize)
-        {
-            if (page.HasValue && pageSize.HasValue)
+            if (!string.IsNullOrEmpty(categoryName))
             {
-                var query = GetProductsWithPaging(page.Value, pageSize.Value);
-
-                return await query.Where(p => p.Category.Name.ToLower() == categoryName.ToLower()).ToListAsync();
+                query = query.Where(p => p.Category.Name.ToLower() == categoryName.ToLower());
             }
 
-            return await _dataContext.Products.Include(p => p.ProductImages).Include(p => p.Category).ToListAsync();
+            if (page.HasValue && pageSize.HasValue)
+            {
+                query = GetProductsWithPaging(query, page.Value, pageSize.Value);
+            }
+
+            return await query.ToListAsync();
         }
 
         public async Task<Product> UpdateAsync(Product product)
@@ -64,13 +64,11 @@ namespace CatalogService.DataAccess.Repositories
             return res.Entity;
         }
 
-        private IQueryable<Product> GetProductsWithPaging(int page, int pageSize)
+        private IQueryable<Product> GetProductsWithPaging(IQueryable<Product> products, int page, int pageSize)
         {
             var skip = (Math.Max(1, page) - 1) * Math.Max(1, pageSize);
 
-            return _dataContext.Products
-                .Include(p => p.Category)
-                .Include(p => p.ProductImages)
+            return products
                 .OrderByDescending(a => a.UpdatedAt ?? a.CreatedAt)
                 .Skip(skip)
                 .Take(Math.Max(1, pageSize));

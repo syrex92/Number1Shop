@@ -1,8 +1,12 @@
 using CatalogService.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace CatalogService.Controllers;
 
+/// <summary>
+/// Категории продуктов
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class CategoriesController : ControllerBase
@@ -20,15 +24,17 @@ public class CategoriesController : ControllerBase
     /// Получить продукты по категории
     /// </summary>
     /// <param name="id">Идентификатор категории</param>
+    /// <param name="page">Номер страницы</param>
+    /// <param name="pageSize">Размер страницы</param>
     /// <returns>Продукты категории</returns>
     /// <response code="200">Success</response>
     /// <response code="500">Internal Server Error</response>
     [HttpGet("{id:guid}")]
     [ActionName(nameof(GetAsync))]
-    public async Task<IActionResult> GetAsync(Guid id)
+    public async Task<IActionResult> GetAsync(Guid id, int? page = null, int? pageSize = null)
     {
         _logger.LogInformation("Try get products by category with id: {id}", id);
-        var product = await _categoriesService.GetProductsByCategoryIdAsync(id);
+        var product = await _categoriesService.GetProductsByCategoryIdAsync(id, page, pageSize);
 
         if (product == null)
         {

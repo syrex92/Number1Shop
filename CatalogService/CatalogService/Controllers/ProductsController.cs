@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CatalogService.Controllers;
 
+/// <summary>
+/// Продукты каталога
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class ProductsController : ControllerBase
@@ -59,10 +62,10 @@ public class ProductsController : ControllerBase
     /// <response code="200">Success</response>
     /// <response code="500">Internal Server Error</response>
     [HttpGet]
-    public async Task<IActionResult> GetAllAsync()
+    public async Task<IActionResult> GetAllAsync(int? page = null, int? pageSize = null)
     {
         _logger.LogInformation("Try get products");
-        var products = await _productService.GetAllProductsAsync();
+        var products = await _productService.GetAllProductsAsync(page, pageSize);
         return Ok(products);
     }
 

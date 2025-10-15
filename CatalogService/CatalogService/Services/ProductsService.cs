@@ -6,7 +6,7 @@ using CatalogService.Models;
 
 namespace CatalogService.Services
 {
-    public class ProductsService : IProductService
+    internal class ProductsService : IProductService
     {
         private readonly IProductsRepository _productsRepository;
         private readonly ICategoriesRepository _categoriesRepository;
@@ -50,9 +50,9 @@ namespace CatalogService.Services
             return true;
         }
 
-        public async Task<IList<ProductDto>> GetAllProductsAsync()
+        public async Task<IList<ProductDto>> GetAllProductsAsync(int? page = null, int? pageSize = null)
         {
-            return (await _productsRepository.GetProductsAsync()).Select(p => p.ToDto()).ToList();
+            return (await _productsRepository.GetProductsAsync(page:page, pageSize:pageSize)).Select(p => p.ToDto()).ToList();
         }
 
         public async Task<ProductDto?> GetProductByIdAsync(Guid productId)

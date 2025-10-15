@@ -8,7 +8,7 @@ namespace CatalogService.Interfaces
 
         public Task<ProductDto?> GetProductByIdAsync(Guid productId);
 
-        public Task<IList<ProductDto>> GetAllProductsAsync();
+        public Task<IList<ProductDto>> GetAllProductsAsync(int? page = null, int? pageSize = null);
 
         public Task<ProductDto?> UpdateProductAsync(Guid productId, CreateOrUpdateProductDto updateDto);
 

@@ -10,9 +10,7 @@ namespace CatalogService.Core.Domain.Interfaces
 
         public Task<Product?> GetProductByIdAsync(Guid productId);
 
-        public Task<List<Product>> GetProductsAsync(int? page = null, int? pageSize = null);
-
-        public Task<List<Product>> GetProductsByCategoryAsync(string categoryName, int? page, int? pageSize);
+        public Task<List<Product>> GetProductsAsync(Guid? productId = null, string? categoryName = null, int? page = null, int? pageSize = null);
 
         public Task<bool> DeleteProductAsync(Product product);
     }
