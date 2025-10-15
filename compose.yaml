@@ -55,6 +55,30 @@
     networks:
       - shop-network
       - shop-pg-network
+
+  orders-service:
+    image: shop-orders-service
+    build:
+      context: .
+      dockerfile: OrdersService/Dockerfile
+    pull_policy: build
+    environment:
+      CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=Orders
+
+    healthcheck:
+      test: "curl -f http://localhost:8080/health"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - shop-network
+      - shop-pg-network
   
   postgres:
     image: postgres:latest

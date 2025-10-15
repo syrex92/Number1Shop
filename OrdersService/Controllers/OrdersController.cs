@@ -17,6 +17,14 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Order orderCreate)
     {
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
+        if (userIdClaim == null)
+        {
+            return Unauthorized("User ID claim not found.");
+        }
+        orderCreate.UserId = Guid.Parse(userIdClaim.Value);
+        orderCreate.CreatedAt = DateTime.UtcNow;
+
         _db.Orders.Add(orderCreate);
         await _db.SaveChangesAsync();
 
@@ -26,7 +34,15 @@ public class OrdersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll(int page = 1, int pageSize = 20)
     {
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
+        if (userIdClaim == null)
+        {
+            return Unauthorized("User ID claim not found.");
+        }
+        var userId = Guid.Parse(userIdClaim.Value);
+
         var query = _db.Orders
+            .Where(o => o.UserId == userId)
             .OrderByDescending(o => o.CreatedAt);
 
         var total = await query.CountAsync();
@@ -38,7 +54,15 @@ public class OrdersController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
+        if (userIdClaim == null)
+        {
+            return Unauthorized("User ID claim not found.");
+        }
+        var userId = Guid.Parse(userIdClaim.Value);
+
         var order = await _db.Orders
+            .Where(o => o.UserId == userId)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null) return NotFound();
@@ -52,6 +76,15 @@ public class OrdersController : ControllerBase
         var order = await _db.Orders.FirstOrDefaultAsync(o => o.Id == id);
         if (order == null) return NotFound();
 
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
+        if (userIdClaim == null)
+        {
+            return Unauthorized("User ID claim not found.");
+        }
+        var userId = Guid.Parse(userIdClaim.Value);
+
+        if (order.UserId != userId) return Forbid();
+
         if (!string.IsNullOrEmpty(orderUpdate.Status)) order.Status = orderUpdate.Status;
 
         await _db.SaveChangesAsync();
@@ -63,6 +96,15 @@ public class OrdersController : ControllerBase
     {
         var order = await _db.Orders.FindAsync(id);
         if (order == null) return NotFound();
+
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
+        if (userIdClaim == null)
+        {
+            return Unauthorized("User ID claim not found.");
+        }
+        var userId = Guid.Parse(userIdClaim.Value);
+
+        if (order.UserId != userId) return Forbid();
 
         _db.Orders.Remove(order);
         await _db.SaveChangesAsync();
