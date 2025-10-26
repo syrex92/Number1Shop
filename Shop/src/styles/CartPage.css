@@ -1,0 +1,9 @@
+.cart-page { display: flex; flex-direction: column; gap: var(--space-3); }
+.cart-list { display: flex; flex-direction: column; gap: var(--space-2); }
+.cart-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: var(--space-3); align-items: center; border: 1px solid var(--color-border); padding: var(--space-3); background: var(--color-surface); border-radius: var(--radius); }
+.cart-row .qty { display: flex; gap: var(--space-2); align-items: center; }
+.cart-row .remove { background: transparent; color: var(--color-text-muted); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 4px 8px; }
+.cart-footer { display: flex; justify-content: space-between; align-items: center; padding-top: var(--space-3); border-top: 1px solid var(--color-border); }
+.empty { color: var(--color-text-muted); }
+
+

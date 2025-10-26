@@ -1,54 +1,66 @@
 :root {
-  --color-bg: #0f1115;          /* near black */
-  --color-surface: #151922;     /* dark surface */
-  --color-border: #242a36;      /* darker border */
-  --color-text: #e8ebf0;        /* light text */
-  --color-text-muted: #9aa3b2;  /* muted text */
-  --color-primary: #ff7a00;     /* orange */
-  --color-primary-600: #e86e00; /* darker orange */
-  --radius: 10px;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --shadow-1: 0 6px 18px rgba(0,0,0,0.25);
+    --color-bg: #0f1115;
+    /* near black */
+    --color-surface: #151922;
+    /* dark surface */
+    --color-border: #242a36;
+    /* darker border */
+    --color-text: #e8ebf0;
+    /* light text */
+    --color-text-muted: #9aa3b2;
+    /* muted text */
+    --color-primary: #ff7a00;
+    /* orange */
+    --color-primary-600: #e86e00;
+    /* darker orange */
+    --radius: 10px;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --shadow-1: 0 6px 18px rgba(0, 0, 0, 0.25);
 }
 
-html, body, #root {
-  height: 100%;
+html,
+body,
+#root {
+    height: 100%;
 }
 
 body {
-  margin: 0;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial, sans-serif;
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial, sans-serif;
 }
 
-input, button {
-  color: inherit;
-  font: inherit;
+input,
+button {
+    color: inherit;
+    font: inherit;
 }
 
 .btn {
-  background: var(--color-primary);
-  color: #101216;
-  border: none;
-  border-radius: var(--radius);
-  padding: 10px 14px;
-  cursor: pointer;
+    background: var(--color-primary);
+    color: #101216;
+    border: none;
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    cursor: pointer;
 }
 
-.btn:hover { background: var(--color-primary-600); }
+.btn:hover {
+    background: var(--color-primary-600);
+}
 
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-1);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-1);
 }
 
-.muted { color: var(--color-text-muted); }
-
-
+.muted {
+    color: var(--color-text-muted);
+}
