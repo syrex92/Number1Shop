@@ -13,6 +13,11 @@ namespace UsersService.Domain.Models
     public class AuthResponse
     {
         /// <summary>
+        /// ID пользователя
+        /// </summary>
+        public Guid UserId { get; set; }
+
+        /// <summary>
         /// JWT токен для доступа к защищенным ресурсам API
         /// </summary>
         public string AccessToken { get; set; } = string.Empty;
@@ -30,22 +35,22 @@ namespace UsersService.Domain.Models
         /// <summary>
         /// Время жизни access token в секундах
         /// </summary>
-        public double ExpiresIn { get; set; } // В секундах
+        public double ExpiresIn { get; set; }
 
         /// <summary>
         /// Время жизни refresh token в секундах
         /// </summary>
-        public double RefreshTokenExpiresIn { get; set; } // В секундах
+        public double RefreshTokenExpiresIn { get; set; }
 
         /// <summary>
         /// Точная дата и время истечения срока действия access token
         /// </summary>
-        public DateTime ExpiresAt { get; set; } // Точное время истечения
+        public DateTime ExpiresAt { get; set; }
 
         /// <summary>
         /// Точная дата и время истечения срока действия refresh token
         /// </summary>
-        public DateTime RefreshTokenExpiresAt { get; set; } // Точное время истечения
+        public DateTime RefreshTokenExpiresAt { get; set; }
 
         /// <summary>
         /// Роль пользователя в системе
@@ -56,5 +61,10 @@ namespace UsersService.Domain.Models
         /// Имя пользователя
         /// </summary>
         public string Username { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Email пользователя
+        /// </summary>
+        public string Email { get; set; } = string.Empty;
     }
 }

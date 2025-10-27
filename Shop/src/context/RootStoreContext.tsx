@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useMemo, useEffect } from 'react';
 import { enableStaticRendering } from 'mobx-react-lite';
 import { createAuthStore } from '../stores/AuthStore';
 import { createProductsStore } from '../stores/ProductsStore';
@@ -19,7 +19,7 @@ interface RootStore {
 const RootStoreContext = createContext<RootStore | null>(null);
 
 export const RootStoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const value = useMemo(() => ({
+  const rootStore = useMemo(() => ({
     auth: createAuthStore(),
     products: createProductsStore(),
     cart: createCartStore(),
@@ -27,8 +27,13 @@ export const RootStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     orders: createOrdersStore()
   }), []);
 
+  // Инициализируем аутентификацию при монтировании провайдера
+  useEffect(() => {
+    rootStore.auth.initializeAuth();
+  }, [rootStore.auth]);
+
   return (
-    <RootStoreContext.Provider value={value}>
+    <RootStoreContext.Provider value={rootStore}>
       {children}
     </RootStoreContext.Provider>
   );

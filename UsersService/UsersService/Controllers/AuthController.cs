@@ -63,6 +63,7 @@ namespace UsersService.Controllers
                     Message = "Login successful",
                     Data = new AuthResponse
                     {
+                        UserId = user.Id,
                         AccessToken = accessToken,
                         RefreshToken = refreshToken,
                         TokenType = "Bearer",
@@ -71,6 +72,7 @@ namespace UsersService.Controllers
                         RefreshTokenExpiresIn = (int)TimeSpan.FromDays(45).TotalSeconds,
                         RefreshTokenExpiresAt = refreshTokenExpiration,
                         Username = user.UserName,
+                        Email = user.Email,
                         Role = user.UserRoles.Select(x => x.Role).FirstOrDefault()?.RoleName ?? string.Empty
                     }
                 };
@@ -289,6 +291,7 @@ namespace UsersService.Controllers
                     Message = "Login successful",
                     Data = new AuthResponse
                     {
+                        UserId = userId,
                         AccessToken = newAccessToken,
                         RefreshToken = newRefreshToken,
                         TokenType = "Bearer",
@@ -297,6 +300,7 @@ namespace UsersService.Controllers
                         RefreshTokenExpiresIn = (int)TimeSpan.FromDays(45).TotalSeconds,
                         RefreshTokenExpiresAt = refreshTokenExpiration,
                         Username = user.UserName,
+                        Email = user.Email,
                         Role = user.UserRoles.Select(x => x.Role).FirstOrDefault()?.RoleName ?? string.Empty
                     }
                 });
