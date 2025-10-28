@@ -4,7 +4,7 @@
     image: shop-cart-service
     build:
       context: .
-      dockerfile: CartService/Dockerfile
+      dockerfile: CartService/CartService/Dockerfile
     pull_policy: build
     environment:
       CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=CartDb
@@ -32,11 +32,11 @@
       - shop-network
       - shop-pg-network
   
-  favourite-service:
-    image: shop-favourite-service
+  favorite-service:
+    image: shop-favorite-service
     build:
       context: .
-      dockerfile: FavoriteService/Dockerfile
+      dockerfile: FavoriteService/FavoriteService/Dockerfile
     pull_policy: build
     environment:
       CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=CartDb
@@ -132,7 +132,7 @@
     depends_on:
       cart-service:
         condition: service_healthy
-      favourite-service:
+      favorite-service:
           condition: service_healthy
         
     restart: unless-stopped

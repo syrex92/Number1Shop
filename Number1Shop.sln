@@ -5,11 +5,11 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CartService", "CartService", "{055C864F-3CFB-45B3-98BE-4094D99D1CE0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shop.CartService", "CartService\Shop.CartService.csproj", "{0A162BFB-78B2-4495-8F2D-422862424490}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CartService", "CartService\CartService\CartService.csproj", "{0A162BFB-78B2-4495-8F2D-422862424490}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FavoriteService", "FavoriteService", "{A64B14F5-777A-4832-9952-E6D0185BCC6E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shop.FavoriteService", "FavoriteService\Shop.FavoriteService.csproj", "{1A6351FB-2242-4D35-8340-5B488C293E45}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FavoriteService", "FavoriteService\FavoriteService\FavoriteService.csproj", "{1A6351FB-2242-4D35-8340-5B488C293E45}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{7B502A52-AD6D-471F-BEAB-F4BF33CA5067}"
 EndProject
@@ -68,14 +68,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{72
 	ProjectSection(SolutionItems) = preProject
 		ApiGate\services\cart-location.conf = ApiGate\services\cart-location.conf
 		ApiGate\services\cart-upstream.conf = ApiGate\services\cart-upstream.conf
-		ApiGate\services\favourite-location.conf = ApiGate\services\favourite-location.conf
-		ApiGate\services\favourite-upstream.conf = ApiGate\services\favourite-upstream.conf
+		ApiGate\services\favorite-location.conf = ApiGate\services\favorite-location.conf
+		ApiGate\services\favorite-upstream.conf = ApiGate\services\favorite-upstream.conf
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deploy", "Deploy", "{67275947-0B6C-4299-971D-9294542F8B9F}"
 	ProjectSection(SolutionItems) = preProject
 		compose.yaml = compose.yaml
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CartService.Tests", "CartService\CartService.Tests\CartService.Tests.csproj", "{4E57898A-18B3-42AB-B448-7FE3371482DD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FavoriteService.Tests", "FavoriteService\FavoriteService.Tests\FavoriteService.Tests.csproj", "{11415579-876E-4071-B181-FB89F482AB6F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -109,6 +113,8 @@ Global
 		{55A18BF3-BE43-4288-9BD3-E452C579A9DE} = {20296695-E39C-495D-B9CC-45BDE1040E60}
 		{9C35BA5C-34A0-43A5-A8EC-034B28EA2813} = {20296695-E39C-495D-B9CC-45BDE1040E60}
 		{727B50B7-A82E-491C-9987-906E64586F8F} = {9382D81A-6EDC-45A9-B9A0-E702D9A722D7}
+		{4E57898A-18B3-42AB-B448-7FE3371482DD} = {055C864F-3CFB-45B3-98BE-4094D99D1CE0}
+		{11415579-876E-4071-B181-FB89F482AB6F} = {A64B14F5-777A-4832-9952-E6D0185BCC6E}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0A162BFB-78B2-4495-8F2D-422862424490}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -199,5 +205,13 @@ Global
 		{9C35BA5C-34A0-43A5-A8EC-034B28EA2813}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C35BA5C-34A0-43A5-A8EC-034B28EA2813}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C35BA5C-34A0-43A5-A8EC-034B28EA2813}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E57898A-18B3-42AB-B448-7FE3371482DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E57898A-18B3-42AB-B448-7FE3371482DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E57898A-18B3-42AB-B448-7FE3371482DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E57898A-18B3-42AB-B448-7FE3371482DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11415579-876E-4071-B181-FB89F482AB6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11415579-876E-4071-B181-FB89F482AB6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11415579-876E-4071-B181-FB89F482AB6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11415579-876E-4071-B181-FB89F482AB6F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
