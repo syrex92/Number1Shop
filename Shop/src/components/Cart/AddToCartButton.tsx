@@ -17,7 +17,7 @@ const AddToCartButton = observer(({product}: AddToCartButtonProps) => {
     const {cart} = useStores();
     
     useEffect(() => {
-        var itm = cart.find(product.id);
+        let itm = cart.find(product.id);
         console.log(itm);        
         setCartItem(itm);        
     }, [product])
@@ -39,7 +39,7 @@ const AddToCartButton = observer(({product}: AddToCartButtonProps) => {
                         В корзину
                     </Button>
                 </Indicator>
-            </Group>          
+            </Group>        
             
         </div>
 

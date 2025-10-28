@@ -4,6 +4,7 @@ import type {Product} from './ProductsStore';
 export interface CartItem {
     product: Product;
     qty: number;
+    toOrder: boolean;
 }
 
 export interface CartStore {
@@ -13,27 +14,37 @@ export interface CartStore {
     find: (productId: string) => CartItem | undefined;
     add: (product: Product) => CartItem;
     remove: (productId: string) => void;
-    getTotal: () => number;
+    orderTotalPrice: number;
+    //orderTotalCount: number;
+    
+    orderAll: boolean;
     decrease: (productId: string) => void;
     clear: () => void;
+    
 }
 
 export const createCartStore = (): CartStore => {
     const store = {
         items: new Map<string, CartItem>(),
 
+        get orderAll():boolean {
+            let c = true;
+            this.items.forEach(v => (c &&= v.toOrder));
+            return c;
+        },
+        
         get count(): number {
             let c = 0;
             this.items.forEach(v => (c += v.qty));
             return c;
         },
 
-        getTotal(): number {
+        get orderTotalPrice(): number {
             let c = 0;
-            this.items.forEach(v => (c += v.qty));
+            this.items.forEach(v => (c += (v.toOrder ? v.qty : 0)));
             return c;
         },
-
+      
         get total(): number {
             let sum = 0;
             this.items.forEach(v => (sum += v.product.price * v.qty));
@@ -45,7 +56,7 @@ export const createCartStore = (): CartStore => {
             if (rec) {
                 rec.qty += 1;
             } else {
-                rec = {product, qty: 1};
+                rec = {product, qty: 1, toOrder: true};
                 this.items.set(product.id, rec);
             }
             return toJS(rec);

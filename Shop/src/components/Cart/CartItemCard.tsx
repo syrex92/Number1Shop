@@ -24,11 +24,9 @@ export interface CartItemCardProps {
     cartItem: CartItem;
 }
 
-
 const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
 
     const {cart} = useStores();
-    //const navigate = useNavigate();
 
     useEffect(() => {
         console.log(cartItem)
@@ -39,7 +37,9 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
             <Card shadow="xs" p="md" radius={"sm"}>
                 <Grid>
                     <Grid.Col span={1}>
-                        <Checkbox/>
+                        <Checkbox checked={cartItem.toOrder} onChange={(event) => {
+                            cartItem.toOrder = event.currentTarget.checked;
+                        }}/>
                     </Grid.Col>
                     <Grid.Col span={2}>
                         <Image radius={10} src={cartItem.product.image}/>
@@ -80,7 +80,7 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
                                 thousandSeparator=" "
                                 decimalSeparator=","
                                 value={cartItem.qty * cartItem.product.price}
-                                suffix={" руб."}
+                                suffix={" ₽"}
                                 decimalScale={2}
                             />
 
