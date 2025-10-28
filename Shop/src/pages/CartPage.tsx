@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import { useStores } from '../context/RootStoreContext';
 import '../styles/CartPage.css';
+import CartItemCard from "../components/Cart/CartItemCard.tsx";
 
 const CartPage = observer(() => {
   const { cart } = useStores();
@@ -14,17 +15,8 @@ const CartPage = observer(() => {
       ) : (
         <>
           <div className="cart-list">
-            {items.map(({ product, qty }) => (
-              <div key={product.id} className="cart-row">
-                <div className="title">{product.title}</div>
-                <div className="qty">
-                  <button onClick={() => cart.decrease(product.id)}>-</button>
-                  <span>{qty}</span>
-                  <button onClick={() => cart.add(product)}>+</button>
-                </div>
-                <div className="price">{product.price * qty} ₽</div>
-                <button className="remove" onClick={() => cart.remove(product.id)}>×</button>
-              </div>
+            {items.map((item, index) => (
+              <CartItemCard key={index} cartItem={item} />
             ))}
           </div>
           <div className="cart-footer">
