@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace OrdersService.Models
 {
@@ -19,6 +20,7 @@ namespace OrdersService.Models
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
         [Required]
+        [JsonIgnore]
         public Guid DeliveryAddressId { get; set; }
 
         [Required]
@@ -26,6 +28,14 @@ namespace OrdersService.Models
 
         public List<OrderItem> Items { get; set; } = new();
 
-        public string? Status { get; set; } = "New";
+        public OrderStatus? Status { get; set; } = OrderStatus.New;
+    }
+    public enum OrderStatus
+    {
+        New,
+        Processing,
+        Shipped,
+        Delivered,
+        Cancelled
     }
 }

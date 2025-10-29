@@ -57,15 +57,15 @@
       - shop-pg-network
 
   orders-service:
-#    ports:
-#      - "8080:8080"
+    ports:
+      - "8080:8080"
     image: shop-orders-service
     build:
       context: .
-      dockerfile: OrdersService/Dockerfile
+      dockerfile: OrdersService/OrdersService/Dockerfile
     pull_policy: build
     environment:
-#      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: Development
       CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=Orders
 
     healthcheck:

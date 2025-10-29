@@ -83,8 +83,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CartService.Tests", "CartSe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FavoriteService.Tests", "FavoriteService\FavoriteService.Tests\FavoriteService.Tests.csproj", "{11415579-876E-4071-B181-FB89F482AB6F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OrdersService", "OrdersService", "{9408E1B9-7261-46BC-9CC0-876AFB2A275E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrdersService.Tests", "OrdersService\OrdersService.Tests\OrdersService.Tests.csproj", "{ACBE0F74-640B-4074-A5B6-172FB8C5E904}"
 EndProject
 Global

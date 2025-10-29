@@ -165,7 +165,7 @@ public class OrdersControllerTests : IDisposable
         _dbContext.Orders.Add(order);
         await _dbContext.SaveChangesAsync();
 
-        var updateOrder = new Order { Status = "Processing" };
+    var updateOrder = new Order { Status = OrderStatus.Processing };
 
         // Act
         var result = await _controller.Update(order.Id, updateOrder);
@@ -174,7 +174,7 @@ public class OrdersControllerTests : IDisposable
         result.ShouldBeOfType<OkResult>();
         var updatedOrder = await _dbContext.Orders.FindAsync(order.Id);
         updatedOrder.ShouldNotBeNull();
-        updatedOrder.Status.ShouldBe("Processing");
+    updatedOrder.Status.ShouldBe(OrderStatus.Processing);
     }
 
     [Fact]

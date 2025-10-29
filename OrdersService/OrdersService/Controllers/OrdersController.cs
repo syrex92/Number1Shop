@@ -89,7 +89,7 @@ public class OrdersController : ControllerBase
 
         if (order.UserId != userId) return Forbid();
 
-        if (!string.IsNullOrEmpty(orderUpdate.Status)) order.Status = orderUpdate.Status;
+        if (orderUpdate.Status.HasValue) order.Status = orderUpdate.Status;
 
         await _db.SaveChangesAsync();
         return Ok();

@@ -67,8 +67,8 @@ namespace OrdersService.Data.Migrations
                     b.Property<Guid>("DeliveryAddressId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("text");
+                    b.Property<int?>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
