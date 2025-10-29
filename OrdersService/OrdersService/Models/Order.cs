@@ -19,6 +19,9 @@ namespace OrdersService.Models
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
         [Required]
+        public Guid DeliveryAddressId { get; set; }
+
+        [Required]
         public Address DeliveryAddress { get; set; } = null!;
 
         public List<OrderItem> Items { get; set; } = new();

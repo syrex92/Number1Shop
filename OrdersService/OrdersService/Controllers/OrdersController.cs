@@ -28,7 +28,7 @@ public class OrdersController : ControllerBase
         _db.Orders.Add(orderCreate);
         await _db.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetById), new { id = orderCreate.Id });
+        return Created();
     }
 
     [HttpGet]
@@ -42,13 +42,15 @@ public class OrdersController : ControllerBase
         var userId = Guid.Parse(userIdClaim.Value);
 
         var query = _db.Orders
+            .Include(o => o.DeliveryAddress)
+            .Include(o => o.Items)
             .Where(o => o.UserId == userId)
             .OrderByDescending(o => o.CreatedAt);
 
         var total = await query.CountAsync();
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
-        return Ok(new { total, page, pageSize, data = items });
+        return Ok(new OrderListResponse { Total = total, Page = page, PageSize = pageSize, Data = items });
     }
 
     [HttpGet("{id:guid}")]
@@ -62,6 +64,8 @@ public class OrdersController : ControllerBase
         var userId = Guid.Parse(userIdClaim.Value);
 
         var order = await _db.Orders
+            .Include(o => o.DeliveryAddress)
+            .Include(o => o.Items)
             .Where(o => o.UserId == userId)
             .FirstOrDefaultAsync(o => o.Id == id);
 
@@ -88,7 +92,7 @@ public class OrdersController : ControllerBase
         if (!string.IsNullOrEmpty(orderUpdate.Status)) order.Status = orderUpdate.Status;
 
         await _db.SaveChangesAsync();
-        return NoContent();
+        return Ok();
     }
 
     [HttpDelete("{id:guid}")]
@@ -108,6 +112,6 @@ public class OrdersController : ControllerBase
 
         _db.Orders.Remove(order);
         await _db.SaveChangesAsync();
-        return NoContent();
+        return Ok();
     }
 }
