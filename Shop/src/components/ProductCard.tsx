@@ -1,8 +1,9 @@
 import { observer } from 'mobx-react-lite';
 import { useStores } from '../context/RootStoreContext';
-import { FiHeart, FiShoppingCart } from 'react-icons/fi';
+import { FiHeart } from 'react-icons/fi';
 import type { Product } from '../stores/ProductsStore';
 import '../styles/ProductCard.css';
+import AddToCartButton from "./Cart/AddToCartButton.tsx";
 
 interface ProductCardProps {
   product: Product;
@@ -10,7 +11,7 @@ interface ProductCardProps {
 }
 
 const ProductCard = observer(({ product, isFavorite }: ProductCardProps) => {
-  const { cart, favorites } = useStores();
+  const { favorites } = useStores();
 
   return (
     <div className="product-card card">
@@ -29,9 +30,9 @@ const ProductCard = observer(({ product, isFavorite }: ProductCardProps) => {
         <div className="product-title">{product.title}</div>
         <div className="product-price">{product.price} ₽</div>
       </div>
-      <button className="add-to-cart btn" onClick={() => cart.add(product)}>
-        <FiShoppingCart /> В корзину
-      </button>
+        
+          <AddToCartButton product={product} />
+        
     </div>
   );
 });

@@ -1,6 +1,7 @@
 ﻿using Shop.CartService.Model;
+using Shop.Demo.Data;
 
-namespace Shop.CartService;
+namespace CartService;
 
 /// <summary>
 /// Демо-данные для тестирования
@@ -10,48 +11,26 @@ public static class FakeCartData
     /// <summary>
     /// Идентификаторы продуктов
     /// </summary>
-    public static List<Guid> ProductIds { get; } =
-    [
-        Guid.Parse("0891DF1A-ECFB-4E69-BFBE-28FF5A493CC1"),
-        Guid.Parse("F267ECEE-337E-4129-8AF0-F3F4337E1B07")
-    ];
+    public static List<Guid> ProductIds => ShopFakeData.Products.Take(10).Select(x => x.Id).ToList();
 
     /// <summary>
     /// Идентификаторы пользователей
     /// </summary>
-    public static List<Guid> UserIds { get; } =
-    [
-        Guid.Parse("181BCD21-0EEB-4C9B-A495-F581901A7B1A"),
-        Guid.Parse("1F221138-D6A4-47D3-8391-6E1BC9D5B2DE")
-    ];
+    public static List<Guid> UserIds => ShopFakeData.Users.Select(x => x.Id).ToList();
 
     /// <summary>
     /// Корзины
     /// </summary>
-    public static List<Cart> Carts { get; } =
-    [
-        new()
+    public static List<Cart> Carts { get; } = ShopFakeData.Carts.Select(x => new Cart
+    {
+        Id = x.Id,
+        CartItems = x.CartItems.Select(z => new CartItem
         {
-            Id = UserIds.First(),
-            CartItems = []
-        },
-        new()
-        {
-            Id = UserIds.Last(),
-            CartItems = new List<CartItem>([
-                new CartItem
-                {
-                    Id = Guid.NewGuid(),
-                    ProductId = ProductIds.First(),
-                    Quantity = 1,
-                },
-                new CartItem
-                {
-                    Id = Guid.NewGuid(),
-                    ProductId = ProductIds.Last(),
-                    Quantity = 2,
-                }
-            ])
-        }
-    ];
+            Id = Guid.NewGuid(),
+            ProductId = z.ProductId,
+            Quantity = z.Quantity,
+            QuantityInStock = z.QuantityInStock
+        }).ToList()
+
+    }).ToList();
 }

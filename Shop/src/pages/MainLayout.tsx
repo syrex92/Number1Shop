@@ -8,12 +8,14 @@ import OrdersPage from './OrdersPage';
 import CartPage from './CartPage';
 import FavoritesPage from './FavoritesPage';
 import '../styles/MainLayout.css';
+import CartLinkButton from "../components/Cart/CartLinkButton.tsx";
 
 const MainLayout = observer(() => {
-  const { auth, products } = useStores();
+  const { auth, products, cart } = useStores();
 
   useEffect(() => {
-    products.fetchProducts();
+    products.fetchProducts().then(() => console.log('Products fetched'));
+    cart.fetchItems().then(() => console.log('Cart fetched'));
   }, [products]);
 
   return (
@@ -35,6 +37,9 @@ const MainLayout = observer(() => {
             <NavLink className="btn" to="/login"><FiLogIn /> Войти</NavLink>
           )}
         </div>
+          <div>
+              <CartLinkButton />
+          </div>
       </header>
 
       <nav className="tabs">

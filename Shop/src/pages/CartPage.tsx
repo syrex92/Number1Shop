@@ -1,40 +1,58 @@
-import { observer } from 'mobx-react-lite';
-import { useStores } from '../context/RootStoreContext';
+import {observer} from 'mobx-react-lite';
+import {useStores} from '../context/RootStoreContext';
 import '../styles/CartPage.css';
+import CartItemCard from "../components/Cart/CartItemCard.tsx";
+import CartItemsFooter from "../components/Cart/CartItemsFooter.tsx";
+import CartItemsHeader from "../components/Cart/CartItemsHeader.tsx";
+import {useEffect} from "react";
 
 const CartPage = observer(() => {
-  const { cart } = useStores();
+    const {cart} = useStores();
 
-  const items = Array.from(cart.items.values());
+    const items = Array.from(cart.items.values());
 
-  return (
-    <div className="cart-page">
-      {items.length === 0 ? (
-        <div className="empty">Корзина пуста</div>
-      ) : (
-        <>
-          <div className="cart-list">
-            {items.map(({ product, qty }) => (
-              <div key={product.id} className="cart-row">
-                <div className="title">{product.title}</div>
-                <div className="qty">
-                  <button onClick={() => cart.decrease(product.id)}>-</button>
-                  <span>{qty}</span>
-                  <button onClick={() => cart.add(product)}>+</button>
+    useEffect(() => {
+        cart.fetchItems()
+    }, []);
+
+    function CartContent() {
+        return (
+            <>
+                <CartItemsHeader/>
+                <div className="cart-list">
+                    {items.map((item, index) => (
+                        <CartItemCard key={index} cartItem={item}/>
+                    ))}
                 </div>
-                <div className="price">{product.price * qty} ₽</div>
-                <button className="remove" onClick={() => cart.remove(product.id)}>×</button>
-              </div>
-            ))}
-          </div>
-          <div className="cart-footer">
-            <div>Итого: {cart.total} ₽</div>
-            <button className="checkout" disabled={items.length === 0}>Оформить</button>
-          </div>
-        </>
-      )}
-    </div>
-  );
+
+                <CartItemsFooter/>
+            </>
+        )
+    }
+
+    function EmptyCart() {
+        return (
+            <div className="empty">Корзина пуста</div>
+        )
+    }
+
+    function CartLoading() {
+        return (
+            <div className="empty">LOADING</div>
+        )
+    }
+
+    return (
+        <div className="cart-page">
+            {
+                cart.loading ? <CartLoading/> :
+                    items.length === 0 ? (
+                        <EmptyCart/>
+                    ) : (
+                        <CartContent/>
+                    )}
+        </div>
+    );
 });
 
 export default CartPage;

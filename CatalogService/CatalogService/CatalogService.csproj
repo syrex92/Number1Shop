@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Common\Shop.Demo.Data\Shop.Demo.Data.csproj" />
     <ProjectReference Include="..\CatalogService.Core\CatalogService.Core.csproj" />
     <ProjectReference Include="..\CatalogService.DataAccess\CatalogService.DataAccess.csproj" />
   </ItemGroup>
