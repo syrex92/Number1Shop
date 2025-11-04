@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { NavLink, Routes, Route, Navigate } from 'react-router-dom';
 import { FiBox, FiShoppingCart, FiHeart, FiPackage, FiLogOut, FiLogIn, FiSearch } from 'react-icons/fi';
 import { observer } from 'mobx-react-lite';
@@ -11,12 +10,7 @@ import '../styles/MainLayout.css';
 import CartLinkButton from "../components/Cart/CartLinkButton.tsx";
 
 const MainLayout = observer(() => {
-  const { auth, products, cart } = useStores();
-
-  useEffect(() => {
-    products.fetchProducts().then(() => console.log('Products fetched'));
-    cart.fetchItems().then(() => console.log('Cart fetched'));
-  }, [products]);
+  const { auth, products } = useStores();
 
   return (
     <div className="layout">

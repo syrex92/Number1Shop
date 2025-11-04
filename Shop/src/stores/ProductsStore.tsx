@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import {makeAutoObservable, runInAction} from 'mobx';
 
 export interface Product {
   id: string;
@@ -14,6 +14,16 @@ export interface ProductsStore {
   filteredProducts: Product[];
   setQuery: (value: string) => void;
   fetchProducts: () => Promise<void>;
+}
+
+export interface ProductItemResponseDto {
+    id: string;    
+    stockQuantity: number;
+    productTitle: string;
+    productDescription: string;
+    productCategory: string;
+    price: number;
+    imagesUrls: string[];
 }
 
 export const createProductsStore = (): ProductsStore => {
@@ -33,18 +43,59 @@ export const createProductsStore = (): ProductsStore => {
     },
 
     async fetchProducts(): Promise<void> {
-      this.isLoading = true;
-      try {
-        await new Promise(resolve => setTimeout(resolve, 300));
-        // Mock data
-        this.products = [
-          { id: 'p1', title: 'Ноутбук', price: 70000, image: '/logo192.png' },
-          { id: 'p2', title: 'Смартфон', price: 40000, image: '/logo192.png' },
-          { id: 'p3', title: 'Наушники', price: 5000, image: '/logo192.png' },
-        ];
-      } finally {
-        this.isLoading = false;
-      }
+        runInAction(() => { this.isLoading = true; });
+
+        console.log("Start products fetching");
+
+        fetch("http://localhost/api/v1/catalog/products")
+            .then(res => res.json())
+            .then(async (res) => {
+                
+                const loadedItems = res as ProductItemResponseDto[];
+
+                console.log(loadedItems);
+
+                const products = new Array<Product>(); 
+                loadedItems.forEach((x : ProductItemResponseDto) => products.push(
+                    {
+                            id: x.id,
+                            image: ((x.imagesUrls.length > 0) ? `/images/${x.imagesUrls[0]}` : undefined),
+                            title: x.productTitle,
+                            price: x.price,
+
+                        // stockQuantity: number;
+                        // productTitle: string;
+                        // productDescription: string;
+                        // productCategory: string;
+                        //
+                        // imagesUrls: string[];
+                        
+                    }));
+                
+                runInAction(() => { this.products = products; });
+
+                console.log("Products loaded");
+            })
+            .catch(reason => {
+                console.log("Products fetch error");
+                console.log(reason);                
+            })
+            .finally(() => {
+                runInAction(() => { this.isLoading = false; });
+            });
+      
+      // try {
+      //    
+      //   await new Promise(resolve => setTimeout(resolve, 300));
+      //   // Mock data
+      //   this.products = [
+      //     { id: 'p1', title: 'Ноутбук', price: 70000, image: '/logo192.png' },
+      //     { id: 'p2', title: 'Смартфон', price: 40000, image: '/logo192.png' },
+      //     { id: 'p3', title: 'Наушники', price: 5000, image: '/logo192.png' },
+      //   ];
+      // } finally {
+      //   this.isLoading = false;
+      // }
     }
   };
 
