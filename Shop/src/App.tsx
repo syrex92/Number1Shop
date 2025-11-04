@@ -12,7 +12,7 @@ function App() {
     const {auth} = useStores();
 
     return (
-        <MantineProvider defaultColorScheme="auto">        
+        <MantineProvider defaultColorScheme="dark">        
             <Routes>
                 <Route path="/login" element={auth.isAuthenticated ? <Navigate to="/" replace/> : <LoginPage/>}/>
                 <Route path="/*" element={<MainLayout/>}/>

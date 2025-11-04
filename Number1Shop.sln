@@ -66,6 +66,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ApiGate", "ApiGate", "{9382D81A-6EDC-45A9-B9A0-E702D9A722D7}"
 	ProjectSection(SolutionItems) = preProject
 		ApiGate\nginx.conf = ApiGate\nginx.conf
+		ApiGate\nginx.local.conf = ApiGate\nginx.local.conf
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{727B50B7-A82E-491C-9987-906E64586F8F}"
