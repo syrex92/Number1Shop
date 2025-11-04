@@ -1,3 +1,4 @@
+using CatalogService;
 using CatalogService.Core.Domain.Interfaces;
 using CatalogService.DataAccess.Data;
 using CatalogService.DataAccess.Repositories;
@@ -12,7 +13,9 @@ builder.Services.AddDbContext<DataContext>(options =>
     if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Test"))
     {
         options
-            .UseSqlite("Data Source=catalog-service-db.db");
+            .UseSqlite("Data Source=catalog-service-db.db")
+            .UseSeeding((context, seed) => FakeCatalogData.SeedData(context, seed))
+            .UseAsyncSeeding((context, seed, ct) => FakeCatalogData.SeedDataAsync(context, seed, ct));
     }
     else
         options.UseNpgsql(builder.Configuration["CONNECTION_STRING"] ?? throw new InvalidProgramException("No connection for data base"));

@@ -22,7 +22,7 @@ public class ProductData
 
     public string Description { get; set; } = string.Empty;
 
-    public Guid CategoryId { get; set; }
+    //public Guid CategoryId { get; set; }
 
     public Guid[] Categories { get; set; } = [];
 
