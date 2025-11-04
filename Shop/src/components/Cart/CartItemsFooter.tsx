@@ -26,7 +26,7 @@ const CartItemsFooter = observer(() => {
                             <NumberFormatter                                
                                 thousandSeparator=" "
                                 decimalSeparator=","
-                                value={cart.orderTotal}
+                                value={cart.orderTotalPrice}
                                 suffix={" ₽"}
                                 decimalScale={2}
                             />
@@ -38,7 +38,7 @@ const CartItemsFooter = observer(() => {
                     <Grid.Col span={6}>
                         <Group justify={"right"}>
                             <Button rightSection={<IconArrowsRight size={14} style={{width: '80%', height: '80%'}}/>}
-                                disabled={cart.orderTotal === 0}>
+                                disabled={cart.orderTotalPrice === 0}>
                                 Заказать
                             </Button>
                         </Group>

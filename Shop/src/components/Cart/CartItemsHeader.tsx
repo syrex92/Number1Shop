@@ -18,7 +18,9 @@ const CartItemsHeader = observer(() => {
                         <Checkbox
                             checked={cart.orderAll}    
                             label={"Выбрать все"} onChange={(event) => {
-                            cart.items.forEach((element) => { element.toOrder = event.currentTarget.checked });
+                            cart.items.forEach((element) => { 
+                                cart.toOrder(element.product.id, event.currentTarget.checked) 
+                            });
                         }} />
                     </Grid.Col>
 

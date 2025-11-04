@@ -59,6 +59,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\Common\Shop.Core\Shop.Core.csproj" />
+      <ProjectReference Include="..\..\Common\Shop.Demo.Data\Shop.Demo.Data.csproj" />
     </ItemGroup>
 
 </Project>

@@ -10,7 +10,7 @@ import {
     Group,
     ActionIcon,
     Card,
-    NumberFormatter
+    NumberFormatter, Stack
 } from "@mantine/core";
 import {useEffect} from "react";
 import {
@@ -38,7 +38,7 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
                 <Grid>
                     <Grid.Col span={1}>
                         <Checkbox checked={cartItem.toOrder} onChange={(event) => {
-                            cartItem.toOrder = event.currentTarget.checked;
+                            cart.toOrder(cartItem.product.id, event.currentTarget.checked);
                         }}/>
                     </Grid.Col>
                     <Grid.Col span={2}>
@@ -62,20 +62,23 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
                         </Flex>
                     </Grid.Col>
                     <Grid.Col span={3}>
-                        <Group justify={"center"}>
+                        <Stack align={"center"}>
+                            <Group justify={"center"}>
 
-                            <ActionIcon variant="outline" aria-label="Settings"
-                                        onClick={() => cart.decrease(cartItem.product.id)}>
-                                <IconMinus style={{width: '80%', height: '80%'}} stroke={1.5}/>
-                            </ActionIcon>
+                                <ActionIcon variant="outline" aria-label="Settings"
+                                            onClick={() => cart.decrease(cartItem.product.id)}>
+                                    <IconMinus style={{width: '80%', height: '80%'}} stroke={1.5}/>
+                                </ActionIcon>
 
-                            <Text>{cartItem.qty}</Text>
+                                <Text>{cartItem.qty}</Text>
 
-                            <ActionIcon variant="outline" aria-label="Settings"
-                                        onClick={() => cart.add(cartItem.product)}>
-                                <IconPlus style={{width: '80%', height: '80%'}} stroke={1.5}/>
-                            </ActionIcon>
+                                <ActionIcon variant="outline" aria-label="Settings"
+                                            onClick={() => cart.add(cartItem.product)}>
+                                    <IconPlus style={{width: '80%', height: '80%'}} stroke={1.5}/>
+                                </ActionIcon>
 
+
+                            </Group>
                             <NumberFormatter
                                 thousandSeparator=" "
                                 decimalSeparator=","
@@ -83,11 +86,10 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
                                 suffix={" ₽"}
                                 decimalScale={2}
                             />
-
-                        </Group>
+                        </Stack>
                     </Grid.Col>
                 </Grid>
-            </Card>            
+            </Card>
         </>
     )
 })

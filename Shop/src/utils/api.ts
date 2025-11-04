@@ -1,4 +1,5 @@
-import { createAuthStore } from '../stores/AuthStore';
+//import { createAuthStore } from '../stores/AuthStore';
+import { createFakeAuthStore } from '../stores/FakeAuthStore';
 import { API_BASE_URL } from '../config/constants';
 
 /**
@@ -22,14 +23,14 @@ class ApiClient {
      * Ссылка на хранилище аутентификации
      * Используется для получения токенов и их автоматического обновления
      */
-    private authStore: ReturnType<typeof createAuthStore>;
+    private authStore: ReturnType<typeof createFakeAuthStore>;
 
     /**
      * Конструктор API клиента
      * @param baseURL - Базовый URL API сервера
      * @param authStore - Экземпляр хранилища аутентификации
      */
-    constructor(baseURL: string, authStore: ReturnType<typeof createAuthStore>) {
+    constructor(baseURL: string, authStore: ReturnType<typeof createFakeAuthStore>) {
         this.baseURL = baseURL;
         this.authStore = authStore;
     }
@@ -49,6 +50,8 @@ class ApiClient {
             ...(options.headers as RequestHeaders), // Пользовательские заголовки имеют приоритет
         };
 
+        console.log(headers);
+        console.log(`Requesting from ${this.baseURL}${url}`);
         // ВЫПОЛНЯЕМ ПЕРВОНАЧАЛЬНЫЙ ЗАПРОС
         let response = await fetch(`${this.baseURL}${url}`, {
             ...options, // Копируем все опции (method, body, credentials, etc.)
@@ -114,7 +117,7 @@ class ApiClient {
 /**
  * Фабричная функция для создания экземпляра API клиента
  */
-export const createApiClient = (authStore: ReturnType<typeof createAuthStore>) => {
+export const createApiClient = (authStore: ReturnType<typeof createFakeAuthStore>) => {
     return new ApiClient(API_BASE_URL, authStore);
 };
 

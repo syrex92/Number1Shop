@@ -38,7 +38,7 @@ public class CartServiceTests(CartServiceFixture cartService, ITestOutputHelper 
                 new Claim(ClaimTypes.Name, username),
                 new Claim(ClaimTypes.Sid, FakeCartData.UserIds.Last().ToString("D"))
             ]),
-            Expires = DateTime.UtcNow.AddMinutes(30),
+            Expires = DateTime.UtcNow.AddDays(30),
             SigningCredentials = new SigningCredentials(securityKey,
                 SecurityAlgorithms.HmacSha256Signature)
         };
