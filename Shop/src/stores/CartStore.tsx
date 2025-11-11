@@ -1,7 +1,7 @@
-import {makeAutoObservable, toJS} from 'mobx';
+import {makeAutoObservable, runInAction, toJS} from 'mobx';
 import type {Product} from './ProductsStore';
 import {CartApi, type CartItemResponseDto} from '../utils/CartApi';
-import type createFakeAuthStore from "./FakeAuthStore.tsx";
+import type createAuthStore from "./AuthStore.tsx";
 
 export interface CartItem {
     product: Product;
@@ -14,7 +14,7 @@ export interface CartStore {
     count: number;
     total: number;
     find: (productId: string) => CartItem | undefined;
-    add: (product: Product) => CartItem;
+    add: (product: Product) => Promise<CartItem>;
     remove: (productId: string) => void;
     orderTotalPrice: number;
     //orderTotalCount: number;
@@ -32,9 +32,11 @@ export interface CartStore {
     errorText: string | null;
 }
 
-export const createCartStore = (auth: ReturnType<typeof createFakeAuthStore>): CartStore => {
+export const createCartStore = (auth: ReturnType<typeof createAuthStore>): CartStore => {
     
-    const apiUrl = import.meta.env.VITE_SHOP_CART_URL;    
+    const apiUrl = import.meta.env.VITE_SHOP_CART_URL;
+
+    const cartApi = new CartApi(apiUrl, auth);
     
     const store = {
         
@@ -66,24 +68,19 @@ export const createCartStore = (auth: ReturnType<typeof createFakeAuthStore>): C
 
         async fetchItems(): Promise<void> {
 
-            console.log("Cart load started");
             
-            const cartApi = new CartApi(apiUrl, auth);
             
-            this.loading = true;
+            runInAction(() => { 
+                this.loading = true; 
+                this.error = false; 
+                this.errorText = ""; 
+            })
             
             await cartApi.getItems()
-                .then(async (res) => {
+                .then(async (dto) => {
                     this.loading = false;
-                    console.log("Cart loaded");
-                    console.log(res);
                     
-                    const loadedItems = res;
-
-                    // call to ProductApi
-                    //loadedItems.items.forEach((x : CartItemResponseDto) => this.items.set(x.productId, x.quantity));
-                    
-                    loadedItems.items.forEach((x : CartItemResponseDto) => this.items.set(x.productId, 
+                    dto.items.forEach((x : CartItemResponseDto) => this.items.set(x.productId, 
                         {
                             toOrder: false, 
                             product: {
@@ -96,26 +93,39 @@ export const createCartStore = (auth: ReturnType<typeof createFakeAuthStore>): C
                         }));
                     
                 })
-                .catch(reason => {
-                    console.log("Cart error");
-                    console.log(reason);
-                    //if(reason.error.status === 401) {
+                .catch(reason => {                    
+                    runInAction(() => {
                         this.items.clear();
                         this.error = true;
-                        this.errorText = "Вход не выполнен";
+                        this.errorText = reason.message;
                         this.loading = false;
-                    //}
-                    //console.error(reason)
+                    })                    
                 });
         },
         
-        add(product: Product): CartItem {
+        async add(product: Product): Promise<CartItem> {
             let rec = this.items.get(product.id);
             if (rec) {
                 rec.qty += 1;
+                await cartApi.updateItem(rec)
+                    .then(() => {
+                        //this.items.set(product.id, dto);
+                        return rec;
+                    })
+                    .catch(reason => {
+                        console.log(reason);
+                    })
+                //return rec;
             } else {
                 rec = {product, qty: 1, toOrder: true};
-                this.items.set(product.id, rec);
+                await cartApi.addItem(rec)
+                    .then(dto => {
+                        this.items.set(product.id, dto);
+                        return rec;
+                    })
+                    .catch(reason => {
+                        console.log(reason);
+                    })
             }
             return toJS(rec);
         },

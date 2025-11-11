@@ -13,17 +13,24 @@ interface AddToCartButtonProps {
 const AddToCartButton = observer(({product}: AddToCartButtonProps) => {
 
     const [cartItem, setCartItem] = useState<CartItem | undefined>(undefined);
+    const [executing, setExecuting] = useState<boolean>(false);
     
     const {cart} = useStores();
     
     useEffect(() => {
+        
+        
         const cartItem = cart.find(product.id);
         if(cartItem)
             setCartItem(cartItem);        
     }, [product])
     
     const onAddClick = () => {
-        setCartItem(cart.add(product));
+        setExecuting(true);
+        cart.add(product).then((itm) => {
+            setCartItem(itm);
+            setExecuting(false);            
+        })        
     }
 
     const inCart = cart.find(product.id) !== undefined;
@@ -33,6 +40,7 @@ const AddToCartButton = observer(({product}: AddToCartButtonProps) => {
             <Group justify="center">
                 <Indicator size="16" color="orange" label={cartItem?.qty} disabled={!inCart}>
                     <Button
+                        loading={executing}
                         onClick={onAddClick}
                         leftSection={<IconShoppingCart size={20} stroke={1.5}/>}
                         variant="default">

@@ -11,23 +11,34 @@ internal static class SecurityExtensions
 {
     private static ClaimsPrincipal? GetPrincipal(string token)
     {
-        const string secret = "XCAP05H6LoKvbRRa/QkqLNMI7cOHguaRyHzyg7n5qEkGjQmtBhz4SzYh4Fqwjyi3KJHlSXKPwVu2+bXr6CtpgQ==";
+        //const string secret = "XCAP05H6LoKvbRRa/QkqLNMI7cOHguaRyHzyg7n5qEkGjQmtBhz4SzYh4Fqwjyi3KJHlSXKPwVu2+bXr6CtpgQ==";
         try
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var jwtToken = (JwtSecurityToken)tokenHandler.ReadToken(token);
+            var jwtToken = tokenHandler.ReadJwtToken(token);
             if (jwtToken == null)
                 return null;
-            byte[] key = Convert.FromBase64String(secret);
-            var parameters = new TokenValidationParameters
-            {
-                RequireExpirationTime = true,
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                IssuerSigningKey = new SymmetricSecurityKey(key)
-            };
-            var principal = tokenHandler.ValidateToken(token,
-                parameters, out _);
+            
+            var sid = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Sid)?.Value.Trim();
+            if (sid == null)
+                return null;
+
+
+            var claims = jwtToken.Claims.ToList();
+            var identity = new ClaimsIdentity(claims, JwtBearerDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+            
+                        
+            //byte[] key = Convert.FromBase64String(secret);
+            // var parameters = new TokenValidationParameters
+            // {
+            //     RequireExpirationTime = true,
+            //     ValidateIssuer = false,
+            //     ValidateAudience = false,
+            //     //IssuerSigningKey = new SymmetricSecurityKey(key)
+            // };
+            // var principal = tokenHandler.ValidateToken(token,
+            //     parameters, out _);
             return principal;
         }
         catch (Exception e)

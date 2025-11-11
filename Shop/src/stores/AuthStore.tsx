@@ -60,6 +60,7 @@ export interface AuthStore {
  * Фабричный метод - возавращет хранилище авторизации
  */
 export const createAuthStore = (): AuthStore => {
+    
   const store = {
     user: null as User | null,
     isLoading: false,
@@ -89,13 +90,14 @@ export const createAuthStore = (): AuthStore => {
           body: JSON.stringify({ email, password }),
         });
 
-        const data = await response.json();
-
+        
         if (!response.ok) {
-          throw new Error(data.message || 'Ошибка авторизации');
+          throw new Error(response.statusText || 'Ошибка авторизации');
         }
 
-        // СОХРАНЯЕМ ПОЛУЧЕННЫЕ ТОКЕНЫ И ДАННЫЕ ПОЛЬЗОВАТЕЛЯ
+        const data = await response.json();
+
+          // СОХРАНЯЕМ ПОЛУЧЕННЫЕ ТОКЕНЫ И ДАННЫЕ ПОЛЬЗОВАТЕЛЯ
         this.setTokens(data.data);
 
       }
@@ -158,6 +160,8 @@ export const createAuthStore = (): AuthStore => {
     async logout(): Promise<void> {
       try {
         // ЕСЛИ ЕСТЬ ACCESS TOKEN - ОТПРАВЛЯЕМ ЗАПРОС НА СЕРВЕР ДЛЯ LOGOUT
+        //  console.log(this);
+          
         if (this.accessToken) {
           await fetch(`${API_BASE_URL}/auth/logout`, {
             method: 'POST',
@@ -186,6 +190,8 @@ export const createAuthStore = (): AuthStore => {
      */
     initializeAuth(): void {
       // ВОССТАНАВЛИВАЕМ ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ИЗ LOCALSTORAGE
+        console.log("auth init called")
+        console.log(localStorage.getItem('user'))
       const savedUser = localStorage.getItem('user');
       if (savedUser) {
         try {
