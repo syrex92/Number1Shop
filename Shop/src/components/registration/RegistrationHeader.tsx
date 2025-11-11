@@ -1,21 +1,20 @@
 import { Title, Text, Anchor } from '@mantine/core';
 import { Link } from 'react-router-dom';
 
-const LoginHeader = () => {
+const RegistrationHeader = () => {
     return (
         <>
             <Title ta="center" m={10}>
-                Добро пожаловать!
+                Форма регистрации
             </Title>
-
             <Text c="dimmed" size="sm" ta="center">
-                Еще нет аккаунта? 
-                <Anchor size="sm" p={20} component={Link} to="/registration">
-                    Зарегистрироваться
+                Уже есть аккаунт?{' '}
+                <Anchor size="sm" p={20} component={Link} to="/login">
+                    Войти
                 </Anchor>
             </Text>
         </>
     );
 };
 
-export default LoginHeader;
+export default RegistrationHeader;

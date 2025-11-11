@@ -1,5 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import { API_BASE_URL } from '../config/constants';
+import type { RegistrationFormData } from '../components/registration/RegistrationFormFields';
 
 /**
  * Интерфейс пользователь
@@ -44,6 +45,7 @@ export interface AuthStore {
 
   // ОСНОВНЫЕ МЕТОДЫ АУТЕНТИФИКАЦИИ
   login: (email: string, password: string) => Promise<void>;    // Вход в систему
+  registration: (data: RegistrationFormData) => Promise<void>        // Регистрация нового пользователя
   logout: () => Promise<void>;                                  // Выход из системы
   refreshTokens: () => Promise<boolean>;                        // Обновление токенов
   initializeAuth: () => void;                                   // Инициализация при загрузке приложения
@@ -102,6 +104,43 @@ export const createAuthStore = (): AuthStore => {
       catch (error) {
         this.error = error instanceof Error ? error.message : 'Ошибка авторизации';
         console.error('Login error:', error);
+      }
+      finally {
+        this.isLoading = false;
+      }
+    },
+    async registration(data: RegistrationFormData): Promise<void> {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        // запрос на регистрацию
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            password: data.password,
+          }),
+        });
+
+        const responseData = await response.json();
+
+        if (!response.ok) {
+          throw new Error(responseData.message || 'Ошибка регистрации');
+        }
+
+        // После успешной регистрации автоматически логиним пользователя
+        if (responseData.data && responseData.data.accessToken) {
+          this.setTokens(responseData.data);
+        }
+      }
+      catch (error) {
+        this.error = error instanceof Error ? error.message : 'Ошибка регистрации';
+        console.error('Register error:', error);
       }
       finally {
         this.isLoading = false;
@@ -235,7 +274,7 @@ export const createAuthStore = (): AuthStore => {
 
       // СОЗДАЕМ ОБЪЕКТ ПОЛЬЗОВАТЕЛЯ
       this.user = {
-        id: tokens.userId, 
+        id: tokens.userId,
         name: tokens.username,
         role: tokens.role as 'admin' | 'user',
         email: tokens.email,
