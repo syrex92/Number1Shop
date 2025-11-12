@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using UsersService.Extensions;
 using UsersService.Infrastructure;
 using UsersService.Persistence;
 
@@ -10,8 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
-builder.Services.AddPersistanceServices(builder.Configuration);
-builder.Services.AddInfastructureServices(builder.Configuration);
+builder.Host.AddLoggerServices(builder.Configuration, builder.Environment); // регистрация Log
+builder.Services.AddPersistanceServices(builder.Configuration, builder.Environment);
+builder.Services.AddInfastructureServices(builder.Configuration, builder.Environment);
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
@@ -47,14 +49,13 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-    // Включаем XML комментарии
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    if (File.Exists(xmlPath))
+    // Включаем XML комментарии для всех сборок
+    var xmlFiles = Directory.GetFiles(AppContext.BaseDirectory, "*.xml", SearchOption.TopDirectoryOnly);
+    foreach (var xmlFile in xmlFiles)
     {
-        options.IncludeXmlComments(xmlPath);
+        options.IncludeXmlComments(xmlFile, includeControllerXmlComments: true);
     }
-}); 
+});
 builder.Services.AddResponseCompression(options =>
 {
     options.EnableForHttps = true;
@@ -65,11 +66,10 @@ builder.Services.AddResponseCompression(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
 {
-    app.UseSwagger(); // Включаем middleware для генерации Swagger JSON
-    app.UseSwaggerUI(); // Включаем Swagger UI
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1");
@@ -82,6 +82,8 @@ else
     app.UseExceptionHandler("/error");
     app.UseHsts();
 }
+// Инициализация базы данных
+await app.InitializeDatabaseAsync();
 
 app.UseHttpsRedirection();
 
@@ -90,7 +92,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// 11. Global Error Handling Endpoint
+// Global Error Handling Endpoint
 app.Map("/error", () => Results.Problem("An error occurred.", statusCode: 500));
 
 app.Run();
+
+/// <summary>
+/// Для тестов
+/// </summary>
+public abstract partial class Program { };

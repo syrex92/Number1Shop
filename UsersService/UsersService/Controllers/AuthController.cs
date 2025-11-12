@@ -11,17 +11,26 @@ namespace UsersService.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly ILogger<AuthController> _logger;
+        private readonly IAppLogger<AuthController> _logger;
         private readonly IAuthService _authService;
         private readonly IUserService _userService;
 
-        public AuthController(ILogger<AuthController> logger, IAuthService authService, IUserService userService)
+        public AuthController(IAppLogger<AuthController> logger, IAuthService authService, IUserService userService)
         {
             _logger = logger;
             _authService = authService;
             _userService = userService;
         }
 
+        /// <summary>
+        /// Аутентификация пользователя и выдача токенов доступа
+        /// </summary>
+        /// <param name="request">Данные для входа (email и пароль)</param>
+        /// <returns>Access token и refresh token при успешной аутентификации</returns>
+        /// <response code="200">Успешный вход, возвращены токены</response>
+        /// <response code="400">Не заполнены обязательные поля</response>
+        /// <response code="401">Неверный email или пароль</response>
+        /// <response code="500">Внутренняя ошибка сервера</response>
         [HttpPost("login")]
         public async Task<IActionResult> LogIn([FromBody] LoginRequest request)
         {
@@ -36,7 +45,7 @@ namespace UsersService.Controllers
                     return Unauthorized("Invalid email.");
 
                 // проверяем его пароль
-                if (_userService.VerifyPassword(user, request.Password))
+                if (!_userService.VerifyPassword(user, request.Password))
                     return Unauthorized("Invalid password");
 
                 var accessToken = _authService.GetAccessToken(user);
@@ -54,6 +63,7 @@ namespace UsersService.Controllers
                     Message = "Login successful",
                     Data = new AuthResponse
                     {
+                        UserId = user.Id,
                         AccessToken = accessToken,
                         RefreshToken = refreshToken,
                         TokenType = "Bearer",
@@ -62,7 +72,8 @@ namespace UsersService.Controllers
                         RefreshTokenExpiresIn = (int)TimeSpan.FromDays(45).TotalSeconds,
                         RefreshTokenExpiresAt = refreshTokenExpiration,
                         Username = user.UserName,
-                        Role = user.Roles.FirstOrDefault()?.RoleName ?? string.Empty
+                        Email = user.Email,
+                        Role = user.UserRoles.Select(x => x.Role).FirstOrDefault()?.RoleName ?? string.Empty
                     }
                 };
 
@@ -70,7 +81,7 @@ namespace UsersService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during login for email {0}", request.Email);
+                _logger.LogError(ex.Message, "Error during login for email {0}", request.Email);
 
                 return StatusCode(500, new LoginResponse
                 {
@@ -81,6 +92,15 @@ namespace UsersService.Controllers
             }
         }
 
+        /// <summary>
+        /// Выход пользователя из системы и отзыв токенов
+        /// </summary>
+        /// <param name="request">Данные для выхода (refresh token и флаг отзыва всех сессий)</param>
+        /// <returns>Результат операции выхода</returns>
+        /// <response code="200">Успешный выход из системы</response>
+        /// <response code="400">Отсутствует refresh token</response>
+        /// <response code="401">Невалидный токен аутентификации</response>
+        /// <response code="500">Внутренняя ошибка сервера</response>
         [HttpPost("logout")]
         [Authorize]
         public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
@@ -91,7 +111,7 @@ namespace UsersService.Controllers
                     return BadRequest(new { message = "Request body is required" });
 
                 // Извлечение идентификатора пользователя
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userIdClaim = User.FindFirst(ClaimTypes.Sid)?.Value;
                 if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
                 {
                     _logger.LogWarning("Invalid user ID claim in logout request");
@@ -115,7 +135,7 @@ namespace UsersService.Controllers
                 if (!isRevoke)
                     _logger.LogWarning("Failed to revoke refresh token for user {0}.", userId);
 
-                // Дополнительные действия 
+                // Дополнительные действия для отзыва всех сессий
                 if (request.RevokeAllSessions)
                 {
                     await _authService.RevokeAllForUserAsync(userId);
@@ -134,7 +154,7 @@ namespace UsersService.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "unknown";
 
-                _logger.LogError(ex, "Unexpected error during logout for user {UserId}", userId);
+                _logger.LogError(ex.Message, "Unexpected error during logout for user {UserId}", userId);
 
                 return StatusCode(500, new
                 {
@@ -144,6 +164,15 @@ namespace UsersService.Controllers
             }
         }
 
+        /// <summary>
+        /// Обновление access token с использованием refresh token
+        /// </summary>
+        /// <param name="request">Текущие access token и refresh token</param>
+        /// <returns>Новая пара токенов доступа</returns>
+        /// <response code="200">Токены успешно обновлены</response>
+        /// <response code="400">Отсутствуют обязательные токены</response>
+        /// <response code="401">Невалидные или просроченные токены</response>
+        /// <response code="500">Внутренняя ошибка сервера</response>
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
         {
@@ -189,7 +218,7 @@ namespace UsersService.Controllers
                 }
 
                 // 3. Извлечение userId из claims
-                var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userIdClaim = principal.FindFirst(ClaimTypes.Sid)?.Value;
                 if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
                 {
                     _logger.LogWarning("Invalid user ID in token claims. OperationId");
@@ -262,6 +291,7 @@ namespace UsersService.Controllers
                     Message = "Login successful",
                     Data = new AuthResponse
                     {
+                        UserId = userId,
                         AccessToken = newAccessToken,
                         RefreshToken = newRefreshToken,
                         TokenType = "Bearer",
@@ -270,13 +300,14 @@ namespace UsersService.Controllers
                         RefreshTokenExpiresIn = (int)TimeSpan.FromDays(45).TotalSeconds,
                         RefreshTokenExpiresAt = refreshTokenExpiration,
                         Username = user.UserName,
-                        Role = user.Roles.FirstOrDefault()?.RoleName ?? string.Empty
+                        Email = user.Email,
+                        Role = user.UserRoles.Select(x => x.Role).FirstOrDefault()?.RoleName ?? string.Empty
                     }
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error during token refresh.");
+                _logger.LogError(ex.Message, "Unexpected error during token refresh.");
 
                 return StatusCode(500, new BaseResponse
                 {

@@ -17,6 +17,19 @@ namespace UsersService.Persistence.Repositories.Common
         {
             _context = dataContext;
         }
+
+        public async Task AddAllAsync(IEnumerable<T> items)
+        {
+            foreach (var item in items)
+            {
+                if (item is null)
+                    throw new ArgumentNullException(nameof(item));
+
+                await _context.Set<T>().AddAsync(item);
+            }
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<T> AddAsync(T item)
         {
             if (item is null)
@@ -25,6 +38,11 @@ namespace UsersService.Persistence.Repositories.Common
             await _context.Set<T>().AddAsync(item);
             await _context.SaveChangesAsync();
             return item;
+        }
+
+        public async Task<bool> AnyAsync()
+        {
+            return await _context.Set<T>().AnyAsync();
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()

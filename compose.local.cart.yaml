@@ -1,0 +1,17 @@
+﻿services:
+  nginx-proxy:
+    image: nginx:stable
+    ports:
+      - "80:80"
+    expose:
+      - 80
+    volumes:
+      - ./ApiGate/nginx.local.conf:/etc/nginx/nginx.conf:ro
+      - ./ApiGate:/etc/nginx/ApiGate:ro
+
+    #network_mode: host
+    
+    restart: unless-stopped
+
+    #labels:
+    #  - app=shop

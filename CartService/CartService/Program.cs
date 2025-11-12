@@ -11,6 +11,11 @@ using Shop.CartService.Model;
 using Shop.CartService.Repositories;
 using Shop.CartService.Services;
 using Shop.Core.Messages;
+using Shop.Demo.Data;
+
+var items = ShopFakeData.Products;
+Console.WriteLine(items);
+    
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,7 +54,8 @@ builder.Services.AddScoped<IRepository<CartItem>, EfRepository<CartItem>>();
 builder.Services.AddScoped<IProductSearchRepository, ProductSearchRepository>();
 
 builder.Services.AddSingleton<IMessageListener<ProductMessage>, RabbitMqMessageListener<ProductMessage>>();
-builder.Services.AddHostedService<RabbitBackgroundService>();
+// TODO: enable
+//builder.Services.AddHostedService<RabbitBackgroundService>();
 
 builder.Services.Configure<RabbitMqOptions>(options =>
 {
@@ -70,6 +76,13 @@ builder.Services.Configure<RabbitMqOptions>(options =>
      */
 });
 
+builder.Services.AddCors(options => 
+    options.AddPolicy("debug", policy => 
+        policy
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowAnyOrigin()));
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -87,7 +100,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Shop Cart API v1"));
 }
 
+app.UseCors(policy => 
+    policy
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        //.AllowAnyOrigin()
+        .SetIsOriginAllowed(x => true)
+        .AllowCredentials());
+
 app.UseHttpsRedirection();
+
 
 var jwtAuthorizationPolicy = new AuthorizationPolicyBuilder()
     .RequireAssertion(c => c.User.Claims.Any(x => x.Type == ClaimTypes.Sid))

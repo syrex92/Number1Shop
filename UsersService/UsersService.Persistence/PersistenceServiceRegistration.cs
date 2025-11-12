@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using UsersService.Application.Persistence;
 using UsersService.Application.Persistence.Common;
 using UsersService.Persistence.DataContext;
@@ -11,14 +13,26 @@ namespace UsersService.Persistence
 {
     public static class PersistenceServiceRegistration
     {
-        public static IServiceCollection AddPersistanceServices(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddPersistanceServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
         {
             services.AddDbContext<DataBaseContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("AppDBcontext")));
+            {
+                if (environment.IsDevelopment() || environment.IsEnvironment("Test"))
+                {
+                    options.UseSqlite("Data Source=authDB.db");
+                }
+                else
+                {
+                    options.UseNpgsql(configuration.GetConnectionString("CONNECTION_STRING"));
+                }
+            });
 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<ITokenRepository, TokenRepository>();
+            // Регистрация сидера
+            services.AddScoped<IDataSeeder, DataSeeder>();
             return services;
         }
     }

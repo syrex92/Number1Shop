@@ -1,9 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UsersService.Application.Persistence;
 using UsersService.Application.Services;
 using UsersService.Domain.Models;
@@ -19,6 +14,14 @@ namespace UsersService.Infrastructure.Services
         }
 
         /// <summary>
+        /// Добавление нового User
+        /// </summary>
+        public async Task<User> AddUser(User user)
+        {
+            return await _repository.AddAsync(user);
+        }
+
+        /// <summary>
         /// Получение User со списком ролей
         /// </summary>
         /// <param name="email"></param>
@@ -27,9 +30,9 @@ namespace UsersService.Infrastructure.Services
             return await _repository.GetByEmailAsync(email);
         }
 
-        public async Task<User> GetUserByIdAsync(Guid id)
+        public async Task<User?> GetUserByIdAsync(Guid id)
         {
-            return await _repository.GetByIdAsync(id);
+            return await _repository.GetUserByIdAsync(id);
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CartService;
+using Microsoft.EntityFrameworkCore;
 
 namespace Shop.CartService.Model;
 

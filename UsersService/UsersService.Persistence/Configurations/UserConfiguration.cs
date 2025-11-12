@@ -8,15 +8,8 @@ namespace UsersService.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            // Таблица
             builder.ToTable("Users");
-
-            // Ключ
             builder.HasKey(u => u.Id);
-
-            // Свойства
-            builder.Property(u => u.Id)
-                .ValueGeneratedOnAdd();
 
             builder.Property(u => u.UserName)
                 .IsRequired()
@@ -30,16 +23,17 @@ namespace UsersService.Persistence.Configurations
                 .IsRequired()
                 .HasMaxLength(255);
 
-            // Индексы
             builder.HasIndex(u => u.UserName)
                 .IsUnique();
 
             builder.HasIndex(u => u.Email)
                 .IsUnique();
 
-            builder.HasMany(u => u.Roles)
-           .WithMany(r => r.Users)
-           .UsingEntity<UserRole>();
+            // Связь один-ко-многим с UserRole
+            builder.HasMany(u => u.UserRoles)
+                .WithOne(ur => ur.User)
+                .HasForeignKey(ur => ur.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
