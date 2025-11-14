@@ -8,17 +8,45 @@ namespace UsersService.Infrastructure.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _repository;
-        public UserService(IUserRepository repository)
+        private readonly IRoleRepository _roleRepository;
+
+        public UserService(IUserRepository repository, IRoleRepository roleRepository)
         {
             _repository = repository;
+            _roleRepository = roleRepository;
         }
 
         /// <summary>
         /// Добавление нового User
         /// </summary>
-        public async Task<User> AddUser(User user)
+        public async Task<User> AddUserAsync(User user)
         {
             return await _repository.AddAsync(user);
+        }
+
+        /// <summary>
+        /// Регистрация нового пользоватлея
+        /// </summary>
+        /// <param name="name">имя</param>
+        /// <param name="email">почтв</param>
+        /// <param name="password">пароль</param>
+        /// <returns></returns>
+        public async Task<User> CreateUserAsync(string name, string email, string password)
+        {
+            var role = await _roleRepository.GetDefaultRoleAsync();
+            var userId = Guid.NewGuid();
+            var user = new User
+            {
+                Id = userId,
+                UserName = name,
+                Email = email,
+                UserRoles = new List<UserRole> { new UserRole() {UserId = userId, RoleId = role.Id} }
+            };
+            var hashPassword = new PasswordHasher<User>().HashPassword(user, password);
+            user.PasswordHash = hashPassword;
+
+            await _repository.AddAsync(user);
+            return user;
         }
 
         /// <summary>

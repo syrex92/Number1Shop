@@ -2,9 +2,7 @@ import { makeAutoObservable } from 'mobx';
 import { API_BASE_URL } from '../config/constants';
 import type { RegistrationFormData } from '../components/registration/RegistrationFormFields';
 
-/**
- * Интерфейс пользователь
- */
+// Интерфейс пользователь
 export interface User {
   id: string;           // Guid из C#
   name: string;
@@ -13,9 +11,7 @@ export interface User {
   username: string;
 }
 
-/**
- * Интерфейс ответа от сервера 
- */
+// Интерфейс ответа от сервера 
 export interface LoginResponseData {
   accessToken: string;
   refreshToken: string;
@@ -30,9 +26,8 @@ export interface LoginResponseData {
   email: string;                   // Email пользователя
 }
 
-/**
- * Интерфейс хранилища аутентификации
- */
+
+// Интерфейс хранилища аутентификации
 export interface AuthStore {
   user: User | null;                // Данные текущего пользователя
   isLoading: boolean;               // Флаг загрузки
@@ -45,8 +40,8 @@ export interface AuthStore {
 
   // ОСНОВНЫЕ МЕТОДЫ АУТЕНТИФИКАЦИИ
   login: (email: string, password: string) => Promise<void>;    // Вход в систему
-  registration: (data: RegistrationFormData) => Promise<void>        // Регистрация нового пользователя
   logout: () => Promise<void>;                                  // Выход из системы
+  registration: (data: RegistrationFormData) => Promise<void>   // Регистрация нового пользователя
   refreshTokens: () => Promise<boolean>;                        // Обновление токенов
   initializeAuth: () => void;                                   // Инициализация при загрузке приложения
   checkAuth: () => Promise<boolean>;                            // Проверка валидности аутентификации
@@ -55,14 +50,14 @@ export interface AuthStore {
   setTokens: (tokens: LoginResponseData) => void;               // Сохранение токенов и данных пользователя
   clearTokens: () => void;                                      // Очистка токенов и данных пользователя
   isTokenExpired: () => boolean;                                // Проверка истечения срока действия токена
-  getAuthHeaders: () => Record<string, string>;                // Получение заголовков для API запросов
+  getAuthHeaders: () => Record<string, string>;                 // Получение заголовков для API запросов
 }
 
-/**
- * Фабричный метод - возавращет хранилище авторизации
- */
+// Фабричный метод - возавращет хранилище авторизации
+
 export const createAuthStore = (): AuthStore => {
-  const store = {
+  const store =
+  {
     user: null as User | null,
     isLoading: false,
     error: null as string | null,
@@ -109,6 +104,7 @@ export const createAuthStore = (): AuthStore => {
         this.isLoading = false;
       }
     },
+
     async registration(data: RegistrationFormData): Promise<void> {
       this.isLoading = true;
       this.error = null;
@@ -130,7 +126,9 @@ export const createAuthStore = (): AuthStore => {
         const responseData = await response.json();
 
         if (!response.ok) {
-          throw new Error(responseData.message || 'Ошибка регистрации');
+          const errorMessage = responseData.message ||
+            (response.status === 409 ? 'Пользователь с таким email уже существует' : response.status === 400 ? 'Некорректные данные регистрации' : 'Ошибка регистрации');
+          throw new Error(errorMessage);
         }
 
         // После успешной регистрации автоматически логиним пользователя
@@ -147,20 +145,16 @@ export const createAuthStore = (): AuthStore => {
       }
     },
 
-    /**
-     * Обновляет access token с использованием refresh token
-     * Вызывается автоматически при истечении срока действия access token
-     * @returns true если токены успешно обновлены, false в случае ошибки
-     */
+    // Обновляет access token с использованием refresh token
+    // Вызывается автоматически при истечении срока действия access token
     async refreshTokens(): Promise<boolean> {
-      // ПРОВЕРЯЕМ НАЛИЧИЕ ТОКЕНОВ ДЛЯ ОБНОВЛЕНИЯ
+
       if (!this.refreshToken || !this.accessToken) {
         this.logout(); // Если токенов нет - разлогиниваем пользователя
         return false;
       }
 
       try {
-        // ОТПРАВЛЯЕМ ЗАПРОС НА ОБНОВЛЕНИЕ ТОКЕНОВ
         const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
           method: 'POST',
           headers: {
@@ -174,29 +168,23 @@ export const createAuthStore = (): AuthStore => {
 
         const data = await response.json();
 
-        // ПРОВЕРЯЕМ УСПЕШНОСТЬ ОБНОВЛЕНИЯ
         if (!response.ok || !data.success) {
           throw new Error(data.message || 'Failed to refresh token');
         }
 
-        // СОХРАНЯЕМ НОВЫЕ ТОКЕНЫ
-        this.setTokens(data.data);
-        return true;
+        this.setTokens(data.data); return true;
+      
       } catch (error) {
-        // ПРИ ОШИБКЕ ОБНОВЛЕНИЯ - РАЗЛОГИНИВАЕМ ПОЛЬЗОВАТЕЛЯ
         console.error('Token refresh error:', error);
         this.logout();
         return false;
       }
     },
 
-    /**
-     * Выход пользователя из системы
-     * Отправляет запрос на сервер для отзыва токенов и очищает локальные данные
-     */
+     // Выход пользователя из системы
+     // Отправляет запрос на сервер для отзыва токенов и очищает локальные данные
     async logout(): Promise<void> {
       try {
-        // ЕСЛИ ЕСТЬ ACCESS TOKEN - ОТПРАВЛЯЕМ ЗАПРОС НА СЕРВЕР ДЛЯ LOGOUT
         if (this.accessToken) {
           await fetch(`${API_BASE_URL}/auth/logout`, {
             method: 'POST',
@@ -219,23 +207,19 @@ export const createAuthStore = (): AuthStore => {
       }
     },
 
-    /**
-     * Инициализация состояния аутентификации при загрузке приложения
-     * Восстанавливает пользователя из localStorage и проверяет валидность токенов
-     */
+     // Инициализация состояния аутентификации при загрузке приложения
+     // Восстанавливает пользователя из localStorage и проверяет валидность токенов
     initializeAuth(): void {
-      // ВОССТАНАВЛИВАЕМ ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ИЗ LOCALSTORAGE
       const savedUser = localStorage.getItem('user');
       if (savedUser) {
         try {
           this.user = JSON.parse(savedUser);
         } catch (error) {
           console.error('Error parsing saved user:', error);
-          this.clearTokens(); // При ошибке парсинга - очищаем данные
+          this.clearTokens(); 
         }
       }
 
-      // ПРОВЕРЯЕМ ВАЛИДНОСТЬ ACCESS TOKEN
       if (this.accessToken && this.isTokenExpired()) {
         // ЕСЛИ TOKEN ИСТЕК, НО ЕСТЬ REFRESH TOKEN - ПЫТАЕМСЯ ОБНОВИТЬ
         if (this.refreshToken) {
@@ -247,13 +231,10 @@ export const createAuthStore = (): AuthStore => {
       }
     },
 
-    /**
-     * Проверяет валидность текущей аутентификации
-     * Автоматически обновляет токены при необходимости
-     * @returns true если пользователь аутентифицирован, false если нет
-     */
+     // Проверяет валидность текущей аутентификации
+     // Автоматически обновляет токены при необходимости
     async checkAuth(): Promise<boolean> {
-      if (!this.accessToken) return false; // Если токена нет - не аутентифицирован
+      if (!this.accessToken) return false; 
 
       // ЕСЛИ TOKEN ИСТЕК - ПЫТАЕМСЯ ОБНОВИТЬ
       if (this.isTokenExpired()) {
@@ -263,16 +244,11 @@ export const createAuthStore = (): AuthStore => {
       return true; // Token валиден
     },
 
-    /**
-     * Сохраняет токены и данные пользователя в store и localStorage
-     * @param tokens - Данные ответа от сервера с токенами и информацией о пользователе
-     */
+     // Сохраняет токены и данные пользователя в store и localStorage
     setTokens(tokens: LoginResponseData): void {
-      // СОХРАНЯЕМ ТОКЕНЫ В STORE
       this.accessToken = tokens.accessToken;
       this.refreshToken = tokens.refreshToken;
 
-      // СОЗДАЕМ ОБЪЕКТ ПОЛЬЗОВАТЕЛЯ
       this.user = {
         id: tokens.userId,
         name: tokens.username,
@@ -281,34 +257,26 @@ export const createAuthStore = (): AuthStore => {
         username: tokens.username
       };
 
-      // СОХРАНЯЕМ ДАННЫЕ В LOCALSTORAGE ДЛЯ ВОССТАНОВЛЕНИЯ ПРИ ПЕРЕЗАГРУЗКЕ
       localStorage.setItem('accessToken', tokens.accessToken);
       localStorage.setItem('refreshToken', tokens.refreshToken);
       localStorage.setItem('tokenExpiry', tokens.expiresAt);
       localStorage.setItem('user', JSON.stringify(this.user));
     },
 
-    /**
-     * Очищает все данные аутентификации из store и localStorage
-     * Вызывается при logout или при обнаружении невалидных данных
-     */
+     // Очищает все данные аутентификации из store и localStorage
+     // Вызывается при logout или при обнаружении невалидных данных
     clearTokens(): void {
-      // ОЧИЩАЕМ STORE
       this.accessToken = null;
       this.refreshToken = null;
       this.user = null;
 
-      // ОЧИЩАЕМ LOCALSTORAGE
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('tokenExpiry');
       localStorage.removeItem('user');
     },
 
-    /**
-     * Проверяет, истек ли срок действия access token
-     * @returns true если токен истек, false если еще валиден
-     */
+    // Проверяет, истек ли срок действия access token
     isTokenExpired(): boolean {
       try {
         const expiry = localStorage.getItem('tokenExpiry');
@@ -323,10 +291,7 @@ export const createAuthStore = (): AuthStore => {
       }
     },
 
-    /**
-     * Генерирует заголовки для HTTP запросов с авторизацией
-     * @returns Объект с заголовками для fetch/axios запросов
-     */
+     // Генерирует заголовки для HTTP запросов с авторизацией
     getAuthHeaders(): Record<string, string> {
       const headers: Record<string, string> = {
         'Content-Type': 'application/json' // Стандартный заголовок для JSON API
@@ -341,8 +306,6 @@ export const createAuthStore = (): AuthStore => {
 
   };
 
-  // ДЕЛАЕМ ВЕСЬ STORE НАБЛЮДАЕМЫМ ДЛЯ MOBX
-  // MobX БУДЕТ АВТОМАТИЧЕСКИ ОТСЛЕЖИВАТЬ ИЗМЕНЕНИЯ И УВЕДОМЛЯТЬ REACT КОМПОНЕНТЫ
   return makeAutoObservable(store);
 };
 
