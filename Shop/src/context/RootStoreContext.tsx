@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useMemo, useEffect } from 'react';
 import { enableStaticRendering } from 'mobx-react-lite';
-//import { createAuthStore } from '../stores/AuthStore';
+import { createAuthStore } from '../stores/AuthStore';
 import { createProductsStore } from '../stores/ProductsStore';
 import { createCartStore } from '../stores/CartStore';
 import { createFavoritesStore } from '../stores/FavoritesStore';
@@ -10,7 +10,7 @@ import createFakeAuthStore from "../stores/FakeAuthStore.tsx";
 enableStaticRendering(typeof window === 'undefined');
 
 interface RootStore {
-  auth: ReturnType<typeof createFakeAuthStore>;
+  auth: ReturnType<typeof createAuthStore>;
   products: ReturnType<typeof createProductsStore>;
   cart: ReturnType<typeof createCartStore>;
   favorites: ReturnType<typeof createFavoritesStore>;
@@ -21,7 +21,7 @@ const RootStoreContext = createContext<RootStore | null>(null);
 
 export const RootStoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     
-    const auth = createFakeAuthStore();     //createAuthStore();
+    const auth =  createAuthStore(); //createFakeAuthStore();     
     
   const rootStore = useMemo(() => ({
     auth: auth,

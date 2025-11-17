@@ -1,6 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import { API_BASE_URL } from '../config/constants';
 import type {AuthStore, LoginResponseData, User} from "./AuthStore.tsx";
+import type { RegistrationFormData } from '../components/registration/RegistrationFormFields';
 
 /**
  * Интерфейс хранилища аутентификации
@@ -112,6 +113,46 @@ export const createFakeAuthStore = (): AuthStore => {
         return false;
       }
     },
+
+    async registration(data: RegistrationFormData): Promise<void> {
+          this.isLoading = true;
+          this.error = null;
+    
+          try {
+            // запрос на регистрацию
+            const response = await fetch(`${API_BASE_URL}/register`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                name: data.name,
+                email: data.email,
+                password: data.password,
+              }),
+            });
+    
+            const responseData = await response.json();
+    
+            if (!response.ok) {
+              const errorMessage = responseData.message ||
+                (response.status === 409 ? 'Пользователь с таким email уже существует' : response.status === 400 ? 'Некорректные данные регистрации' : 'Ошибка регистрации');
+              throw new Error(errorMessage);
+            }
+    
+            // После успешной регистрации автоматически логиним пользователя
+            if (responseData.data && responseData.data.accessToken) {
+              this.setTokens();
+            }
+          }
+          catch (error) {
+            this.error = error instanceof Error ? error.message : 'Ошибка регистрации';
+            console.error('Register error:', error);
+          }
+          finally {
+            this.isLoading = false;
+          }
+        },
 
     /**
      * Выход пользователя из системы

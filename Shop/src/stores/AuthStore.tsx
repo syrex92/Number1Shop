@@ -1,5 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import { API_BASE_URL } from '../config/constants';
+import { API_AUTH_URL, API_BASE_URL } from '../config/constants';
 import type { RegistrationFormData } from '../components/registration/RegistrationFormFields';
 
 // Интерфейс пользователь
@@ -78,7 +78,7 @@ export const createAuthStore = (): AuthStore => {
 
       try {
         // запрос на аутентификацию
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        const response = await fetch(`${API_AUTH_URL}/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -110,8 +110,9 @@ export const createAuthStore = (): AuthStore => {
       this.error = null;
 
       try {
+        console.log(`${API_AUTH_URL}/register`);
         // запрос на регистрацию
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        const response = await fetch(`${API_AUTH_URL}/register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -155,7 +156,7 @@ export const createAuthStore = (): AuthStore => {
       }
 
       try {
-        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        const response = await fetch(`${API_AUTH_URL}/refresh`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -186,7 +187,7 @@ export const createAuthStore = (): AuthStore => {
     async logout(): Promise<void> {
       try {
         if (this.accessToken) {
-          await fetch(`${API_BASE_URL}/auth/logout`, {
+          await fetch(`${API_AUTH_URL}/logout`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

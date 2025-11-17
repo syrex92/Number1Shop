@@ -13,7 +13,7 @@ namespace UsersService.Persistence.Repositories
 {
     public class RoleRepository : Repository<Role>, IRoleRepository
     {
-        public const string User = "user";
+        public const string User = "User";
         public RoleRepository(DataBaseContext dataContext) : base(dataContext)
         {
         }
