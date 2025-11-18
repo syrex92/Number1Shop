@@ -26,6 +26,6 @@ namespace UsersService.Domain.Models
         /// <summary>
         /// Коллекция ролей, назначенных пользователю
         /// </summary>
-        public ICollection<UserRole> UserRoles { get; set; }
+        public ICollection<UserRole> UserRoles { get; set; } 
     }
 }

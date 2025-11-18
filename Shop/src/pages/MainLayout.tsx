@@ -12,6 +12,15 @@ import CartLinkButton from "../components/Cart/CartLinkButton.tsx";
 const MainLayout = observer(() => {
   const { auth, products } = useStores();
 
+  const handleLogout = async () => {
+    try {
+      await auth.logout();
+      // Дополнительные действия после выхода, если нужны
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   return (
     <div className="layout">
       <header className="header">
@@ -26,14 +35,21 @@ const MainLayout = observer(() => {
         </div>
         <div className="user">
           {auth.isAuthenticated ? (
-            <button className="btn" onClick={auth.logout}><FiLogOut /> Выйти</button>
+            <button className="btn" onClick={handleLogout}>
+              <FiLogOut /> Выйти
+            </button>
           ) : (
-            <NavLink className="btn" to="/login"><FiLogIn /> Войти</NavLink>
+            <NavLink className="btn" to="/login">
+              <FiLogIn /> Войти
+            </NavLink>
           )}
         </div>
-          <div>
-              <CartLinkButton />
-          </div>
+        <div>
+          <CartLinkButton />
+        </div>
+        {auth.isAuthenticated && (
+          <p className="header-user-info">Пользователь: {auth.user?.name}</p>
+        )}
       </header>
 
       <nav className="tabs">

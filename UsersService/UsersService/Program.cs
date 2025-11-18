@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using UsersService.Extensions;
@@ -56,6 +57,16 @@ builder.Services.AddSwaggerGen(options =>
         options.IncludeXmlComments(xmlFile, includeControllerXmlComments: true);
     }
 });
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "https://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 builder.Services.AddResponseCompression(options =>
 {
     options.EnableForHttps = true;
@@ -64,7 +75,7 @@ builder.Services.AddResponseCompression(options =>
 });
 
 var app = builder.Build();
-
+app.UseCors("AllowReactApp");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
 {

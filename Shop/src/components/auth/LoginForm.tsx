@@ -1,10 +1,6 @@
 import { useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import {
-  Paper,
-  LoadingOverlay,
-  Alert,
-} from '@mantine/core';
+import { Paper, LoadingOverlay, Alert } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { useStores } from "../../context/RootStoreContext.tsx";
 import LoginFormFields from './LoginFormFields.tsx';
