@@ -15,6 +15,7 @@ namespace CatalogService.Mappers
                 ProductTitle = product.Name,
                 StockQuantity = product.StockQuantity,
                 ProductDescription = product.Description,
+                Article = product.Article,
                 ImagesUrls = product.ProductImages.Select(pi => pi.ImageUrl).ToList(),
             };
         }
