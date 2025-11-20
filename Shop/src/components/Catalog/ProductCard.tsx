@@ -12,15 +12,21 @@ interface ProductCardProps {
   isFavorite: boolean;
   onDelete(productId: string): void;
   onEdit(productId: string): void;
+  onClick(product: Product): void;
 }
 
 const ProductCard = observer(
-  ({ product, isFavorite, onDelete, onEdit }: ProductCardProps) => {
+  ({ product, isFavorite, onDelete, onEdit, onClick }: ProductCardProps) => {
     const { favorites } = useStores();
+
+    const handleClick: React.MouseEventHandler<HTMLDivElement> = (event) => {
+      event.preventDefault();
+      onClick(product);
+    };
 
     return (
       <>
-        <div className="product-card card">
+        <div className="product-card card" onClick={handleClick}>
           <div className="image-wrap">
             <img
               src={product.image}

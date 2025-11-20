@@ -51,6 +51,11 @@ const ProductsPage = observer(() => {
     }
   }, [productForEdit]);
 
+  const handleClick = (product: Product) => {
+    // Добавить просмотр товара
+    console.log(product);
+  };
+
   return (
     <>
       <Modal
@@ -97,6 +102,7 @@ const ProductsPage = observer(() => {
               isFavorite={favorites.isFavorite(p.id)}
               onDelete={handleDelete}
               onEdit={handleEdit}
+              onClick={handleClick}
             />
           ))}
         </div>
