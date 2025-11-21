@@ -1,6 +1,6 @@
 ﻿namespace CatalogService.Models
 {
-    public abstract class BaseProduct
+    public class CreateProductDto
     {
         public required string ProductTitle {  get; set; }
 
@@ -9,6 +9,8 @@
         public required string ProductCategory { get; set; }
 
         public required int Price { get; set; }
+
+        public required long Article {  get; set; }
 
         public IList<string> ImagesUrls { get; set; } = [];
     }

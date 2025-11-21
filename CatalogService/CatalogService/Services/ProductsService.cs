@@ -16,7 +16,7 @@ namespace CatalogService.Services
             _categoriesRepository = categoriesRepository;
         }
 
-        public async Task<ProductDto> CreateProductAsync(CreateOrUpdateProductDto createDto)
+        public async Task<ProductDto> CreateProductAsync(CreateProductDto createDto)
         {
             var existCategory = await _categoriesRepository.GetCategoryByNameAsync(createDto.ProductCategory);
 
@@ -27,6 +27,7 @@ namespace CatalogService.Services
                 Category = existCategory ?? new Category { Name = createDto.ProductCategory },
                 CreatedAt = DateTime.UtcNow,
                 Price = createDto.Price,
+                Article = createDto.Article,
                 ProductImages = createDto.ImagesUrls.Select(i => new ProductImage { ImageUrl =  i.ToString() }).ToList(),
             });
 
@@ -60,7 +61,7 @@ namespace CatalogService.Services
             return (await _productsRepository.GetProductByIdAsync(productId))?.ToDto();
         }
 
-        public async Task<ProductDto?> UpdateProductAsync(Guid productId, CreateOrUpdateProductDto updateDto)
+        public async Task<ProductDto?> UpdateProductAsync(Guid productId, UpdateProductDto updateDto)
         {
             var existProduct = await _productsRepository.GetProductByIdAsync(productId);
 
@@ -74,6 +75,7 @@ namespace CatalogService.Services
 
             existProduct.UpdatedAt = DateTime.UtcNow;
             existProduct.Price = updateDto.Price;
+            existProduct.Article = updateDto.Article;
             existProduct.Name = updateDto.ProductTitle;
 
             if (!string.IsNullOrEmpty(updateDto.ProductDescription))

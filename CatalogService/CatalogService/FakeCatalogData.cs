@@ -31,6 +31,7 @@ public class FakeCatalogData
                 CreatedAt = x.CreatedAt,
                 UpdatedAt = x.UpdatedAt,    
                 StockQuantity = x.StockQuantity,
+                Article = x.Article,
                 CategoryId = x.Categories.FirstOrDefault(),
                 ProductImages = x.ProductImages.Select(s => new ProductImage
                 {

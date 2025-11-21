@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import { useStores } from '../context/RootStoreContext';
-import ProductCard from '../components/ProductCard';
+import ProductCard from '../components/Catalog/ProductCard';
 import '../styles/FavoritesPage.css';
 
 const FavoritesPage = observer(() => {
