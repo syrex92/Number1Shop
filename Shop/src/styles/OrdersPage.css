@@ -1,5 +1,41 @@
-.orders-page { display: flex; flex-direction: column; gap: var(--space-2); }
-.order-card { border: 1px solid var(--color-border); padding: var(--space-3); background: var(--color-surface); border-radius: var(--radius); }
-.empty { color: var(--color-text-muted); }
+.orders-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
 
+.order-card {
+    border: 1px solid var(--color-border);
+    padding: var(--space-3);
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    margin-bottom: var(--space-2);
+}
 
+.empty {
+    color: var(--color-text-muted);
+}
+
+.order-card .order-card-header {
+    font-weight: bold;
+    color: var(--color-primary);
+    margin-bottom: var(--space-2);
+}
+
+.order-card .order-card-body {
+    text-align: left;;
+}
+
+.order-card .order-card-footer {
+    margin-top: var(--space-2);
+    text-align: right;
+}
+
+.order-card .order-card-footer button {
+    margin: 0 var(--space-1);
+}
+
+.order-items-table {
+    width: 100%;
+    border-collapse: collapse;
+}
