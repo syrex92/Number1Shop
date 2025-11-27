@@ -8,6 +8,7 @@ import CartPage from './CartPage';
 import FavoritesPage from './FavoritesPage';
 import '../styles/MainLayout.css';
 import CartLinkButton from "../components/Cart/CartLinkButton.tsx";
+import OrdersDetailsPage from './OrdersDetailsPage.tsx';
 
 const MainLayout = observer(() => {
   const { auth, products } = useStores();
@@ -63,6 +64,7 @@ const MainLayout = observer(() => {
         <Routes>
           <Route index element={<ProductsPage />} />
           <Route path="orders" element={<OrdersPage />} />
+          <Route path="orders/:id" element={<OrdersDetailsPage />} />
           <Route path="cart" element={<CartPage />} />
           <Route path="favorites" element={<FavoritesPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -101,6 +101,33 @@
     networks:
       - shop-network
       - shop-pg-network
+
+  orders-service:
+    ports:
+      - "8080:8080"
+    image: shop-orders-service
+    build:
+      context: .
+      dockerfile: OrdersService/OrdersService/Dockerfile
+    pull_policy: build
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=Orders
+
+    healthcheck:
+      test: "curl -f http://localhost:8080/health"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - shop-network
+      - shop-pg-network
   
   postgres:
     image: postgres:latest
@@ -158,6 +185,8 @@
       cart-service:
         condition: service_healthy
       favorite-service:
+        condition: service_healthy
+      orders-service:
         condition: service_healthy
         
     restart: unless-stopped
