@@ -34,7 +34,7 @@ namespace OrdersService.Models
     {
         New,
         Processing,
-        Shipped,
+        Shipping,
         Delivered,
         Cancelled
     }

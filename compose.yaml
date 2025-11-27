@@ -185,9 +185,8 @@
       cart-service:
         condition: service_healthy
       favorite-service:
-          condition: service_healthy
-      orders-service:
         condition: service_healthy
+      orders-service:
         condition: service_healthy
         
     restart: unless-stopped
