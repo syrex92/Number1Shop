@@ -34,6 +34,8 @@ public class ProductData
 
     public DateTime? UpdatedAt { get; set; }
 
+    public long Article {  get; set; }
+
     public List<string> ProductImages { get; set; } = [];
 }
 

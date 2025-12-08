@@ -260,7 +260,7 @@ namespace UsersService.Controllers
 
                 // 6. Генерация новой пары токенов
                 var accessTokenExpiration = DateTime.UtcNow.AddMinutes(60);
-                var newAccessToken =  _authService.GetAccessToken(user);
+                var newAccessToken = _authService.GetAccessToken(user);
 
                 var newRefreshToken = _authService.GetRefreshToken(user);
                 var refreshTokenExpiration = DateTime.UtcNow.AddDays(45);
@@ -284,7 +284,7 @@ namespace UsersService.Controllers
                     });
                 }
 
-                // 9. Возврат новой пары токенов
+                // 8. Возврат новой пары токенов
                 return Ok(new LoginResponse
                 {
                     Success = true,
@@ -315,6 +315,138 @@ namespace UsersService.Controllers
                     Message = "An error occurred during token refresh",
                     ErrorCode = "REFRESH_ERROR"
                 });
+            }
+        }
+
+        /// <summary>
+        /// Регистрация нового пользователя
+        /// </summary>
+        /// <param name="request">Данные для регистрации</param>
+        /// <returns>Токены доступа при успешной регистрации</returns>
+        /// <response code="200">Успешная регистрация, возвращены токены</response>
+        /// <response code="400">Неверные данные регистрации</response>
+        /// <response code="409">Пользователь с таким email уже существует</response>
+        /// <response code="500">Внутренняя ошибка сервера</response>
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegistrationRequest request)
+        {
+            try
+            {
+                // Валидация входных данных
+                if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password) || string.IsNullOrEmpty(request.Name))
+                {
+                    return BadRequest(new RegistrationResponse
+                    {
+                        Success = false,
+                        Message = "Все поля обязательны для заполнения",
+                        ErrorCode = "VALIDATION_ERROR"
+                    });
+                }
+
+                // Проверка валидности email
+                if (!IsValidEmail(request.Email))
+                {
+                    return BadRequest(new RegistrationResponse
+                    {
+                        Success = false,
+                        Message = "Некорректный формат email",
+                        ErrorCode = "INVALID_EMAIL"
+                    });
+                }
+
+                // Проверка сложности пароля
+                if (request.Password.Length < 6)
+                {
+                    return BadRequest(new RegistrationResponse
+                    {
+                        Success = false,
+                        Message = "Пароль должен содержать минимум 6 символов",
+                        ErrorCode = "WEAK_PASSWORD"
+                    });
+                }
+
+                // Проверка существования пользователя
+                var existingUser = await _userService.GetUserByEmailAsync(request.Email);
+                if (existingUser != null)
+                {
+                    return Conflict(new RegistrationResponse
+                    {
+                        Success = false,
+                        Message = "Пользователь с таким email уже существует",
+                        ErrorCode = "USER_ALREADY_EXISTS"
+                    });
+                }
+
+                // Создание нового пользователя
+                var newUser = await _userService.CreateUserAsync(request.Name, request.Email, request.Password);
+                if (newUser == null)
+                {
+                    return StatusCode(500, new RegistrationResponse
+                    {
+                        Success = false,
+                        Message = "Ошибка при создании пользователя",
+                        ErrorCode = "USER_CREATION_FAILED"
+                    });
+                }
+
+                // Генерация токенов
+                var accessToken = _authService.GetAccessToken(newUser);
+                var refreshToken = _authService.GetRefreshToken(newUser);
+
+                var accessTokenExpiration = DateTime.UtcNow.AddMinutes(60);
+                var refreshTokenExpiration = DateTime.UtcNow.AddDays(45);
+
+                // Сохранение refresh токена в БД
+                await _authService.AddRefreshTokenAsync(refreshToken, newUser.Id);
+
+                // Формирование ответа
+                var response = new RegistrationResponse
+                {
+                    Success = true,
+                    Message = "Регистрация выполнена успешно",
+                    Data = new AuthResponse
+                    {
+                        UserId = newUser.Id,
+                        AccessToken = accessToken,
+                        RefreshToken = refreshToken,
+                        TokenType = "Bearer",
+                        ExpiresIn = (int)TimeSpan.FromMinutes(60).TotalSeconds,
+                        ExpiresAt = accessTokenExpiration,
+                        RefreshTokenExpiresIn = (int)TimeSpan.FromDays(45).TotalSeconds,
+                        RefreshTokenExpiresAt = refreshTokenExpiration,
+                        Username = newUser.UserName,
+                        Email = newUser.Email,
+                        Role = newUser.UserRoles.Select(x => x.Role).FirstOrDefault()?.RoleName ?? "user"
+                    }
+                };
+
+                _logger.LogInfo("User registered successfully: {Email}", request.Email);
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, "Error during registration for email {Email}", request.Email);
+
+                return StatusCode(500, new RegistrationResponse
+                {
+                    Success = false,
+                    Message = "Произошла внутренняя ошибка сервера",
+                    ErrorCode = "INTERNAL_SERVER_ERROR"
+                });
+            }
+        }
+        // Вспомогательный метод для валидации email
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
             }
         }
 

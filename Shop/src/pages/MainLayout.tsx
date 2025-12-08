@@ -8,9 +8,19 @@ import CartPage from './CartPage';
 import FavoritesPage from './FavoritesPage';
 import '../styles/MainLayout.css';
 import CartLinkButton from "../components/Cart/CartLinkButton.tsx";
+import OrdersDetailsPage from './OrdersDetailsPage.tsx';
 
 const MainLayout = observer(() => {
   const { auth, products } = useStores();
+
+  const handleLogout = async () => {
+    try {
+      await auth.logout();
+      // Дополнительные действия после выхода, если нужны
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   return (
     <div className="layout">
@@ -26,14 +36,21 @@ const MainLayout = observer(() => {
         </div>
         <div className="user">
           {auth.isAuthenticated ? (
-            <button className="btn" onClick={auth.logout}><FiLogOut /> Выйти</button>
+            <button className="btn" onClick={handleLogout}>
+              <FiLogOut /> Выйти
+            </button>
           ) : (
-            <NavLink className="btn" to="/login"><FiLogIn /> Войти</NavLink>
+            <NavLink className="btn" to="/login">
+              <FiLogIn /> Войти
+            </NavLink>
           )}
         </div>
-          <div>
-              <CartLinkButton />
-          </div>
+        <div>
+          <CartLinkButton />
+        </div>
+        {auth.isAuthenticated && (
+          <p className="header-user-info">Пользователь: {auth.user?.name}</p>
+        )}
       </header>
 
       <nav className="tabs">
@@ -47,6 +64,7 @@ const MainLayout = observer(() => {
         <Routes>
           <Route index element={<ProductsPage />} />
           <Route path="orders" element={<OrdersPage />} />
+          <Route path="orders/:id" element={<OrdersDetailsPage />} />
           <Route path="cart" element={<CartPage />} />
           <Route path="favorites" element={<FavoritesPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

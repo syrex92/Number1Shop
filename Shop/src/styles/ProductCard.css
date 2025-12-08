@@ -21,7 +21,7 @@
 
 .favorite {
   position: absolute;
-  right: 8px;
+  right: 50px;
   top: 8px;
   background: transparent;
   border: 1px solid var(--color-border);
@@ -36,6 +36,38 @@
 }
 
 .favorite.active { color: var(--color-primary); border-color: var(--color-primary); }
+
+.close {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.edit {
+  position: absolute;
+  right: 93px;
+  top: 8px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
 
 .product-info {
   display: flex;

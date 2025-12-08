@@ -1,6 +1,6 @@
 ﻿namespace CatalogService.Models
 {
-    public class ProductDto : BaseProduct
+    public class ProductDto : CreateProductDto
     {
         public Guid Id { get; set; }
 

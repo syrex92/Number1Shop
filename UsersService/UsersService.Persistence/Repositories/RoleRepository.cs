@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,8 +13,14 @@ namespace UsersService.Persistence.Repositories
 {
     public class RoleRepository : Repository<Role>, IRoleRepository
     {
+        public const string User = "User";
         public RoleRepository(DataBaseContext dataContext) : base(dataContext)
         {
+        }
+
+        public async Task<Role> GetDefaultRoleAsync()
+        {
+            return await _context.Roles.FirstOrDefaultAsync(x => x.RoleName == User);
         }
     }
 }

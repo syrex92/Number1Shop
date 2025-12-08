@@ -69,7 +69,7 @@ public class AuthServiceTests : IClassFixture<AuthServiceFixture>
                     }
                 }
         };
-        await _userService.AddUser(user);
+        await _userService.AddUserAsync(user);
         return user;
 
     }

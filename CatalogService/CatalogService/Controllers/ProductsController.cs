@@ -30,7 +30,7 @@ public class ProductsController : ControllerBase
     /// <response code="400">Bad Request (Ошибка входных данных)</response>
     /// <response code="500">Internal Server Error</response>
     [HttpPost]
-    public async Task<IActionResult> CreateAsync([FromBody] CreateOrUpdateProductDto request)
+    public async Task<IActionResult> CreateAsync([FromBody] CreateProductDto request)
     {
         _logger.LogInformation("Try create product with title: {title}", request.ProductTitle);
         var created = await _productService.CreateProductAsync(request);
@@ -80,7 +80,7 @@ public class ProductsController : ControllerBase
     /// <response code="422">Bad Request (Ошибка входных данных)</response>
     /// <response code="500">Internal Server Error</response>
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<ProductDto>> UpdateAsync(Guid id, [FromBody] CreateOrUpdateProductDto request)
+    public async Task<ActionResult<ProductDto>> UpdateAsync(Guid id, [FromBody] UpdateProductDto request)
     {
         _logger.LogInformation("Try update product with id: {id}", id);
         var updated = await _productService.UpdateProductAsync(id, request);

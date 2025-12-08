@@ -1,22 +1,22 @@
 
-import {Routes, Route, Navigate} from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import './App.css';
-import {useStores} from './context/RootStoreContext';
 import LoginPage from './pages/LoginPage';
 import MainLayout from './pages/MainLayout';
 import '@mantine/core/styles.css';
 import '@mantine/carousel/styles.css';
 
-import {MantineProvider} from '@mantine/core';
+import { MantineProvider } from '@mantine/core';
+import RegistrationPage from './pages/RegistrationPage';
 
 function App() {
-    const {auth} = useStores();
-
     return (
-        <MantineProvider defaultColorScheme="dark">        
+        <MantineProvider defaultColorScheme="dark">
             <Routes>
-                <Route path="/login" element={auth.isAuthenticated ? <Navigate to="/" replace/> : <LoginPage/>}/>
-                <Route path="/*" element={<MainLayout/>}/>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/registration" element={<RegistrationPage />} />
+                <Route path="/" element={<MainLayout />} />
+                <Route path="*" element={<MainLayout />} />
             </Routes>
         </MantineProvider>
     );

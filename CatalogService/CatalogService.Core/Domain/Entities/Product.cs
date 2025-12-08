@@ -20,6 +20,8 @@
 
         public DateTime? UpdatedAt { get; set; }
 
+        public long Article { get; set; }
+
         public IList<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
     }
 }
