@@ -1,7 +1,7 @@
-import {makeAutoObservable, toJS} from 'mobx';
+import {makeAutoObservable, runInAction, toJS} from 'mobx';
 import type {Product} from './ProductsStore';
 import {CartApi, type CartItemResponseDto} from '../utils/CartApi';
-import type createFakeAuthStore from "./FakeAuthStore.tsx";
+import type createAuthStore from "./AuthStore.tsx";
 
 export interface CartItem {
     product: Product;
@@ -14,38 +14,44 @@ export interface CartStore {
     count: number;
     total: number;
     find: (productId: string) => CartItem | undefined;
-    add: (product: Product) => CartItem;
+    add: (product: Product) => Promise<CartItem>;
     remove: (productId: string) => void;
     orderTotalPrice: number;
     //orderTotalCount: number;
-    
+
     toOrder: (productId: string, inOrder: boolean) => void;
-    
+
     orderAll: boolean;
     decrease: (productId: string) => void;
     clear: () => void;
-    
+
     fetchItems: () => Promise<void>;
-    
+
+    //initialized: boolean;
+
     loading: boolean;
     error: boolean;
     errorText: string | null;
 }
 
-export const createCartStore = (auth: ReturnType<typeof createFakeAuthStore>): CartStore => {
-    
-    const apiUrl = import.meta.env.VITE_SHOP_CART_URL;    
-    
+export const createCartStore = (auth: ReturnType<typeof createAuthStore>): CartStore => {
+
+    const apiUrl = import.meta.env.VITE_SHOP_CART_URL;
+
+    const cartApi = new CartApi(apiUrl, auth);
+
     const store = {
-        
+
         items: new Map<string, CartItem>(),
 
-        get orderAll():boolean {
+        //initialized: false,
+
+        get orderAll(): boolean {
             let c = true;
             this.items.forEach(v => (c &&= v.toOrder));
             return c;
         },
-        
+
         get count(): number {
             let c = 0;
             this.items.forEach(v => (c += v.qty));
@@ -57,7 +63,7 @@ export const createCartStore = (auth: ReturnType<typeof createFakeAuthStore>): C
             this.items.forEach(v => (c += (v.toOrder ? v.product.price * v.qty : 0)));
             return c;
         },
-      
+
         get total(): number {
             let sum = 0;
             this.items.forEach(v => (sum += v.product.price * v.qty));
@@ -66,56 +72,69 @@ export const createCartStore = (auth: ReturnType<typeof createFakeAuthStore>): C
 
         async fetchItems(): Promise<void> {
 
-            console.log("Cart load started");
-            
-            const cartApi = new CartApi(apiUrl, auth);
-            
-            this.loading = true;
-            
-            await cartApi.getItems()
-                .then(async (res) => {
-                    this.loading = false;
-                    console.log("Cart loaded");
-                    console.log(res);
-                    
-                    const loadedItems = res;
+            runInAction(() => {
+                this.loading = true;
+                this.error = false;
+                this.errorText = "";
+            })
 
-                    // call to ProductApi
-                    //loadedItems.items.forEach((x : CartItemResponseDto) => this.items.set(x.productId, x.quantity));
-                    
-                    loadedItems.items.forEach((x : CartItemResponseDto) => this.items.set(x.productId, 
-                        {
-                            toOrder: false, 
-                            product: {
-                                id: x.productId,
-                                image: undefined,    
-                                title: "title",
-                                price: 100
-                            }, 
-                            qty: x.quantity
-                        }));
-                    
+            await cartApi.getItems()
+                .then(async (dto) => {
+
+                    runInAction(() => {
+                        dto.items.forEach((x: CartItemResponseDto) => this.items.set(x.productId,
+                            {
+                                toOrder: false,
+                                product: {
+                                    id: x.productId,
+                                    image: undefined,
+                                    title: "title",
+                                    price: 100
+                                },
+                                qty: x.quantity
+                            }));
+                    })
                 })
                 .catch(reason => {
-                    console.log("Cart error");
-                    console.log(reason);
-                    //if(reason.error.status === 401) {
+                    runInAction(() => {
                         this.items.clear();
                         this.error = true;
-                        this.errorText = "Вход не выполнен";
+                        this.errorText = reason.message;
+
+                    })
+                })
+                .finally(() => {
+                    runInAction(() => {
                         this.loading = false;
-                    //}
-                    //console.error(reason)
+                    })
                 });
         },
-        
-        add(product: Product): CartItem {
+
+        async add(product: Product): Promise<CartItem> {
             let rec = this.items.get(product.id);
             if (rec) {
                 rec.qty += 1;
+                console.log(rec)
+
+                await cartApi.updateItem(rec)
+                    .then((x) => {
+                        console.log(x);
+                        return rec;
+                    })
+                    .catch(reason => {
+                        console.log(reason);
+                    })
+                //return rec;
             } else {
                 rec = {product, qty: 1, toOrder: true};
-                this.items.set(product.id, rec);
+                await cartApi.addItem(rec)
+                    .then(dto => {
+                        this.items.set(product.id, dto);
+                        return rec;
+                    })
+                    .catch(reason => {
+                        console.log(reason);
+                    })
             }
             return toJS(rec);
         },
@@ -140,7 +159,7 @@ export const createCartStore = (auth: ReturnType<typeof createFakeAuthStore>): C
             if (!rec) return;
             rec.toOrder = inOrder;
         },
-        
+
         clear(): void {
             this.items.clear();
         },

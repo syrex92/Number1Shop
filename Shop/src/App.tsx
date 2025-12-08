@@ -4,6 +4,7 @@ import './App.css';
 import LoginPage from './pages/LoginPage';
 import MainLayout from './pages/MainLayout';
 import '@mantine/core/styles.css';
+import '@mantine/carousel/styles.css';
 
 import { MantineProvider } from '@mantine/core';
 import RegistrationPage from './pages/RegistrationPage';

@@ -56,6 +56,71 @@ public static class CartRequestsHandler
     }
 
     /// <summary>
+    /// Добавление товара в корзину
+    /// </summary>
+    /// <remarks>
+    /// При вызове добавляется количество указанного товара в корзину.
+    /// Если новое количество меньше или равно нулю - товар удаляется из корзины
+    /// </remarks>
+    /// <param name="context"></param>
+    /// <param name="repository"></param>
+    /// <param name="updateCartRequest"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static async Task<IResult> AddToCart(
+        HttpContext context,
+        IRepository<Cart> repository,
+        CartUpdateProductRequest updateCartRequest,
+        CancellationToken cancellationToken
+    )
+    {
+        if(updateCartRequest.Quantity == 0)
+            return TypedResults.BadRequest();
+        
+        var userId = Guid.ParseExact(
+            context.User.Claims.Single(x => x.Type == ClaimTypes.Sid).Value, 
+            "D");
+
+        var cart = await repository.GetById(userId);
+        if (cart == null)
+        {
+            cart = new Cart()
+            {
+                Id = userId,
+                CartItems = new List<CartItem>()
+            };
+            await repository.Add(cart);
+            //return TypedResults.NotFound<CartResponse>(null);
+        }
+
+        var item = cart.CartItems?.FirstOrDefault(x => x.ProductId == updateCartRequest.ProductId);
+        if (item != null)
+            return TypedResults.Conflict();
+
+        item = new CartItem()
+        {
+            ProductId = updateCartRequest.ProductId,
+            Quantity = updateCartRequest.Quantity
+        };
+        
+        // if (updateCartRequest.Quantity > 0)
+        //     item.Quantity = updateCartRequest.Quantity;
+        // else
+            cart.CartItems?.Add(item);
+
+        await repository.Update(cart);
+
+        return TypedResults.Ok(new CartResponse
+        {
+            Items = cart.CartItems?.Select(x => new CartItemResponse()
+            {
+                ProductId = x.ProductId,
+                Quantity = x.Quantity
+            }).ToList() ?? []
+        });
+    }
+    
+    /// <summary>
     /// Обновление количества товара в корзине 
     /// </summary>
     /// <remarks>
