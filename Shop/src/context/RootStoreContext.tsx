@@ -5,7 +5,6 @@ import { createProductsStore } from '../stores/ProductsStore';
 import { createCartStore } from '../stores/CartStore';
 import { createFavoritesStore } from '../stores/FavoritesStore';
 import { createOrdersStore } from '../stores/OrdersStore';
-import createFakeAuthStore from "../stores/FakeAuthStore.tsx";
 
 enableStaticRendering(typeof window === 'undefined');
 
