@@ -18,36 +18,40 @@ export interface CartStore {
     remove: (productId: string) => void;
     orderTotalPrice: number;
     //orderTotalCount: number;
-    
+
     toOrder: (productId: string, inOrder: boolean) => void;
-    
+
     orderAll: boolean;
     decrease: (productId: string) => void;
     clear: () => void;
-    
+
     fetchItems: () => Promise<void>;
-    
+
+    //initialized: boolean;
+
     loading: boolean;
     error: boolean;
     errorText: string | null;
 }
 
 export const createCartStore = (auth: ReturnType<typeof createAuthStore>): CartStore => {
-    
+
     const apiUrl = import.meta.env.VITE_SHOP_CART_URL;
 
     const cartApi = new CartApi(apiUrl, auth);
-    
+
     const store = {
-        
+
         items: new Map<string, CartItem>(),
 
-        get orderAll():boolean {
+        //initialized: false,
+
+        get orderAll(): boolean {
             let c = true;
             this.items.forEach(v => (c &&= v.toOrder));
             return c;
         },
-        
+
         get count(): number {
             let c = 0;
             this.items.forEach(v => (c += v.qty));
@@ -59,7 +63,7 @@ export const createCartStore = (auth: ReturnType<typeof createAuthStore>): CartS
             this.items.forEach(v => (c += (v.toOrder ? v.product.price * v.qty : 0)));
             return c;
         },
-      
+
         get total(): number {
             let sum = 0;
             this.items.forEach(v => (sum += v.product.price * v.qty));
@@ -68,48 +72,53 @@ export const createCartStore = (auth: ReturnType<typeof createAuthStore>): CartS
 
         async fetchItems(): Promise<void> {
 
-            
-            
-            runInAction(() => { 
-                this.loading = true; 
-                this.error = false; 
-                this.errorText = ""; 
+            runInAction(() => {
+                this.loading = true;
+                this.error = false;
+                this.errorText = "";
             })
-            
+
             await cartApi.getItems()
                 .then(async (dto) => {
-                    this.loading = false;
-                    
-                    dto.items.forEach((x : CartItemResponseDto) => this.items.set(x.productId, 
-                        {
-                            toOrder: false, 
-                            product: {
-                                id: x.productId,
-                                image: undefined,    
-                                title: "title",
-                                price: 100
-                            }, 
-                            qty: x.quantity
-                        }));
-                    
+
+                    runInAction(() => {
+                        dto.items.forEach((x: CartItemResponseDto) => this.items.set(x.productId,
+                            {
+                                toOrder: false,
+                                product: {
+                                    id: x.productId,
+                                    image: undefined,
+                                    title: "title",
+                                    price: 100
+                                },
+                                qty: x.quantity
+                            }));
+                    })
                 })
-                .catch(reason => {                    
+                .catch(reason => {
                     runInAction(() => {
                         this.items.clear();
                         this.error = true;
                         this.errorText = reason.message;
+
+                    })
+                })
+                .finally(() => {
+                    runInAction(() => {
                         this.loading = false;
-                    })                    
+                    })
                 });
         },
-        
+
         async add(product: Product): Promise<CartItem> {
             let rec = this.items.get(product.id);
             if (rec) {
                 rec.qty += 1;
+                console.log(rec)
+
                 await cartApi.updateItem(rec)
-                    .then(() => {
-                        //this.items.set(product.id, dto);
+                    .then((x) => {
+                        console.log(x);
                         return rec;
                     })
                     .catch(reason => {
@@ -150,7 +159,7 @@ export const createCartStore = (auth: ReturnType<typeof createAuthStore>): CartS
             if (!rec) return;
             rec.toOrder = inOrder;
         },
-        
+
         clear(): void {
             this.items.clear();
         },

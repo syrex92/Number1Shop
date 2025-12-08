@@ -12,10 +12,6 @@ const ProductsPage = observer(() => {
         products.fetchProducts();
     }, []);
     
-    // useEffect(() => {
-    //     products.fetchProducts();
-    // }, [products]);
-
     return (
         <>
             {products.isLoading ?

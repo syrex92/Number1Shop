@@ -18,13 +18,11 @@ const AddToCartButton = observer(({product}: AddToCartButtonProps) => {
     const {cart} = useStores();
     
     useEffect(() => {
-        
-        
         const cartItem = cart.find(product.id);
         if(cartItem)
-            setCartItem(cartItem);        
-    }, [product])
-    
+            setCartItem(cartItem);
+    }, [cart.loading])
+
     const onAddClick = () => {
         setExecuting(true);
         cart.add(product).then((itm) => {

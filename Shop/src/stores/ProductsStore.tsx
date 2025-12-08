@@ -1,4 +1,5 @@
 import {makeAutoObservable, runInAction} from 'mobx';
+import type {ProductItemResponseDto} from "../dto/ProductItemResponseDto.ts";
 
 export interface Product {
   id: string;
@@ -14,16 +15,6 @@ export interface ProductsStore {
   filteredProducts: Product[];
   setQuery: (value: string) => void;
   fetchProducts: () => Promise<void>;
-}
-
-export interface ProductItemResponseDto {
-    id: string;    
-    stockQuantity: number;
-    productTitle: string;
-    productDescription: string;
-    productCategory: string;
-    price: number;
-    imagesUrls: string[];
 }
 
 export const createProductsStore = (): ProductsStore => {
@@ -53,13 +44,13 @@ export const createProductsStore = (): ProductsStore => {
                 
                 const loadedItems = res as ProductItemResponseDto[];
 
-                console.log(loadedItems);
+                //console.log(loadedItems);
 
                 const products = new Array<Product>(); 
                 loadedItems.forEach((x : ProductItemResponseDto) => products.push(
                     {
                             id: x.id,
-                            image: ((x.imagesUrls.length > 0) ? `/images/${x.imagesUrls[0]}` : undefined),
+                            image: ((x.imagesUrls.length > 0) ? `/images/${x.imagesUrls[0]}` : undefined),                            
                             title: x.productTitle,
                             price: x.price,
 

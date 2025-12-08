@@ -1,6 +1,5 @@
 //import { createAuthStore } from '../stores/AuthStore';
 import { API_BASE_URL } from '../config/constants';
-import sleep from "./sleep.ts";
 import type createAuthStore from "../stores/AuthStore.tsx";
 
 /**
@@ -41,7 +40,7 @@ class ApiClient {
      * Автоматически добавляет заголовки авторизации и обрабатывает истекшие токены
      */
     async request(url: string, options: RequestInit = {}): Promise<Response> {
-        await sleep(3000);
+        //await sleep(3000);
         // ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА АУТЕНТИФИКАЦИИ
         const isAuthenticated = await this.authStore.checkAuth();
 

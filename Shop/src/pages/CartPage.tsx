@@ -13,7 +13,9 @@ const CartPage = observer(() => {
     const items = Array.from(cart.items.values());
 
     useEffect(() => {
-        cart.fetchItems()
+        cart.fetchItems().catch(error => {
+            console.log(error);
+        })
     }, []);
 
     function FilledCart() {

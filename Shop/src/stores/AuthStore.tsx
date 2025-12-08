@@ -46,7 +46,7 @@ export interface AuthStore {
   login: (email: string, password: string) => Promise<void>;    // Вход в систему
   logout: () => Promise<void>;                                  // Выход из системы
   refreshTokens: () => Promise<boolean>;                        // Обновление токенов
-  initializeAuth: () => void;                                   // Инициализация при загрузке приложения
+  initializeAuth: () => Promise<void>;                                   // Инициализация при загрузке приложения
   checkAuth: () => Promise<boolean>;                            // Проверка валидности аутентификации
 
   // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
@@ -188,10 +188,10 @@ export const createAuthStore = (): AuthStore => {
      * Инициализация состояния аутентификации при загрузке приложения
      * Восстанавливает пользователя из localStorage и проверяет валидность токенов
      */
-    initializeAuth(): void {
+    async initializeAuth(): Promise<void> {
       // ВОССТАНАВЛИВАЕМ ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ИЗ LOCALSTORAGE
-        console.log("auth init called")
-        console.log(localStorage.getItem('user'))
+        //console.log("auth init called")
+        //console.log(localStorage.getItem('user'))
       const savedUser = localStorage.getItem('user');
       if (savedUser) {
         try {
