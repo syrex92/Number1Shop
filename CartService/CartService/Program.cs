@@ -127,6 +127,16 @@ app.MapGet("/", CartRequestsHandler.GetCart)
     .Produces(401)
     .WithOpenApi();
 
+app.MapPost("/", CartRequestsHandler.AddToCart)
+    .RequireAuthorization(jwtAuthorizationPolicy)
+    .WithName("AddToCart")
+    .WithTags("Корзина")
+    .Produces<CartResponse>(200, "application/json")
+    .Produces(401)
+    .Produces(201)
+    .WithOpenApi();
+
+
 app.MapPut("/", CartRequestsHandler.UpdateCart)
     .RequireAuthorization(jwtAuthorizationPolicy)
     .WithName("UpdateCart")

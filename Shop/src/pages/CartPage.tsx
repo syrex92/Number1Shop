@@ -5,6 +5,7 @@ import CartItemCard from "../components/Cart/CartItemCard.tsx";
 import CartItemsFooter from "../components/Cart/CartItemsFooter.tsx";
 import CartItemsHeader from "../components/Cart/CartItemsHeader.tsx";
 import {useEffect} from "react";
+import {Button, Center, Stack, Text} from "@mantine/core";
 
 const CartPage = observer(() => {
     const {cart} = useStores();
@@ -12,10 +13,12 @@ const CartPage = observer(() => {
     const items = Array.from(cart.items.values());
 
     useEffect(() => {
-        cart.fetchItems()
+        cart.fetchItems().catch(error => {
+            console.log(error);
+        })
     }, []);
 
-    function CartContent() {
+    function FilledCart() {
         return (
             <>
                 <CartItemsHeader/>
@@ -36,21 +39,41 @@ const CartPage = observer(() => {
         )
     }
 
-    function CartLoading() {
+    const CartLoading = () => {
         return (
-            <div className="empty">LOADING</div>
+            <div className="empty">Загружаем корзину...</div>
         )
     }
 
+    const CartError = () => {
+        return (
+            <Center>
+                <Stack>
+                    <Text fw={500}>Что-то пошло не так...</Text>
+                    <Text c="red" fw={200}>{cart.errorText}</Text>
+                    <Button loading={cart.loading} 
+                            onClick={() => { cart.fetchItems() }}>
+                        Повторить
+                    </Button>
+                </Stack>
+            </Center>
+        )
+    }
+
+    const CartContent = observer(() => {
+        if (cart.error) {
+            return <CartError/>
+        } else if (cart.loading) {
+            return <CartLoading/>
+        } else if (items.length === 0) {
+            return <EmptyCart/>
+        }
+        return <FilledCart/>
+    })
+
     return (
         <div className="cart-page">
-            {
-                cart.loading ? <CartLoading/> :
-                    items.length === 0 ? (
-                        <EmptyCart/>
-                    ) : (
-                        <CartContent/>
-                    )}
+            <CartContent/>
         </div>
     );
 });
