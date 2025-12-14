@@ -2,6 +2,8 @@ import {makeAutoObservable, runInAction, toJS} from 'mobx';
 import type {Product} from './ProductsStore';
 import {CartApi, type CartItemResponseDto} from '../utils/CartApi';
 import type createAuthStore from "./AuthStore.tsx";
+import shopConfig from "../config/shopConfig.ts";
+import {logger} from "../utils/logger.ts";
 
 export interface CartItem {
     product: Product;
@@ -36,9 +38,9 @@ export interface CartStore {
 
 export const createCartStore = (auth: ReturnType<typeof createAuthStore>): CartStore => {
 
-    const apiUrl = import.meta.env.VITE_SHOP_CART_URL;
-
-    const cartApi = new CartApi(apiUrl, auth);
+    const { cartApiUrl } = shopConfig
+    
+    const cartApi = new CartApi(cartApiUrl, auth);
 
     const store = {
 
@@ -47,6 +49,7 @@ export const createCartStore = (auth: ReturnType<typeof createAuthStore>): CartS
         //initialized: false,
 
         get orderAll(): boolean {
+            
             let c = true;
             this.items.forEach(v => (c &&= v.toOrder));
             return c;
@@ -54,7 +57,7 @@ export const createCartStore = (auth: ReturnType<typeof createAuthStore>): CartS
 
         get count(): number {
             let c = 0;
-            this.items.forEach(v => (c += v.qty));
+            this.items.forEach(v => (c += (v.qty ? v.qty : 0)));
             return c;
         },
 
@@ -89,7 +92,10 @@ export const createCartStore = (auth: ReturnType<typeof createAuthStore>): CartS
                                     id: x.productId,
                                     image: undefined,
                                     title: "title",
-                                    price: 100
+                                    price: 100,
+                                    article: 0,
+                                    description: "",
+                                    category: ""
                                 },
                                 qty: x.quantity
                             }));
@@ -114,22 +120,22 @@ export const createCartStore = (auth: ReturnType<typeof createAuthStore>): CartS
             let rec = this.items.get(product.id);
             if (rec) {
                 rec.qty += 1;
-                console.log(rec)
 
                 await cartApi.updateItem(rec)
                     .then((x) => {
-                        console.log(x);
+                        logger.debug(`cart item updated: ${JSON.stringify(x)}`)
                         return rec;
                     })
                     .catch(reason => {
-                        console.log(reason);
+                        logger.error("update error:", reason);
                     })
-                //return rec;
             } else {
                 rec = {product, qty: 1, toOrder: true};
                 await cartApi.addItem(rec)
                     .then(dto => {
-                        this.items.set(product.id, dto);
+                        runInAction(() => {
+                            this.items.set(product.id, dto);
+                        });
                         return rec;
                     })
                     .catch(reason => {
