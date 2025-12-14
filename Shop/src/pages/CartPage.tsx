@@ -6,6 +6,7 @@ import CartItemsFooter from "../components/Cart/CartItemsFooter.tsx";
 import CartItemsHeader from "../components/Cart/CartItemsHeader.tsx";
 import {useEffect} from "react";
 import {Button, Center, Stack, Text} from "@mantine/core";
+import {logger} from "../utils/logger.ts";
 
 const CartPage = observer(() => {
     const {cart} = useStores();
@@ -23,8 +24,8 @@ const CartPage = observer(() => {
             <>
                 <CartItemsHeader/>
                 <div className="cart-list">
-                    {items.map((item, index) => (
-                        <CartItemCard key={index} cartItem={item}/>
+                    {items.map((item) => (
+                        <CartItemCard key={item.product.id} cartItem={item}/>
                     ))}
                 </div>
 
@@ -40,6 +41,9 @@ const CartPage = observer(() => {
     }
 
     const CartLoading = () => {
+        
+        logger.warn("Cart Loading");
+        
         return (
             <div className="empty">Загружаем корзину...</div>
         )
