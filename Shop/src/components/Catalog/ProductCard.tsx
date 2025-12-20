@@ -4,7 +4,7 @@ import { FiHeart } from "react-icons/fi";
 import type { Product } from "../../stores/ProductsStore.tsx";
 import "../../styles/ProductCard.css";
 import AddToCartButton from "../Cart/AddToCartButton.tsx";
-import { CloseIcon, Flex, Stack } from "@mantine/core";
+import { Button, CloseIcon, Flex, Group, Stack } from "@mantine/core";
 import { IconEdit } from "@tabler/icons-react";
 
 interface ProductCardProps {
@@ -12,21 +12,20 @@ interface ProductCardProps {
   isFavorite: boolean;
   onDelete(productId: string): void;
   onEdit(productId: string): void;
-  onClick(product: Product): void;
+  onViewCard(product: Product): void;
 }
 
 const ProductCard = observer(
-  ({ product, isFavorite, onDelete, onEdit, onClick }: ProductCardProps) => {
+  ({ product, isFavorite, onDelete, onEdit, onViewCard }: ProductCardProps) => {
     const { favorites } = useStores();
 
-    const handleClick: React.MouseEventHandler<HTMLDivElement> = (event) => {
-      event.preventDefault();
-      onClick(product);
+    const handleViewClick = () => {
+      onViewCard(product);
     };
 
     return (
       <>
-        <div className="product-card card" onClick={handleClick}>
+        <div className="product-card card">
           <div className="image-wrap">
             <img
               src={product.image}
@@ -73,8 +72,12 @@ const ProductCard = observer(
             <div className="product-title">{product.title}</div>
             <div className="product-price">{product.price} ₽</div>
 
-            <AddToCartButton product={product} />
+            <Group justify="center" gap="sm">
+              <AddToCartButton product={product} />
+              <Button onClick={handleViewClick}>Просмотр товара</Button>
+            </Group>
           </Stack>
+          
         </div>
       </>
     );

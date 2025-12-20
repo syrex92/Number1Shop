@@ -14,11 +14,16 @@ import {
 } from "@mantine/core";
 import ProductComponent from "../components/Catalog/ProductComponent/ProductComponent";
 import type { NewProduct, Product } from "../stores/ProductsStore";
+import ViewProductComponent from "../components/Catalog/ProductComponent/ViewProductComponent";
 
 const ProductsPage = observer(() => {
   const { products, favorites } = useStores();
   const [isNewModalOpen, setIsNewModalOpen] = useState<boolean>(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
   const [productForEdit, setProductForEdit] = useState<Product | undefined>(
+    undefined
+  );
+  const [productForView, setProductForView] = useState<Product | undefined>(
     undefined
   );
 
@@ -51,9 +56,21 @@ const ProductsPage = observer(() => {
     }
   }, [productForEdit]);
 
+  useEffect(() => {
+    if (productForView) {
+      setIsViewModalOpen(true);
+    }
+  }, [productForView]);
+
   const handleClick = (product: Product) => {
-    // Добавить просмотр товара
-    console.log(product);
+    setProductForView(product);
+  };
+
+  const handleConfirmView = (product: Product, productCount: number) => {
+    // TODO: Логика добавления в корзину
+    console.log(product, productCount);
+    setProductForView(undefined);
+    setIsViewModalOpen(false);
   };
 
   return (
@@ -61,7 +78,12 @@ const ProductsPage = observer(() => {
       <Modal
         title={productForEdit ? "Обновить товар" : "Новый товар"}
         opened={isNewModalOpen}
-        onClose={() => setIsNewModalOpen(false)}
+        onClose={() => {
+          if (productForEdit) {
+            setProductForEdit(undefined);
+          }
+          setIsNewModalOpen(false);
+        }}
       >
         <ProductComponent
           product={productForEdit}
@@ -73,6 +95,28 @@ const ProductsPage = observer(() => {
           }}
           onConfirm={handleConfirm}
         />
+      </Modal>
+
+      <Modal
+        title={"Просмотр товара"}
+        opened={isViewModalOpen}
+        onClose={() => {
+          if (productForView) {
+            setProductForView(undefined);
+          }
+          setIsViewModalOpen(false);
+        }}
+      >
+        {productForView && (
+          <ViewProductComponent
+            product={productForView}
+            onCancel={() => {
+              setIsViewModalOpen(false);
+              setProductForView(undefined);
+            }}
+            onConfirm={handleConfirmView}
+          />
+        )}
       </Modal>
 
       <div>
@@ -102,7 +146,7 @@ const ProductsPage = observer(() => {
               isFavorite={favorites.isFavorite(p.id)}
               onDelete={handleDelete}
               onEdit={handleEdit}
-              onClick={handleClick}
+              onViewCard={handleClick}
             />
           ))}
         </div>
