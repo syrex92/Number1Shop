@@ -26,9 +26,35 @@ public record ProductMessage : MessageBase
     // }
 }
 
+public record CatalogProductMessage : MessageBase
+{
+    [JsonInclude]
+    public Guid ProductId { get; set; }
+
+    [JsonInclude]
+    public long Article { get; set; }
+
+    [JsonInclude]
+    public int Price { get; set; }
+
+    [JsonInclude]
+    public string Title { get; set; }
+
+    [JsonInclude]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public CatalogProductEventType EventType { get; set; }
+}
+
 public enum ProductEventType
 {
     QuantityChanged,
     ProductAddedToStock,
     ProductRemovedFromStock,
+}
+
+public enum CatalogProductEventType
+{
+    ProductChangedInCatalog,
+    ProductAddedToCatalog,
+    ProductRemovedFromCatalog,
 }
