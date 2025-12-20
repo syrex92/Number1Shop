@@ -1,5 +1,4 @@
 ﻿services:
-    
   users-service:
     image: shop-users-service
     build:
@@ -97,6 +96,8 @@
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
 
     networks:
       - shop-network

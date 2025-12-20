@@ -13,19 +13,19 @@ RUN apt-get -y update && apt-get -y install curl && apt-get clean
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["CatalogService/CatalogService/CatalogService.csproj", "CatalogService/"]
-COPY ["CatalogService/CatalogService.Core/CatalogService.Core.csproj", "CatalogService.Core/"]
-COPY ["CatalogService/CatalogService.DataAccess/CatalogService.DataAccess.csproj", "CatalogService.DataAccess/"]
-RUN dotnet restore "./CatalogService/CatalogService.csproj"
+COPY CatalogService/CatalogService/CatalogService.csproj CatalogService/CatalogService/
+COPY CatalogService/CatalogService.Core/CatalogService.Core.csproj CatalogService/CatalogService.Core/
+COPY CatalogService/CatalogService.DataAccess/CatalogService.DataAccess.csproj CatalogService/CatalogService.DataAccess/
+COPY Common/Shop.Core/Shop.Core.csproj Common/Shop.Core/
+COPY Common/Shop.Demo.Data/Shop.Demo.Data.csproj Common/Shop.Demo.Data/
 
-# копировать надёжнее отдельные проекты, т.к. если рядо пояаится ещё что-то (например, тесты),
-# то они тоже залелят в образ, что неправильно
-COPY ["CatalogService/CatalogService/", "CatalogService/"]
-COPY ["CatalogService/CatalogService.Core/", "CatalogService.Core/"]
-COPY ["CatalogService/CatalogService.DataAccess/", "CatalogService.DataAccess/"]
+RUN dotnet restore CatalogService/CatalogService/CatalogService.csproj
 
-WORKDIR "/src/CatalogService"
-RUN dotnet build "./CatalogService.csproj" -c "$BUILD_CONFIGURATION" -o /app/build
+COPY CatalogService/ CatalogService/
+COPY Common/ Common/
+
+WORKDIR /src/CatalogService/CatalogService
+RUN dotnet build CatalogService.csproj -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish

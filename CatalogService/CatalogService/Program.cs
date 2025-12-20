@@ -82,4 +82,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.MapGet("/health", () => Task.FromResult<IResult>(TypedResults.Text("Catalog service working")))
+    .WithName("CheckHealth")
+    .WithTags("Сервис")
+    .Produces(200)
+    .AllowAnonymous();
+
 app.Run();
