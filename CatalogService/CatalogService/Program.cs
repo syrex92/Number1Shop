@@ -2,8 +2,10 @@ using CatalogService;
 using CatalogService.Core.Domain.Interfaces;
 using CatalogService.DataAccess.Data;
 using CatalogService.DataAccess.Repositories;
+using CatalogService.Helpers;
 using CatalogService.Interfaces;
 using CatalogService.Services;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +21,15 @@ builder.Services.AddDbContext<DataContext>(options =>
     }
     else
         options.UseNpgsql(builder.Configuration["CONNECTION_STRING"] ?? throw new InvalidProgramException("No connection for data base"));
+});
+
+builder.Services.AddMassTransit(x => {
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        //x.AddConsumer<IConsumer>();
+        RabbitConfigurator.ConfigureRmq(cfg, builder.Configuration);
+        //RabbitConfigurator.RegisterEndPoints(cfg, context);
+    });
 });
 
 builder.Services.AddScoped<IProductService, ProductsService>();

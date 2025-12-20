@@ -1,8 +1,11 @@
-﻿using CatalogService.Core.Domain.Entities;
+﻿using CatalogService.Configurations;
+using CatalogService.Core.Domain.Entities;
 using CatalogService.Core.Domain.Interfaces;
 using CatalogService.Interfaces;
 using CatalogService.Mappers;
 using CatalogService.Models;
+using MassTransit;
+using Shop.Core.Messages;
 
 namespace CatalogService.Services
 {
@@ -10,10 +13,21 @@ namespace CatalogService.Services
     {
         private readonly IProductsRepository _productsRepository;
         private readonly ICategoriesRepository _categoriesRepository;
-        public ProductsService(IProductsRepository productsRepository, ICategoriesRepository categoriesRepository)
+        private readonly IBusControl _busControl;
+        private readonly string? _queueForSendMessage;
+
+        public ProductsService(IProductsRepository productsRepository, ICategoriesRepository categoriesRepository, IBusControl busControl, IConfiguration configuration)
         {
             _productsRepository = productsRepository;
             _categoriesRepository = categoriesRepository;
+            _busControl = busControl;
+            var rmqSettings = configuration.GetSection("RabbitMqConfiguration").Get<RabbitMqConfiguration>();
+            _queueForSendMessage = configuration["RMQ_PRODUCT_FROM_CATALOG_QUEUE"] ?? rmqSettings?.ProductsFromCatalogQueue;
+
+            if (string.IsNullOrEmpty(_queueForSendMessage))
+            {
+                _queueForSendMessage = "catalog-product-messages-queue";
+            }
         }
 
         public async Task<ProductDto> CreateProductAsync(CreateProductDto createDto)
@@ -29,6 +43,17 @@ namespace CatalogService.Services
                 Price = createDto.Price,
                 Article = createDto.Article,
                 ProductImages = createDto.ImagesUrls.Select(i => new ProductImage { ImageUrl =  i.ToString() }).ToList(),
+            });
+
+            var sendEndpoint = await _busControl.GetSendEndpoint(new Uri($"queue:{_queueForSendMessage}"));
+
+            await sendEndpoint.Send(new CatalogProductMessage
+            {
+                Article = res.Article,
+                EventType = CatalogProductEventType.ProductAddedToCatalog,
+                Price = res.Price,
+                ProductId = res.Id,
+                Title = res.Name
             });
 
             return res.ToDto();
@@ -47,6 +72,15 @@ namespace CatalogService.Services
             {
                 await _categoriesRepository.DeleteCategoryAsync(categoryOfProduct);
             }
+
+            var sendEndpoint = await _busControl.GetSendEndpoint(new Uri($"queue:{_queueForSendMessage}"));
+
+            await sendEndpoint.Send(new CatalogProductMessage
+            {
+                Article = existProduct.Article,
+                EventType = CatalogProductEventType.ProductRemovedFromCatalog,
+                ProductId = existProduct.Id,
+            });
 
             return true;
         }
@@ -101,6 +135,17 @@ namespace CatalogService.Services
             {
                 await _categoriesRepository.DeleteCategoryAsync(oldCategory);
             }
+
+            var sendEndpoint = await _busControl.GetSendEndpoint(new Uri($"queue:{_queueForSendMessage}"));
+
+            await sendEndpoint.Send(new CatalogProductMessage
+            {
+                Article = res.Article,
+                EventType = CatalogProductEventType.ProductChangedInCatalog,
+                ProductId = res.Id,
+                Price = res.Price,
+                Title = res.Name
+            });
 
             return res.ToDto();
         }
