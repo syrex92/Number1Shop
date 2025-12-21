@@ -1,5 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import { API_AUTH_URL, API_BASE_URL } from '../config/constants';
+import { API_AUTH_URL } from '../config/constants';
 import type { RegistrationFormData } from '../components/registration/RegistrationFormFields';
 
 // Интерфейс пользователь
