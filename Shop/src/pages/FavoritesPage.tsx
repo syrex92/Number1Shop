@@ -12,7 +12,7 @@ const FavoritesPage = observer(() => {
         <div className="empty">Избранных товаров пока нет</div>
       ) : (
         favList.map(p => (
-          <ProductCard key={p.id} product={p} isFavorite={true} onClick={() => {}} onDelete={() => {}} onEdit={() => {}} />
+          <ProductCard key={p.id} product={p} isFavorite={true} onDelete={() => {}} onEdit={() => {}} onViewCard={() => {}} />
         ))
       )}
     </div>
