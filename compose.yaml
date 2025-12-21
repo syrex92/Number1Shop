@@ -1,5 +1,4 @@
 ﻿services:
-    
   users-service:
     image: shop-users-service
     build:
@@ -87,6 +86,11 @@
     pull_policy: build
     environment:
       CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=CatalogDb
+      RMQ_HOST: rabbitmq
+      RMQ_PORT: 5672
+      RMQ_USER: guest
+      RMQ_PASSWORD: guest
+      RMQ_PRODUCT_FROM_CATALOG_QUEUE: catalog-product-messages-queue
 
     healthcheck:
       test: "curl -f http://localhost:8080/health"
@@ -97,6 +101,8 @@
     restart: unless-stopped
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
 
     networks:

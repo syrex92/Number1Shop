@@ -13,10 +13,12 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["CartService/CartService/CartService.csproj", "CartService/CartService/"]
 COPY ["Common/Shop.Core/Shop.Core.csproj", "Common/Shop.Core/"]
+COPY ["Common/Shop.Demo.Data/", "Common/Shop.Demo.Data/"]
 RUN dotnet restore "CartService/CartService/CartService.csproj"
 #COPY . .
 COPY ["CartService/CartService/", "CartService/CartService/"]
 COPY ["Common/Shop.Core/", "Common/Shop.Core/"]
+COPY ["Common/Shop.Demo.Data/", "Common/Shop.Demo.Data/"]
 
 WORKDIR "/src/CartService/CartService"
 RUN dotnet build "CartService.csproj" -c "$BUILD_CONFIGURATION" -o /app/build
