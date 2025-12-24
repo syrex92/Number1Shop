@@ -1,5 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import { API_AUTH_URL } from '../config/constants';
+import shopConfig from "../config/shopConfig.ts";
 import type { RegistrationFormData } from '../components/registration/RegistrationFormFields';
 
 // Интерфейс пользователь
@@ -56,6 +56,9 @@ export interface AuthStore {
 // Фабричный метод - возавращет хранилище авторизации
 
 export const createAuthStore = (): AuthStore => {
+
+ const { authApiUrl } = shopConfig
+
   const store =
   {
     user: null as User | null,
@@ -78,7 +81,7 @@ export const createAuthStore = (): AuthStore => {
 
       try {
         // запрос на аутентификацию
-        const response = await fetch(`${API_AUTH_URL}/login`, {
+        const response = await fetch(`${authApiUrl}/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -110,9 +113,9 @@ export const createAuthStore = (): AuthStore => {
       this.error = null;
 
       try {
-        console.log(`${API_AUTH_URL}/register`);
+        console.log(`${authApiUrl}register`);
         // запрос на регистрацию
-        const response = await fetch(`${API_AUTH_URL}/register`, {
+        const response = await fetch(`${authApiUrl}register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -156,7 +159,7 @@ export const createAuthStore = (): AuthStore => {
       }
 
       try {
-        const response = await fetch(`${API_AUTH_URL}/refresh`, {
+        const response = await fetch(`${authApiUrl}refresh`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -187,7 +190,7 @@ export const createAuthStore = (): AuthStore => {
     async logout(): Promise<void> {
       try {
         if (this.accessToken) {
-          await fetch(`${API_AUTH_URL}/logout`, {
+          await fetch(`${authApiUrl}logout`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
