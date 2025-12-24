@@ -48,7 +48,7 @@ public class OrdersControllerTests : IDisposable
         _userId = Guid.NewGuid();
         var claims = new List<Claim>
         {
-            new Claim("userId", _userId.ToString())
+            new Claim(ClaimTypes.Sid, _userId.ToString())
         };
         var identity = new ClaimsIdentity(claims);
         var claimsPrincipal = new ClaimsPrincipal(identity);
