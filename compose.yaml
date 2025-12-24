@@ -1,5 +1,4 @@
 ﻿services:
-    
   users-service:
     image: shop-users-service
     build:
@@ -7,6 +6,7 @@
       dockerfile: UsersService/UsersService/Dockerfile
     pull_policy: build
     environment:
+      ASPNETCORE_ENVIRONMENT: Development
       CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=UsersDb
     healthcheck:
       test: "curl -f http://localhost:8080/health"
@@ -86,6 +86,11 @@
     pull_policy: build
     environment:
       CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=CatalogDb
+      RMQ_HOST: rabbitmq
+      RMQ_PORT: 5672
+      RMQ_USER: guest
+      RMQ_PASSWORD: guest
+      RMQ_PRODUCT_FROM_CATALOG_QUEUE: catalog-product-messages-queue
 
     healthcheck:
       test: "curl -f http://localhost:8080/health"
@@ -96,6 +101,8 @@
     restart: unless-stopped
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
 
     networks:
@@ -178,6 +185,7 @@
     volumes:
       - ./ApiGate/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./ApiGate:/etc/nginx/ApiGate:ro
+      - ./Shop/dist:/var/www:ro
 
     depends_on:
       users-service:

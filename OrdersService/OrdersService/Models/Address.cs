@@ -10,6 +10,7 @@ namespace OrdersService.Models
     public class Address
     {
         [Key]
+        [JsonIgnore]
         public Guid Id { get; set; } = Guid.NewGuid();
         public int Appartment { get; set; }
         public int House { get; set; }

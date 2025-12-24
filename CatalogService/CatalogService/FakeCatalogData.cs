@@ -17,6 +17,9 @@ public class FakeCatalogData
     /// <param name="seed"></param>
     public static void SeedData(DbContext context, bool seed)
     {
+        if (!seed)
+            return;
+        
         context.Set<Category>().AddRange(ShopFakeData.Categories.Select(x => new Category { Id = x.Id, Name = x.Name }));
         context.SaveChanges();
         

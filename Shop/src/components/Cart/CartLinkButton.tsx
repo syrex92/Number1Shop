@@ -6,11 +6,18 @@ import {useNavigate} from "react-router-dom";
 
 const CartLinkButton = observer(() => {
 
-    const {cart} = useStores();
+    const {cart, auth} = useStores();
     const navigate = useNavigate();
        
     const onNavigateClick = () => {
+        
+        if(!auth.isAuthenticated){
+            navigate("/login");
+            return;            
+        }
+            
         navigate("/cart");
+        
     }
 
     const isEmpty = cart.count === 0;
@@ -18,7 +25,7 @@ const CartLinkButton = observer(() => {
     return (
         <div>
             <Group justify="center">
-                <Indicator size="16" color="orange" label={"" + cart.count} disabled={isEmpty} >
+                <Indicator size="16" color="orange" label={cart.count.toString()} disabled={isEmpty} >
                     <Button
                         onClick={onNavigateClick}
                         rightSection={<IconShoppingCart size={14}/>}

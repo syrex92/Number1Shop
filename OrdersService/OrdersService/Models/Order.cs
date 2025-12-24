@@ -28,6 +28,28 @@ namespace OrdersService.Models
 
         public List<OrderItem> Items { get; set; } = new();
 
+        [JsonInclude]
+        public virtual int OrderNumber
+        {
+            get
+            {
+                return (new Random()).Next();
+            }
+        }
+
+        [JsonInclude]
+        public virtual int Cost
+        {
+            get
+            {
+                return Items.Sum(item => item.Quantity * item.Cost );
+            }
+        }
+
+        public OrderStatus? Status { get; set; } = OrderStatus.New;
+    }
+    public class OrderUpdate
+    {
         public OrderStatus? Status { get; set; } = OrderStatus.New;
     }
     public enum OrderStatus
