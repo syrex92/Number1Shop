@@ -27,7 +27,7 @@ export const RootStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     products: createProductsStore(),
     cart: createCartStore(auth),
     favorites: createFavoritesStore(),
-    orders: createOrdersStore()
+    orders: createOrdersStore(auth)
   }), []);
 
   // Инициализируем аутентификацию при монтировании провайдера

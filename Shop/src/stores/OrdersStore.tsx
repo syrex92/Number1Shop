@@ -1,13 +1,16 @@
 import { makeAutoObservable } from 'mobx';
+import type createAuthStore from './AuthStore';
 
 export interface OrderItem {
   id: string;
   name: string;
   quantity: number;
+  cost: number;
 }
 
 export interface Order {
   id: string;
+  orderNumber: number;
   createdAt: string;
   deviveryAddress: string;
   status: string;
@@ -20,9 +23,10 @@ export interface OrdersStore {
   isLoading: boolean;
   fetchOrders: () => Promise<void>;
   fetchOrderDetails: (id: string) => Promise<void>;
+  cancelOrder: (id: string) => Promise<void>;
 }
 
-export const createOrdersStore = (): OrdersStore => {
+export const createOrdersStore = (_auth: ReturnType<typeof createAuthStore>): OrdersStore => {
   const store = {
     orders: [] as Order[],
     isLoading: false,
@@ -33,13 +37,23 @@ export const createOrdersStore = (): OrdersStore => {
         if (this.orders.length > 0) {
           return;
         }
-        await new Promise(resolve => setTimeout(resolve, 200));
-        // Mock data
-        this.orders = [
-          { id: '1', createdAt: '01.01.2023', deviveryAddress: '123 Main St', status: 'Delivered', totalPrice: 150.00, items: [] },
-          { id: '2', createdAt: '15.02.2023', deviveryAddress: '456 Oak Ave', status: 'Processing', totalPrice: 85.50, items: [] },
-          { id: '3', createdAt: '03.10.2023', deviveryAddress: '789 Pine Rd', status: 'Cancelled', totalPrice: 42.75, items: [] },
-        ];
+        const response = await fetch("/api/orders/", { headers: _auth.getAuthHeaders()}).then(function (response) {
+          return response.json();
+        })
+        for (let i=0; i < response.data.length; i++) {
+          this.orders.push(
+            {
+              id: response.data[i].id,
+              orderNumber: response.data[i].orderNumber,
+              createdAt: new Date(response.data[i].createdAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+              deviveryAddress: response.data[i].deliveryAddress.postalCode + ' ' + response.data[i].deliveryAddress.country + ' ' + response.data[i].deliveryAddress.city +
+                ' ' + response.data[i].deliveryAddress.street + ' ' + response.data[i].deliveryAddress.house + ' ' + response.data[i].deliveryAddress.appartment,
+              status: response.data[i].status,
+              totalPrice: response.data[i].cost,
+              items: []
+            }
+          );
+        }
       } finally {
         this.isLoading = false;
       }
@@ -48,31 +62,39 @@ export const createOrdersStore = (): OrdersStore => {
     async fetchOrderDetails(id: string): Promise<void> {
       this.isLoading = true;
       try {
-        const index = this.orders.findIndex(o => o.id === id);
-        if (this.orders[index]?.items?.length > 0) {
+        let index = this.orders.findIndex(o => o.id === id);
+        if (index < 0) {
+          await this.fetchOrders();
+          index = this.orders.findIndex(o => o.id === id);
+        }
+        if (index > -1 && this.orders[index]?.items?.length > 0) {
           return;
         }
-        await new Promise(resolve => setTimeout(resolve, 200));
-        // Mock data
-        const orders = [
-          { id: '1', createdAt: '01.01.2023', deviveryAddress: '123 Main St', status: 'Delivered', totalPrice: 150.00, items: [
-            { id: 'a', name: 'Product A', quantity: 2 },
-            { id: 'b', name: 'Product B', quantity: 1 },
-          ] },
-          { id: '2', createdAt: '15.02.2023', deviveryAddress: '456 Oak Ave', status: 'Processing', totalPrice: 85.50, items: [
-            { id: 'c', name: 'Product C', quantity: 3 },
-          ] },
-          { id: '3', createdAt: '03.10.2023', deviveryAddress: '789 Pine Rd', status: 'Cancelled', totalPrice: 42.75, items: [
-            { id: 'd', name: 'Product D', quantity: 1}
-          ] },
-        ];
-        const order = orders.find(o => o.id === id);
-        if (order) {          
-          if (index >= 0) {
-            this.orders[index] = order;
-          } else {
-            this.orders.push(order);
-          }
+        const response = await fetch("/api/orders/" + id, { headers: _auth.getAuthHeaders()}).then(function (response) {
+          return response.json();
+        })
+        let order = this.orders[index];
+        order.items = [];
+        response.items.forEach((element: OrderItem) => {
+          order.items.push(element);
+        });
+        this.orders[index] = { ...order };
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async cancelOrder(id: string): Promise<void> {
+      this.isLoading = true;
+      try {
+        let index = this.orders.findIndex(o => o.id === id);
+        const response = await fetch("/api/orders/" + id, { method: 'PATCH', headers: _auth.getAuthHeaders(), body: JSON.stringify({ status: 'Cancelled' }) });
+        if (response.ok) {
+          let order = this.orders[index];
+          order.status = 'Cancelled';
+          this.orders[index] = { ...order };
+        } else {
+          alert(response.statusText);
         }
       } finally {
         this.isLoading = false;
