@@ -165,7 +165,7 @@ public class OrdersControllerTests : IDisposable
         _dbContext.Orders.Add(order);
         await _dbContext.SaveChangesAsync();
 
-    var updateOrder = new Order { Status = OrderStatus.Processing };
+    var updateOrder = new OrderUpdate { Status = OrderStatus.Processing };
 
         // Act
         var result = await _controller.Update(order.Id, updateOrder);
@@ -184,7 +184,7 @@ public class OrdersControllerTests : IDisposable
         var orderId = Guid.NewGuid();
 
         // Act
-        var result = await _controller.Update(orderId, new Order());
+        var result = await _controller.Update(orderId, new OrderUpdate());
 
         // Assert
         result.ShouldBeOfType<NotFoundResult>();
