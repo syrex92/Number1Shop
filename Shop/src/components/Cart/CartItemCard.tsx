@@ -29,6 +29,7 @@ export interface CartItemCardProps {
 
 import DOMPurify from "dompurify";
 import {Carousel} from "@mantine/carousel";
+import shopConfig from "../../config/shopConfig.ts";
 
 interface HtmlBlockProps {
     html: string;
@@ -47,12 +48,13 @@ export const SafeHtmlBlock: React.FC<HtmlBlockProps> = ({html}) => {
 const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
 
     const {cart} = useStores();
+    const {catalogApiUrl, imagesUrl} = shopConfig;
 
     const [product, setProduct] = React.useState<ProductItemResponseDto | undefined>();
 
     const getProduct = () => {
 
-        fetch("http://localhost/api/v1/catalog/products/" + cartItem.product.id)
+        fetch(`${catalogApiUrl}${cartItem.product.id}`)
             .then(res => {
                 console.log(res);
                 if (res.ok) {
@@ -90,7 +92,7 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
         const getSingleImage = () => {
             return (
                 <Box h={180} style={{alignContent: "center"}}>
-                    <Image radius={10} src={`http://localhost/images/${product.imagesUrls[0]}`} />
+                    <Image radius={10} src={`${imagesUrl}${product.imagesUrls[0]}`} />
                 </Box>
             );
         }
@@ -105,7 +107,7 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
                     {
                         product.imagesUrls.map((url) => (
                             <Carousel.Slide key={url} style={{alignContent: "center"}}>
-                                <Image radius={10} src={`http://localhost/images/${url}`}/>
+                                <Image radius={10} src={`${imagesUrl}${url}`}/>
                             </Carousel.Slide>
                         ))
                     }

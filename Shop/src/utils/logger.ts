@@ -43,8 +43,8 @@ function log(
     if (level === "error" || level === "fatal") {
         Sentry.withScope((scope) => {
             if (context) {
-                Object.entries(context).forEach(([key, value]) => {
-                    scope.setExtra(key, value as any);
+                Object.entries(context).forEach(([key, value] : [string, any]) => {
+                    scope.setExtra(key, value);
                 });
             }
 

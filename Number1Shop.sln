@@ -79,7 +79,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deploy", "Deploy", "{67275947-0B6C-4299-971D-9294542F8B9F}"
 	ProjectSection(SolutionItems) = preProject
 		compose.local.cart.yaml = compose.local.cart.yaml
-		compose.yaml = compose.yaml
+		compose.prod.yaml = compose.prod.yaml
+		compose.dev.yaml = compose.dev.yaml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CartService.Tests", "CartService\CartService.Tests\CartService.Tests.csproj", "{4E57898A-18B3-42AB-B448-7FE3371482DD}"

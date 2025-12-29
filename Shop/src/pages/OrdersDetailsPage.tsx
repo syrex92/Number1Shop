@@ -6,7 +6,7 @@ import OrderDetails from '../components/OrderDetails';
 import { useParams } from 'react-router-dom';
 
 const OrdersDetailsPage = observer(() => {
-  let params = useParams();
+  const params = useParams();
   const { orders } = useStores();
 
   const orderId = params.id;

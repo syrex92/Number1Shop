@@ -1,4 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx";
+import shopConfig from "../config/shopConfig.ts";
 
 export interface NewProduct {
   title: string;
@@ -60,6 +61,9 @@ export interface UpdateProductRequest {
 }
 
 export const createProductsStore = (): ProductsStore => {
+    
+    const {catalogApiUrl} = shopConfig
+    
   const store = {
     products: [] as Product[],
     isLoading: false,
@@ -82,7 +86,7 @@ export const createProductsStore = (): ProductsStore => {
 
       console.log("Start products fetching");
 
-      fetch("http://localhost:5096/Products")
+      fetch(catalogApiUrl)
         .then((res) => res.json())
         .then(async (res) => {
           const loadedItems = res as ProductItemResponseDto[];
@@ -138,7 +142,7 @@ export const createProductsStore = (): ProductsStore => {
         productTitle: data.title,
       };
 
-      fetch("http://localhost:5096/Products", {
+      fetch(catalogApiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json", // Indicate that the body is JSON
@@ -195,7 +199,7 @@ export const createProductsStore = (): ProductsStore => {
         productTitle: data.title,
       };
 
-      fetch(`http://localhost:5096/Products/${data.id}`, {
+      fetch(`${catalogApiUrl}${data.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json", // Indicate that the body is JSON
@@ -244,7 +248,7 @@ export const createProductsStore = (): ProductsStore => {
 
       console.log("Start delete product");
 
-      fetch(`http://localhost:5096/Products/${productId}`, {
+      fetch(`${catalogApiUrl}${productId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json", // Indicate that the body is JSON

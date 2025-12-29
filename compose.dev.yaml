@@ -1,0 +1,232 @@
+﻿
+services:
+  
+#  ui-service:
+#    image: shop-ui-service
+#    build:
+#      context: ./Shop
+#      dockerfile: Dockerfile
+#    pull_policy: build
+#    ports: 
+#      - "8105:8105"    
+#    healthcheck:
+#      test: "curl -f http://localhost:8105/"
+#      interval: 5s
+#      timeout: 5s
+#      retries: 5
+#    restart: unless-stopped
+  
+  users-service:
+    image: shop-users-service
+    build:
+      context: .
+      dockerfile: UsersService/UsersService/Dockerfile
+    pull_policy: build
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=UsersDb
+    healthcheck:
+      test: "curl -f http://localhost:8080/health"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - shop-network
+      - shop-pg-network
+  
+  cart-service:
+    image: shop-cart-service
+    build:
+      context: .
+      dockerfile: CartService/CartService/Dockerfile
+    pull_policy: build
+    environment:
+      CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=CartDb
+      RMQ_HOST: rabbitmq
+      RMQ_PORT: 5672
+      RMQ_USER: guest
+      RMQ_PASSWORD: guest
+      RMQ_CART_PRODUCT_QUEUE: cart-product-messages-queue
+      RMQ_PRODUCT_EXCHANGE: product-messages-exchange
+      
+    healthcheck:
+      test: "curl -f http://localhost:8080/health"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    
+    restart: unless-stopped
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - shop-network
+      - shop-pg-network
+  
+  favorite-service:
+    image: shop-favorite-service
+    build:
+      context: .
+      dockerfile: FavoriteService/FavoriteService/Dockerfile
+    pull_policy: build
+    environment:
+      CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=FavoriteDb
+
+    healthcheck:
+      test: "curl -f http://localhost:8080/health"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - shop-network
+      - shop-pg-network
+  
+  catalog-service:
+    image: shop-catalog-service
+    build:
+      context: .
+      dockerfile: CatalogService/CatalogService/Dockerfile
+    pull_policy: build
+    environment:
+      CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=CatalogDb
+      RMQ_HOST: rabbitmq
+      RMQ_PORT: 5672
+      RMQ_USER: guest
+      RMQ_PASSWORD: guest
+      RMQ_PRODUCT_FROM_CATALOG_QUEUE: catalog-product-messages-queue
+
+    healthcheck:
+      test: "curl -f http://localhost:8080/health"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+    networks:
+      - shop-network
+      - shop-pg-network
+
+  orders-service:
+    image: shop-orders-service
+    build:
+      context: .
+      dockerfile: OrdersService/OrdersService/Dockerfile
+    pull_policy: build
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=Orders
+
+    healthcheck:
+      test: "curl -f http://localhost:8080/health"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - shop-network
+      - shop-pg-network
+  
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: P@ssw0rd
+      POSTGRES_MULTIPLE_DATABASES: UsersDb,CartDb,FavoriteDb,CatalogDb
+    ports:
+      - "5432:5432"
+    networks:
+      - shop-pg-network
+    labels:
+      - app=shop
+      
+    restart: unless-stopped
+    healthcheck:
+      test: "pg_isready -U postgres"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      
+      
+  rabbitmq:
+    image: rabbitmq:4.1-management
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    
+    restart: unless-stopped
+    
+    networks:
+      - shop-network
+    labels:
+      - app=shop
+    healthcheck:
+      test: "rabbitmqctl status > /dev/null 2>&1;"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+ 
+  nginx-proxy:
+    image: nginx:stable
+    ports:
+      - "80:80"
+    volumes:
+      - ./ApiGate/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+      - ./ApiGate:/etc/nginx/ApiGate:ro
+    
+    depends_on:
+      users-service:
+        condition: service_healthy
+      cart-service:
+        condition: service_healthy
+      favorite-service:
+        condition: service_healthy
+      orders-service:
+        condition: service_healthy
+      #ui-service:
+      #  condition: service_healthy
+        
+    restart: unless-stopped
+
+    networks:
+      - shop-network
+    labels:
+      - app=shop
+
+
+networks:
+  shop-network:
+    name: shop-network
+    labels:
+      - app=shop
+  shop-pg-network:
+    name: shop-pg-network
+    labels:
+      - app=shop

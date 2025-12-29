@@ -73,7 +73,7 @@ export const createOrdersStore = (_auth: ReturnType<typeof createAuthStore>): Or
         const response = await fetch("/api/orders/" + id, { headers: _auth.getAuthHeaders()}).then(function (response) {
           return response.json();
         })
-        let order = this.orders[index];
+        const order = this.orders[index];
         order.items = [];
         response.items.forEach((element: OrderItem) => {
           order.items.push(element);
@@ -87,10 +87,10 @@ export const createOrdersStore = (_auth: ReturnType<typeof createAuthStore>): Or
     async cancelOrder(id: string): Promise<void> {
       this.isLoading = true;
       try {
-        let index = this.orders.findIndex(o => o.id === id);
+        const index = this.orders.findIndex(o => o.id === id);
         const response = await fetch("/api/orders/" + id, { method: 'PATCH', headers: _auth.getAuthHeaders(), body: JSON.stringify({ status: 'Cancelled' }) });
         if (response.ok) {
-          let order = this.orders[index];
+          const order = this.orders[index];
           order.status = 'Cancelled';
           this.orders[index] = { ...order };
         } else {

@@ -10,6 +10,7 @@ interface ImportMetaEnv {
     readonly VITE_SHOP_AUTH_API_URL: string;
     readonly VITE_SHOP_ORDERS_API_URL: string;
     readonly VITE_SHOP_STORAGE_API_URL: string;
+    readonly VITE_SHOP_IMAGES_URL: string;
 }
 
 interface ImportMeta {
