@@ -113,7 +113,7 @@ public static class ShopFakeData
         ];
     }
 
-    private static List<string> GetProductImages(int rowId)
+    private static string GetProductImages(int rowId)
     {
         var images = new List<string>();
 
@@ -125,7 +125,7 @@ public static class ShopFakeData
             images.Add(img);
         }
 
-        return images;
+        return images[0];
     }
 
     private static Guid[] GetCategories(int rowId)
@@ -148,7 +148,7 @@ public static class ShopFakeData
                 Name = _csv.Cell("name", i),
                 Description = _csv.Cell("desc_full", i),
                 Price = (int)double.Parse(_csv.Cell("price", i), CultureInfo.InvariantCulture),
-                ProductImages = GetProductImages(i),
+                ProductImageUrl = GetProductImages(i),
                 Categories = GetCategories(i),
                 StockQuantity = (int)double.Parse(_csv.Cell("stock", i), CultureInfo.InvariantCulture),
                 CreatedAt = DateTime.UtcNow,

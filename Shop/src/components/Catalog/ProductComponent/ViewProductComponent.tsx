@@ -1,6 +1,7 @@
 import { Button, Card, Image, Text, Group } from "@mantine/core";
 import type { Product } from "../../../stores/ProductsStore";
 import { useState } from "react";
+import shopConfig from "../../../config/shopConfig";
 
 interface IViewProductProps {
   product: Product;
@@ -10,6 +11,7 @@ interface IViewProductProps {
 
 const ViewProductComponent = ({ product, onConfirm, onCancel }: IViewProductProps) => {
   const [productCount, setProductCount] = useState<number>(0);
+  const {catalogApiUrl} = shopConfig;
   const handleClick = () => {
     setProductCount((prevCount) => prevCount + 1);
   };
@@ -26,7 +28,7 @@ const ViewProductComponent = ({ product, onConfirm, onCancel }: IViewProductProp
     <>
       <Card shadow="sm" padding="lg" radius="md" withBorder>
         <Card.Section>
-          <Image src={product.image} height={200} alt="ProductImage" />
+          <Image src={`${catalogApiUrl}/${product.imageUrl}`} height={200} alt="ProductImage" />
         </Card.Section>
 
         <Group justify="space-between" mt="md" mb="xs">

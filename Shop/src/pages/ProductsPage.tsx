@@ -35,13 +35,18 @@ const ProductsPage = observer(() => {
     products.deleteProduct(productId);
   };
 
-  const handleConfirm = (product: Product | NewProduct, isCreate: boolean) => {
+  const handleConfirm = (product: Product | NewProduct, isCreate: boolean, file: File | null) => {
     if (isCreate) {
       products.createProduct(product as NewProduct);
       return;
     }
 
-    products.updateProduct(product as Product);
+    const prod = product as Product;
+    products.updateProduct(prod);
+
+    if (file) {
+      products.updateProductImage(prod.id, file);
+    }
   };
 
   const handleEdit = (productId: string) => {

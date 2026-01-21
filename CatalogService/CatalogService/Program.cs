@@ -7,6 +7,7 @@ using CatalogService.Interfaces;
 using CatalogService.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,7 @@ builder.Services.AddMassTransit(x => {
 
 builder.Services.AddScoped<IProductService, ProductsService>();
 builder.Services.AddScoped<ICategoriesService, CategoriesService>();
+builder.Services.AddScoped<IImageStorage, LocalImageStorage>();
 
 builder.Services.AddScoped<IProductsRepository, ProductsRepository>();
 builder.Services.AddScoped<ICategoriesRepository, CategoriesRepository>();
@@ -46,6 +48,8 @@ builder.Services.AddSwaggerGen(c =>
     {
         c.IncludeXmlComments(xmlPath, true);
     }
+
+    c.MapType<IFormFile>(() => new OpenApiSchema { Type = "string", Format = "binary" });
 });
 
 builder.Services.AddCors(options =>
@@ -86,6 +90,8 @@ app.UseCors(policy =>
         //.AllowAnyOrigin()
         .SetIsOriginAllowed(x => true)
         .AllowCredentials());
+
+app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 
