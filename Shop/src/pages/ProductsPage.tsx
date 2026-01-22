@@ -42,11 +42,11 @@ const ProductsPage = observer(() => {
     }
 
     const prod = product as Product;
-    products.updateProduct(prod);
 
-    if (file) {
+    if (file && prod.imageUrl !== file.name) {
       products.updateProductImage(prod.id, file);
     }
+    products.updateProduct(prod);
   };
 
   const handleEdit = (productId: string) => {
