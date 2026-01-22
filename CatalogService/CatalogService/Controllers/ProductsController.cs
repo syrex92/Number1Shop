@@ -30,11 +30,32 @@ public class ProductsController : ControllerBase
     /// <response code="400">Bad Request (Ошибка входных данных)</response>
     /// <response code="500">Internal Server Error</response>
     [HttpPost]
-    public async Task<IActionResult> CreateAsync([FromBody] CreateProductDto request)
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> CreateAsync([FromForm] CreateProductDto request)
     {
         _logger.LogInformation("Try create product with title: {title}", request.ProductTitle);
         var created = await _productService.CreateProductAsync(request);
         return CreatedAtAction(nameof(GetAsync), new { id = created.Id }, created);
+    }
+
+    /// <summary>
+    /// Обновить картинку у продукта
+    /// </summary>
+    /// <param name="id">id продукта</param>
+    /// <param name="request">Изображение</param>
+    /// <returns></returns>
+    /// <response code="201">Success</response>
+    /// <response code="400">Bad Request (Ошибка входных данных)</response>
+    /// <response code="500">Internal Server Error</response>
+    [HttpPost]
+    [Route("{id:guid}/image")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UpdateImageAsync([FromRoute] Guid id, [FromForm] ImageUploadRequest request)
+    {
+        _logger.LogInformation("Try update image for product: {id}", id);
+        var updated = await _productService.UpdateImageAsync(id, request.File);
+        if (updated == null) { return NotFound(); }
+        return Ok(updated);
     }
 
     /// <summary>

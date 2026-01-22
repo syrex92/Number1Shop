@@ -12,6 +12,6 @@
 
         public required long Article {  get; set; }
 
-        public IList<string> ImagesUrls { get; set; } = [];
+        public IFormFile? Image { get; set; }
     }
 }

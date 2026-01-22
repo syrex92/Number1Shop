@@ -36,7 +36,7 @@ public class ProductData
 
     public long Article {  get; set; }
 
-    public List<string> ProductImages { get; set; } = [];
+    public string? ProductImageUrl { get; set; }
 }
 
 public class CategoryData

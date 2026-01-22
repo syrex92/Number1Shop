@@ -58,7 +58,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthorizationService.DataAc
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ApiGate", "ApiGate", "{9382D81A-6EDC-45A9-B9A0-E702D9A722D7}"
 	ProjectSection(SolutionItems) = preProject
-		ApiGate\nginx.conf = ApiGate\nginx.conf
 		ApiGate\nginx.local.conf = ApiGate\nginx.local.conf
 	EndProjectSection
 EndProject
@@ -78,9 +77,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{72
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deploy", "Deploy", "{67275947-0B6C-4299-971D-9294542F8B9F}"
 	ProjectSection(SolutionItems) = preProject
+		compose.dev.yaml = compose.dev.yaml
 		compose.local.cart.yaml = compose.local.cart.yaml
 		compose.prod.yaml = compose.prod.yaml
-		compose.dev.yaml = compose.dev.yaml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CartService.Tests", "CartService\CartService.Tests\CartService.Tests.csproj", "{4E57898A-18B3-42AB-B448-7FE3371482DD}"

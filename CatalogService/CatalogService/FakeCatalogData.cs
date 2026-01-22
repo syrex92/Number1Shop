@@ -36,11 +36,7 @@ public class FakeCatalogData
                 StockQuantity = x.StockQuantity,
                 Article = x.Article,
                 CategoryId = x.Categories.FirstOrDefault(),
-                ProductImages = x.ProductImages.Select(s => new ProductImage
-                {
-                    Id = Guid.NewGuid(),
-                    ImageUrl = s
-                }).ToList()
+                ProductImageUrl = x.ProductImageUrl
             }));
         context.SaveChanges();
         

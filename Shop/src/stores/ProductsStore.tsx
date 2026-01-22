@@ -7,7 +7,7 @@ export interface NewProduct {
   article: number;
   category: string;
   description: string | undefined;
-  image: string | undefined;
+  image: File | null;
 }
 export interface Product {
   id: string;
@@ -16,7 +16,7 @@ export interface Product {
   article: number;
   description: string | undefined;
   category: string;
-  image: string | undefined;
+  imageUrl?: string;
 }
 
 export interface ProductsStore {
@@ -29,6 +29,7 @@ export interface ProductsStore {
   createProduct: (data: NewProduct) => Promise<void>;
   updateProduct: (data: Product) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
+  updateProductImage: (productId: string, file: File) => Promise<void>;
 }
 
 export interface ProductItemResponseDto {
@@ -39,7 +40,7 @@ export interface ProductItemResponseDto {
   productCategory: string;
   article: number;
   price: number;
-  imagesUrls: string[];
+  imageUrl?: string;
 }
 
 export interface CreateProductRequest {
@@ -48,7 +49,7 @@ export interface CreateProductRequest {
   productCategory: string;
   article: number;
   price: number;
-  imagesUrls: string[] | undefined;
+  image: File | null;
 }
 
 export interface UpdateProductRequest {
@@ -57,13 +58,11 @@ export interface UpdateProductRequest {
   productCategory: string | undefined;
   article: number | undefined;
   price: number | undefined;
-  imagesUrls: string[] | undefined;
 }
 
 export const createProductsStore = (): ProductsStore => {
-    
-    const {catalogApiUrl} = shopConfig
-    
+  const { catalogApiUrl } = shopConfig;
+
   const store = {
     products: [] as Product[],
     isLoading: false,
@@ -86,7 +85,7 @@ export const createProductsStore = (): ProductsStore => {
 
       console.log("Start products fetching");
 
-      fetch(catalogApiUrl)
+      fetch(`${catalogApiUrl}/products/`)
         .then((res) => res.json())
         .then(async (res) => {
           const loadedItems = res as ProductItemResponseDto[];
@@ -97,16 +96,13 @@ export const createProductsStore = (): ProductsStore => {
           loadedItems.forEach((x: ProductItemResponseDto) =>
             products.push({
               id: x.id,
-              image:
-                x.imagesUrls.length > 0
-                  ? `/images/${x.imagesUrls[0]}`
-                  : undefined,
               title: x.productTitle,
               price: x.price,
               article: x.article,
               description: x.productDescription,
               category: x.productCategory,
-            })
+              imageUrl: x.imageUrl,
+            }),
           );
 
           runInAction(() => {
@@ -133,21 +129,24 @@ export const createProductsStore = (): ProductsStore => {
 
       console.log("Start create product");
 
-      const request: CreateProductRequest = {
-        article: data.article,
-        price: data.price,
-        productCategory: data.category,
-        productDescription: data.description,
-        imagesUrls: undefined,
-        productTitle: data.title,
-      };
+      const formData = new FormData();
 
-      fetch(catalogApiUrl, {
+      formData.append("productTitle", data.title);
+      formData.append("price", String(data.price));
+      formData.append("article", String(data.article));
+      formData.append("productCategory", data.category);
+
+      if (data.description) {
+        formData.append("productDescription", data.description);
+      }
+
+      if (data.image) {
+        formData.append("image", data.image);
+      }
+
+      fetch(`${catalogApiUrl}/products/`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json", // Indicate that the body is JSON
-        },
-        body: JSON.stringify(request),
+        body: formData,
       })
         .then((res) => res.json())
         .then(async (res) => {
@@ -165,7 +164,7 @@ export const createProductsStore = (): ProductsStore => {
                 description: createdItem.productDescription,
                 price: createdItem.price,
                 title: createdItem.productTitle,
-                image: createdItem.imagesUrls[0],
+                imageUrl: createdItem.imageUrl,
               },
             ];
           });
@@ -195,11 +194,10 @@ export const createProductsStore = (): ProductsStore => {
         price: data.price,
         productCategory: data.category,
         productDescription: data.description,
-        imagesUrls: undefined,
         productTitle: data.title,
       };
 
-      fetch(`${catalogApiUrl}${data.id}`, {
+      fetch(`${catalogApiUrl}/products/${data.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json", // Indicate that the body is JSON
@@ -221,10 +219,10 @@ export const createProductsStore = (): ProductsStore => {
                     article: updatedItem.article,
                     category: updatedItem.productCategory,
                     description: updatedItem.productDescription,
-                    image: updatedItem.imagesUrls[0],
+                    imageUrl: updatedItem.imageUrl,
                     price: updatedItem.price,
                   }
-                : item
+                : item,
             );
           });
 
@@ -241,6 +239,19 @@ export const createProductsStore = (): ProductsStore => {
         });
     },
 
+    async updateProductImage(productId: string, file: File): Promise<void> {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      await fetch(`${catalogApiUrl}/products/${productId}/image`, {
+        method: "POST",
+        body: formData,
+      });
+
+      console.log("Product image updated");
+      await this.fetchProducts();
+    },
+
     async deleteProduct(productId: string): Promise<void> {
       runInAction(() => {
         this.isLoading = true;
@@ -248,7 +259,7 @@ export const createProductsStore = (): ProductsStore => {
 
       console.log("Start delete product");
 
-      fetch(`${catalogApiUrl}${productId}`, {
+      fetch(`${catalogApiUrl}/products/${productId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json", // Indicate that the body is JSON
@@ -257,10 +268,10 @@ export const createProductsStore = (): ProductsStore => {
         .then(() =>
           runInAction(() => {
             this.products = this.products.filter(
-              (item) => item.id !== productId
+              (item) => item.id !== productId,
             );
-            console.log("product deleted")
-          })
+            console.log("product deleted");
+          }),
         )
         .catch((reason) => {
           console.log("Product delete error");

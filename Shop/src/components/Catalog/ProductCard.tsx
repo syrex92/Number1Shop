@@ -6,6 +6,7 @@ import "../../styles/ProductCard.css";
 import AddToCartButton from "../Cart/AddToCartButton.tsx";
 import { Button, CloseIcon, Flex, Group, Stack } from "@mantine/core";
 import { IconEdit } from "@tabler/icons-react";
+import shopConfig from "../../config/shopConfig.ts";
 
 interface ProductCardProps {
   product: Product;
@@ -18,6 +19,7 @@ interface ProductCardProps {
 const ProductCard = observer(
   ({ product, isFavorite, onDelete, onEdit, onViewCard }: ProductCardProps) => {
     const { favorites } = useStores();
+    const {catalogApiUrl} = shopConfig;
 
     const handleViewClick = () => {
       onViewCard(product);
@@ -27,11 +29,7 @@ const ProductCard = observer(
       <>
         <div className="product-card card">
           <div className="image-wrap">
-            <img
-              src={product.image}
-              alt={product.title}
-              className="product-image"
-            />
+            <img src={`${catalogApiUrl}/${product.imageUrl}`} alt={product.title} className="product-image" />
             <Flex
               mih={50}
               bg="rgba(0, 0, 0, .3)"
@@ -77,11 +75,10 @@ const ProductCard = observer(
               <Button onClick={handleViewClick}>Просмотр товара</Button>
             </Group>
           </Stack>
-          
         </div>
       </>
     );
-  }
+  },
 );
 
 export default ProductCard;
