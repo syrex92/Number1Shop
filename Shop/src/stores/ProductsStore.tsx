@@ -241,7 +241,7 @@ export const createProductsStore = (): ProductsStore => {
 
     async updateProductImage(productId: string, file: File): Promise<void> {
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append("file", file);
 
       await fetch(`${catalogApiUrl}/products/${productId}/image`, {
         method: "POST",

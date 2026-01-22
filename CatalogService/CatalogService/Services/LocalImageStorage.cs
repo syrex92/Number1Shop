@@ -1,48 +1,54 @@
 ﻿using CatalogService.Interfaces;
-using System.IO;
 
 namespace CatalogService.Services
 {
     public class LocalImageStorage : IImageStorage
     {
-        private readonly IWebHostEnvironment _env;
-        private readonly string _folderPath;
+        private readonly string _webRootPath;
+        private const string ImagesFolder = "images/products";
 
         public LocalImageStorage(IWebHostEnvironment env)
         {
-            _env = env ?? throw new ArgumentNullException(nameof(env));
+            var webRoot = env.WebRootPath;
 
-            // Если WebRootPath null (бывает в Unit-тестах), используем текущую папку
-
-            var root = _env.WebRootPath;
-            if (_env.WebRootPath == null)
+            if (string.IsNullOrEmpty(webRoot) || !Directory.Exists(webRoot))
             {
-                root = "wwwroot";
-                Directory.CreateDirectory(root);
+                webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                Directory.CreateDirectory(webRoot);
             }
 
-            _folderPath = Path.Combine(root, "images", "products");
-        }
+            _webRootPath = webRoot;
 
-        public void DeleteFile(string filePath)
-        {
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(filePath)}";
-            var fullPath = Path.Combine(_folderPath, fileName);
-            if (File.Exists(fullPath)) { File.Delete(fullPath); }
+            Directory.CreateDirectory(Path.Combine(_webRootPath, "images", "products"));
         }
 
         public async Task<string> SaveAsync(IFormFile file)
         {
-            if (!Directory.Exists(_folderPath))
-                Directory.CreateDirectory(_folderPath);
+            var extension = Path.GetExtension(file.FileName);
+            var fileName = $"{Guid.NewGuid()}{extension}";
 
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-            var fullPath = Path.Combine(_folderPath, fileName);
+            var physicalPath = Path.Combine(_webRootPath, ImagesFolder, fileName);
 
-            await using var stream = new FileStream(fullPath, FileMode.Create);
+            using var stream = new FileStream(physicalPath, FileMode.Create);
             await file.CopyToAsync(stream);
 
-            return $"/images/products/{fileName}";
+            return $"{ImagesFolder}/{fileName}";
+        }
+
+        public void DeleteFile(string imageUrl)
+        {
+            if (string.IsNullOrWhiteSpace(imageUrl))
+                return;
+
+            var relativePath = imageUrl.TrimStart('/')
+                                       .Replace('/', Path.DirectorySeparatorChar);
+
+            var physicalPath = Path.Combine(_webRootPath, relativePath);
+
+            if (File.Exists(physicalPath))
+            {
+                File.Delete(physicalPath);
+            }
         }
     }
 }

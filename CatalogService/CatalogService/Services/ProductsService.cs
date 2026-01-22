@@ -80,6 +80,7 @@ namespace CatalogService.Services
             var existProduct = await _productsRepository.GetProductByIdAsync(productId);
             if (existProduct == null) { return false; }
 
+            var imageInfo = existProduct.ProductImageUrl;
             await _productsRepository.DeleteProductAsync(existProduct);
 
             var categoryOfProduct = await _categoriesRepository.GetCategoryByNameAsync(existProduct.Category.Name);
@@ -87,6 +88,19 @@ namespace CatalogService.Services
             if (categoryOfProduct != null && categoryOfProduct.Products.Count == 0)
             {
                 await _categoriesRepository.DeleteCategoryAsync(categoryOfProduct);
+            }
+
+            try
+            {
+                if (!string.IsNullOrEmpty(imageInfo))
+                {
+                    _imageStorage.DeleteFile(imageInfo);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                //TODO: log
             }
 
             var sendEndpoint = await _busControl.GetSendEndpoint(new Uri($"queue:{_queueForSendMessage}"));
@@ -127,7 +141,7 @@ namespace CatalogService.Services
 
                 try
                 {
-                    if (oldImageUrl != null)
+                    if (!string.IsNullOrEmpty(oldImageUrl))
                     {
                         _imageStorage.DeleteFile(oldImageUrl);
                     }

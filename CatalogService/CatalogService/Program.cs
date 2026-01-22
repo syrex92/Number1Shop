@@ -16,9 +16,9 @@ builder.Services.AddDbContext<DataContext>(options =>
     if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Test"))
     {
         options
-            .UseSqlite("Data Source=catalog-service-db.db")
-            .UseSeeding((context, seed) => FakeCatalogData.SeedData(context, seed))
-            .UseAsyncSeeding((context, seed, ct) => FakeCatalogData.SeedDataAsync(context, seed, ct));
+            .UseSqlite("Data Source=catalog-service-db.db");
+            //.UseSeeding((context, seed) => FakeCatalogData.SeedData(context, seed))
+            //.UseAsyncSeeding((context, seed, ct) => FakeCatalogData.SeedDataAsync(context, seed, ct));
     }
     else
         options.UseNpgsql(builder.Configuration["CONNECTION_STRING"] ?? throw new InvalidProgramException("No connection for data base"));
@@ -90,6 +90,20 @@ app.UseCors(policy =>
         //.AllowAnyOrigin()
         .SetIsOriginAllowed(x => true)
         .AllowCredentials());
+
+
+var webRootPath = app.Environment.WebRootPath;
+
+if (string.IsNullOrWhiteSpace(webRootPath))
+{
+    webRootPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+    app.Environment.WebRootPath = webRootPath;
+}
+
+if (!Directory.Exists(webRootPath))
+{
+    Directory.CreateDirectory(webRootPath);
+}
 
 app.UseStaticFiles();
 
