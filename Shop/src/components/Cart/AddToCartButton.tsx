@@ -1,56 +1,58 @@
-﻿import {Button, Group, Indicator} from "@mantine/core";
-import {IconShoppingCart} from "@tabler/icons-react";
-import type {Product} from "../../stores/ProductsStore.tsx";
-import {useStores} from "../../context/RootStoreContext.tsx";
-import {useEffect, useState} from "react";
-import type {CartItem} from "../../stores/CartStore.tsx";
-import {observer} from "mobx-react-lite";
+﻿import { ActionIcon, Button, Group, Text } from "@mantine/core";
+import { IconMinus, IconPlus, IconX } from "@tabler/icons-react";
+import type { Product } from "../../stores/ProductsStore.tsx";
+import { useStores } from "../../context/RootStoreContext.tsx";
+import { observer } from "mobx-react-lite";
 
 interface AddToCartButtonProps {
-    product: Product;    
+  product: Product;
 }
 
-const AddToCartButton = observer(({product}: AddToCartButtonProps) => {
+const AddToCartButton = observer(({ product }: AddToCartButtonProps) => {
+  const { cart } = useStores();
 
-    const [cartItem, setCartItem] = useState<CartItem | undefined>(undefined);
-    const [executing, setExecuting] = useState<boolean>(false);
-    
-    const {cart} = useStores();
-    
-    useEffect(() => {
-        const cartItem = cart.find(product.id);
-        if(cartItem)
-            setCartItem(cartItem);
-    }, [cart.loading])
+  const quantity = cart.getItemQuantity(product);
 
-    const onAddClick = () => {
-        setExecuting(true);
-        cart.add(product).then((itm) => {
-            setCartItem(itm);
-            setExecuting(false);            
-        })        
-    }
+  return (
+    <>
+      {quantity === 0 ? (
+        <Button size="sm" variant="light" onClick={() => cart.add(product)} loading={cart.loading}>
+          В корзину
+        </Button>
+      ) : (
+        <Group gap={4}>
+          <ActionIcon
+            size="sm"
+            variant="light"
+            onClick={() => cart.decrease(product.id)}
+          >
+            <IconMinus size={14} />
+          </ActionIcon>
 
-    const inCart = cart.find(product.id) !== undefined;
-    
-    return (
-        <div>
-            <Group justify="center">
-                <Indicator size="16" color="orange" label={cartItem?.qty} disabled={!inCart}>
-                    <Button
-                        loading={executing}
-                        onClick={onAddClick}
-                        leftSection={<IconShoppingCart size={20} stroke={1.5}/>}
-                        variant="default">
-                        В корзину
-                    </Button>
-                </Indicator>
-            </Group>        
-            
-        </div>
+          <Text fw={500} w={24} ta="center">
+            {quantity}
+          </Text>
 
+          <ActionIcon
+            size="sm"
+            variant="light"
+            onClick={() => cart.add(product)}
+          >
+            <IconPlus size={14} />
+          </ActionIcon>
 
-    )
-})
+          <ActionIcon
+            size="sm"
+            variant="subtle"
+            color="red"
+            onClick={() => cart.decrease(product.id)}
+          >
+            <IconX size={14} />
+          </ActionIcon>
+        </Group>
+      )}
+    </>
+  );
+});
 
 export default AddToCartButton;

@@ -71,13 +71,6 @@ const ProductsPage = observer(() => {
     setProductForView(product);
   };
 
-  const handleConfirmView = (product: Product, productCount: number) => {
-    // TODO: Логика добавления в корзину
-    console.log(product, productCount);
-    setProductForView(undefined);
-    setIsViewModalOpen(false);
-  };
-
   return (
     <>
       <Modal
@@ -115,11 +108,10 @@ const ProductsPage = observer(() => {
         {productForView && (
           <ViewProductComponent
             product={productForView}
-            onCancel={() => {
+            onClose={() => {
               setIsViewModalOpen(false);
               setProductForView(undefined);
             }}
-            onConfirm={handleConfirmView}
           />
         )}
       </Modal>
