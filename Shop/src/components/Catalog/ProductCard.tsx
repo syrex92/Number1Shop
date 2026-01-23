@@ -1,11 +1,19 @@
 import { observer } from "mobx-react-lite";
 import { useStores } from "../../context/RootStoreContext.tsx";
-import { FiHeart } from "react-icons/fi";
 import type { Product } from "../../stores/ProductsStore.tsx";
 import "../../styles/ProductCard.css";
 import AddToCartButton from "../Cart/AddToCartButton.tsx";
-import { Button, CloseIcon, Flex, Group, Stack } from "@mantine/core";
-import { IconEdit } from "@tabler/icons-react";
+import {
+  Button,
+  Card,
+  Group,
+  Stack,
+  Image,
+  Text,
+  Box,
+  ActionIcon,
+} from "@mantine/core";
+import { IconEdit, IconHeart, IconTrash } from "@tabler/icons-react";
 import shopConfig from "../../config/shopConfig.ts";
 
 interface ProductCardProps {
@@ -18,8 +26,8 @@ interface ProductCardProps {
 
 const ProductCard = observer(
   ({ product, isFavorite, onDelete, onEdit, onViewCard }: ProductCardProps) => {
-    const { favorites } = useStores();
-    const {catalogApiUrl} = shopConfig;
+    const { favorites, auth } = useStores();
+    const { catalogApiUrl } = shopConfig;
 
     const handleViewClick = () => {
       onViewCard(product);
@@ -27,55 +35,73 @@ const ProductCard = observer(
 
     return (
       <>
-        <div className="product-card card">
-          <div className="image-wrap">
-            <img src={`${catalogApiUrl}/${product.imageUrl}`} alt={product.title} className="product-image" />
-            <Flex
-              mih={50}
-              bg="rgba(0, 0, 0, .3)"
-              gap="md"
-              justify="flex-end"
-              align="flex-start"
-              direction="row"
-              wrap="wrap"
-            >
-              <button
-                className={`favorite ${isFavorite ? "active" : ""}`}
-                onClick={() => favorites.toggle(product.id)}
-                aria-label="Добавить в избранное"
-                title={isFavorite ? "Убрать из избранного" : "В избранное"}
-              >
-                <FiHeart />
-              </button>
-              <button
-                className="edit"
-                onClick={() => onEdit(product.id)}
-                aria-label="Редактировать товар"
-                title="Редактировать товар"
-              >
-                <IconEdit />
-              </button>
-              <button
-                className="close"
-                onClick={() => onDelete(product.id)}
-                aria-label="Удалить товар"
-                title="Удалить товар"
-              >
-                <CloseIcon />
-              </button>
-            </Flex>
-          </div>
+        <Card shadow="sm" radius="md" withBorder h="100%">
+          <Stack gap="sm">
+            {/* IMAGE + ACTIONS */}
+            <Box pos="relative">
+              <Image
+                src={`${catalogApiUrl}/${product.imageUrl}`}
+                height={160}
+                fit="contain"
+                fallbackSrc="/public/logo192.png"
+              />
 
-          <Stack justify="flex-end" align="stretch">
-            <div className="product-title">{product.title}</div>
-            <div className="product-price">{product.price} ₽</div>
+              <Group gap={6} pos="absolute" top={8} right={8}>
+                {/* Должен быть зареганный */}
+                {auth.role == "guest" && (
+                  <ActionIcon
+                    size="md"
+                    radius="md"
+                    variant={isFavorite ? "filled" : "light"}
+                    color={isFavorite ? "red" : "gray"}
+                    onClick={() => favorites.toggle(product.id)}
+                  >
+                    <IconHeart size={16} />
+                  </ActionIcon>
+                )}
+                {/* Должен быть админ */}
+                {auth.role == "guest" && (
+                  <>
+                    <ActionIcon
+                      size="md"
+                      radius="md"
+                      variant="light"
+                      onClick={() => onEdit(product.id)}
+                    >
+                      <IconEdit size={16} />
+                    </ActionIcon>
+
+                    <ActionIcon
+                      size="md"
+                      radius="md"
+                      variant="light"
+                      color="red"
+                      onClick={() => onDelete(product.id)}
+                    >
+                      <IconTrash size={16} />
+                    </ActionIcon>
+                  </>
+                )}
+              </Group>
+            </Box>
+            {/* CONTENT */}
+            <Text fw={500}>{product.title}</Text>
+
+            <Text size="sm" c="dimmed" lineClamp={2}>
+              {product.description}
+            </Text>
+
+            <Text fw={700}>{product.price} ₽</Text>
 
             <Group justify="center" gap="sm">
-              <AddToCartButton product={product} />
-              <Button onClick={handleViewClick}>Просмотр товара</Button>
+              {/* Должен быть зареганный пользователь */}
+              {auth.role == "guest" && <AddToCartButton product={product} />}
+              <Button size="sm" variant="light" onClick={handleViewClick}>
+                Просмотр товара
+              </Button>
             </Group>
           </Stack>
-        </div>
+        </Card>
       </>
     );
   },
