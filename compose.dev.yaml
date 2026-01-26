@@ -15,7 +15,68 @@ services:
 #      timeout: 5s
 #      retries: 5
 #    restart: unless-stopped
-  
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.0
+    container_name: keycloak
+    command: start-dev
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/postgres
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: P@ssw0rd
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8080
+      KC_PROXY: edge
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - shop-network
+      - shop-pg-network
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+        start_period: 60s
+    restart: unless-stopped
+
+  auth-service:
+    image: shop-auth-service
+    build:
+      context: .
+      dockerfile: AuthorizationService/AuthorizationService/Dockerfile
+    container_name: auth-service
+    pull_policy: build
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Keycloak__Realm: number1shop
+      Keycloak__AuthServerUrl: http://keycloak:8080/
+      Keycloak__SslRequired: none
+      Keycloak__Resource: auth-service
+      Keycloak__VerifyTokenAudience: true
+      Keycloak__Credentials__Secret: your-auth-service-secret
+    ports:
+      - "5004:8080"
+    healthcheck:
+      test: "curl -f http://localhost:8080/health"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      keycloak:
+        condition: service_started
+    networks:
+      - shop-network
+    restart: unless-stopped
+
+
   users-service:
     image: shop-users-service
     build:
