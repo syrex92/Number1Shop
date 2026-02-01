@@ -8,11 +8,12 @@ import {
   Stack,
   Button,
   NumberInput,
+    Typography
 } from "@mantine/core";
 import { useStores } from "../../../context/RootStoreContext";
 import type { Product } from "../../../stores/ProductsStore";
 import shopConfig from "../../../config/shopConfig";
-
+import DOMPurify from "dompurify";
 interface Props {
   product: Product;
   onClose(): void;
@@ -21,7 +22,7 @@ interface Props {
 const ViewProductComponent = observer(({ product, onClose }: Props) => {
   const { cart, auth } = useStores();
   const [quantity, setQuantity] = useState(0);
-  const { catalogApiUrl } = shopConfig;
+  const { siteUrl } = shopConfig;
 
   const handleAddClick = () => {
     setQuantity(1);
@@ -41,7 +42,7 @@ const ViewProductComponent = observer(({ product, onClose }: Props) => {
     <Card radius="md" withBorder>
       <Stack gap="md">
         <Image
-          src={`${catalogApiUrl}/${product.imageUrl}`}
+          src={`${siteUrl}images/${product.imageUrl}`}
           height={240}
           fit="contain"
           fallbackSrc="/no-image.png"
@@ -51,8 +52,12 @@ const ViewProductComponent = observer(({ product, onClose }: Props) => {
           {product.title}
         </Text>
 
-        <Text size="sm" c="dimmed">
-          {product.description}
+        <Text size={"md"}>
+            <Typography>
+              <div
+                  dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(product.description)}}
+              />
+            </Typography>              
         </Text>
 
         {auth.user?.role == "user" && (
