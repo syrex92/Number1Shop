@@ -86,7 +86,7 @@ export const createProductsStore = (_auth: ReturnType<typeof createAuthStore>): 
 
       console.log("Start products fetching");
 
-      fetch(`${catalogApiUrl}/products/`)
+      fetch(`${catalogApiUrl}products/`)
         .then((res) => res.json())
         .then(async (res) => {
           const loadedItems = res as ProductItemResponseDto[];
@@ -199,7 +199,7 @@ export const createProductsStore = (_auth: ReturnType<typeof createAuthStore>): 
         productTitle: data.title,
       };
 
-      fetch(`${catalogApiUrl}/products/${data.id}`, {
+      fetch(`${catalogApiUrl}products/${data.id}`, {
         method: "PUT",
         headers: _auth.getAuthHeaders(),
         body: JSON.stringify(request),
@@ -243,7 +243,7 @@ export const createProductsStore = (_auth: ReturnType<typeof createAuthStore>): 
       const formData = new FormData();
       formData.append("file", file);
 
-      await fetch(`${catalogApiUrl}/products/${productId}/image`, {
+      await fetch(`${catalogApiUrl}products/${productId}/image`, {
         method: "POST",
         body: formData,
         headers: _auth.getAuthHeaders(),
@@ -260,7 +260,7 @@ export const createProductsStore = (_auth: ReturnType<typeof createAuthStore>): 
 
       console.log("Start delete product");
 
-      await fetch(`${catalogApiUrl}/products/${productId}`, {
+      await fetch(`${catalogApiUrl}products/${productId}`, {
         method: "DELETE",
         headers: _auth.getAuthHeaders()
       })
