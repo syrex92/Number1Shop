@@ -1,5 +1,6 @@
 using CatalogService.Interfaces;
 using CatalogService.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CatalogService.Controllers;
@@ -9,6 +10,7 @@ namespace CatalogService.Controllers;
 /// </summary>
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class ProductsController : ControllerBase
 {
 
@@ -31,6 +33,7 @@ public class ProductsController : ControllerBase
     /// <response code="500">Internal Server Error</response>
     [HttpPost]
     [Consumes("multipart/form-data")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateAsync([FromForm] CreateProductDto request)
     {
         _logger.LogInformation("Try create product with title: {title}", request.ProductTitle);
@@ -50,6 +53,7 @@ public class ProductsController : ControllerBase
     [HttpPost]
     [Route("{id:guid}/image")]
     [Consumes("multipart/form-data")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateImageAsync([FromRoute] Guid id, [FromForm] ImageUploadRequest request)
     {
         _logger.LogInformation("Try update image for product: {id}", id);
@@ -68,6 +72,7 @@ public class ProductsController : ControllerBase
     /// <response code="500">Internal Server Error</response>
     [HttpGet("{id:guid}")]
     [ActionName(nameof(GetAsync))]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAsync(Guid id)
     {
         _logger.LogInformation("Try get product with id: {id}", id);
@@ -83,6 +88,7 @@ public class ProductsController : ControllerBase
     /// <response code="200">Success</response>
     /// <response code="500">Internal Server Error</response>
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAllAsync(int? page = null, int? pageSize = null)
     {
         _logger.LogInformation("Try get products");
@@ -101,6 +107,7 @@ public class ProductsController : ControllerBase
     /// <response code="422">Bad Request (Ошибка входных данных)</response>
     /// <response code="500">Internal Server Error</response>
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ProductDto>> UpdateAsync(Guid id, [FromBody] UpdateProductDto request)
     {
         _logger.LogInformation("Try update product with id: {id}", id);
@@ -117,6 +124,7 @@ public class ProductsController : ControllerBase
     /// <response code="404">Not Found</response>
     /// <response code="500">Internal Server Error</response>
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteAsync(Guid id)
     {
         _logger.LogInformation("Try delete product with id: {id}", id);

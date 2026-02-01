@@ -1,5 +1,6 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import shopConfig from "../config/shopConfig.ts";
+import type createAuthStore from './AuthStore';
 
 export interface NewProduct {
   title: string;
@@ -60,7 +61,7 @@ export interface UpdateProductRequest {
   price: number | undefined;
 }
 
-export const createProductsStore = (): ProductsStore => {
+export const createProductsStore = (_auth: ReturnType<typeof createAuthStore>): ProductsStore => {
   const { catalogApiUrl } = shopConfig;
 
   const store = {
@@ -85,7 +86,7 @@ export const createProductsStore = (): ProductsStore => {
 
       console.log("Start products fetching");
 
-      fetch(`${catalogApiUrl}/products/`)
+      fetch(`${catalogApiUrl}products/`)
         .then((res) => res.json())
         .then(async (res) => {
           const loadedItems = res as ProductItemResponseDto[];
@@ -147,6 +148,7 @@ export const createProductsStore = (): ProductsStore => {
       fetch(`${catalogApiUrl}/products/`, {
         method: "POST",
         body: formData,
+        headers: _auth.getAuthHeaders()
       })
         .then((res) => res.json())
         .then(async (res) => {
@@ -197,11 +199,9 @@ export const createProductsStore = (): ProductsStore => {
         productTitle: data.title,
       };
 
-      fetch(`${catalogApiUrl}/products/${data.id}`, {
+      fetch(`${catalogApiUrl}products/${data.id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json", // Indicate that the body is JSON
-        },
+        headers: _auth.getAuthHeaders(),
         body: JSON.stringify(request),
       })
         .then((res) => res.json())
@@ -243,9 +243,10 @@ export const createProductsStore = (): ProductsStore => {
       const formData = new FormData();
       formData.append("file", file);
 
-      await fetch(`${catalogApiUrl}/products/${productId}/image`, {
+      await fetch(`${catalogApiUrl}products/${productId}/image`, {
         method: "POST",
         body: formData,
+        headers: _auth.getAuthHeaders(),
       });
 
       console.log("Product image updated");
@@ -259,11 +260,9 @@ export const createProductsStore = (): ProductsStore => {
 
       console.log("Start delete product");
 
-      fetch(`${catalogApiUrl}/products/${productId}`, {
+      await fetch(`${catalogApiUrl}products/${productId}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json", // Indicate that the body is JSON
-        },
+        headers: _auth.getAuthHeaders()
       })
         .then(() =>
           runInAction(() => {
