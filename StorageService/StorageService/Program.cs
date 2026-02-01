@@ -58,8 +58,10 @@ using (var scope = app.Services.CreateScope())
 {
     using var context = scope.ServiceProvider.GetRequiredService<EfContext>();
     if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
+    {
         context.Database.EnsureDeleted();
-    context.Database.EnsureCreated();
+        context.Database.EnsureCreated();
+    }
 }
 
 
