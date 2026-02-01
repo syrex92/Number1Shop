@@ -14,7 +14,7 @@ namespace UsersService.Domain
     {
         public static Guid UserId { get; } = Guid.Parse("181BCD21-0EEB-4C9B-A495-F581901A7B1A");
 
-        public static string AdminPassword = "1234";
+        public static string AdminPassword = "123456";
         public static List<Role> Roles { get; } = [new Role { RoleName = "User" }, new Role { RoleName = "Admin" }];
         public static User Admin { get; } = new User { Id = UserId, UserName = "admin", Email = "admin@example.com", };
     }
