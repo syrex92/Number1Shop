@@ -153,7 +153,7 @@
       - shop-pg-network
   
   storage-service:
-    image: storage-orders-service
+    image: shop-storage-service
     build:
       context: .
       dockerfile: StorageService/StorageService/Dockerfile
