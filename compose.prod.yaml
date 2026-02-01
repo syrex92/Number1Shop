@@ -160,12 +160,6 @@
     pull_policy: build
     environment:
       CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=StorageDb
-      RMQ_HOST: rabbitmq
-      RMQ_PORT: 5672
-      RMQ_USER: guest
-      RMQ_PASSWORD: guest
-      RMQ_CART_PRODUCT_QUEUE: storage-product-messages-queue
-      RMQ_PRODUCT_EXCHANGE: storage-messages-exchange
 
     healthcheck:
       test: "curl -f http://localhost:8080/health"

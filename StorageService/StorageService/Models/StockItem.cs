@@ -3,7 +3,7 @@
     /// <summary>
     /// Складская позиция
     /// </summary>
-    public class StockItem
+    public class StockItem 
     {
         public Guid Id { get; set; } = Guid.NewGuid();
 

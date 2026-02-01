@@ -55,3 +55,35 @@ public class UserData
     public List<string> Roles { get; set; } = [];
 }
 
+public class StockData
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid ProductId { get; set; }
+    public int TotalQuantity { get; set; }               
+    public string SKU { get; set; } = string.Empty;     
+    public DateTime? ManufactureDate { get; set; }       
+    public decimal PurchasePrice { get; set; }        
+    public Guid? SupplierId { get; set; }              
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
+}
+
+public class SupplierData
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public required string Name { get; set; }
+    public string? ContactPerson { get; set; }
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+    public string? Address { get; set; }
+    public string? City { get; set; }
+    public string? Country { get; set; }
+    public string? INN { get; set; }               
+    public string? BankDetails { get; set; }
+    public int AverageDeliveryDays { get; set; } = 7;
+    public decimal? MinimumOrderAmount { get; set; }
+    public bool IsActive { get; set; } = true;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
+}
+

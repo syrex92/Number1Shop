@@ -6,7 +6,7 @@ namespace Shop.Demo.Data;
 
 public static class ShopFakeData
 {
-    private static Csv _csv = new ();
+    private static Csv _csv = new();
 
     private static void LoadProductsCsv()
     {
@@ -73,21 +73,25 @@ public static class ShopFakeData
         Console.WriteLine("saved");
     }
     */
-    
+
     static ShopFakeData()
     {
         LoadProductsCsv();
-        
+
         Users = GenerateUsers();
         Categories = GenerateCategories();
         Products = GenerateProducts();
         Carts = GenerateCartData();
+        Suppliers = GenerateSuppliers();
+        Stocks = GenerateStocks();
     }
-    
+
     public static List<CategoryData> Categories { get; }
     public static List<ProductData> Products { get; }
     public static List<CartData> Carts { get; }
     public static List<UserData> Users { get; }
+    public static List<StockData> Stocks { get; }
+    public static List<SupplierData> Suppliers { get; }
 
     private static List<UserData> GenerateUsers()
     {
@@ -161,6 +165,58 @@ public static class ShopFakeData
         return products;
     }
 
+
+    private static List<StockData>? GenerateStocks()
+    {
+        var index = Random.Shared.Next(0, 1);
+        return Products.Select(x => new StockData()
+        {
+            ProductId = x.Id,
+            TotalQuantity = x.StockQuantity,
+            ManufactureDate = DateTime.Today,
+            PurchasePrice = x.Price - (x.Price / 2),
+            SupplierId = Suppliers[index].Id
+        }).ToList();
+    }
+
+    private static List<SupplierData>? GenerateSuppliers()
+    {
+        return new List<SupplierData>
+            {
+                new SupplierData
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "ТехноПоставка ООО",
+                    ContactPerson = "Иванов Иван",
+                    Email = "info@techno.ru",
+                    Phone = "+79991234567",
+                    Address = "ул. Техническая, 123",
+                    City = "Москва",
+                    Country = "Россия",
+                    INN = "7701234567",
+                    BankDetails = "АО \"Банк\", р/с 40702810000000012345",
+                    AverageDeliveryDays = 5,
+                    MinimumOrderAmount = 10000m,
+                    IsActive = true
+                },
+                new SupplierData
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "ЭлектроТорг",
+                    ContactPerson = "Петрова Мария",
+                    Email = "order@electro.ru",
+                    Phone = "+79997654321",
+                    Address = "пр. Электронный, 45",
+                    City = "Санкт-Петербург",
+                    Country = "Россия",
+                    INN = "7812345678",
+                    AverageDeliveryDays = 7,
+                    MinimumOrderAmount = 5000m,
+                    IsActive = true
+                }
+            };
+    }
+
     private static List<CategoryData> GenerateCategories()
     {
         var categories = new List<CategoryData>();
@@ -184,7 +240,7 @@ public static class ShopFakeData
 
         return categories;
     }
-    
+
     private static List<CartData> GenerateCartData()
     {
         var carts = new List<CartData>();
@@ -196,10 +252,10 @@ public static class ShopFakeData
                 Id = user.Id,
                 CartItems = GetRandomProducts()
             };
-            
+
             carts.Add(cart);
         }
-        
+
         return carts;
     }
 

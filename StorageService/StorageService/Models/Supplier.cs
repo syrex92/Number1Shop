@@ -3,7 +3,7 @@
     /// <summary>
     /// Поставщик товаров на склад
     /// </summary>
-    public class Supplier
+    public class Supplier 
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public required string Name { get; set; }

@@ -7,7 +7,7 @@
     {
         public Guid OrderId { get; set; }
         public List<OrderItemRequest> Items { get; set; } = new();
-        public DateTime ReservationExpiry { get; set; } = DateTime.UtcNow.AddMinutes(10); // Резерв на 10 минут
+        public DateTime ReservationExpiry { get; set; } = DateTime.UtcNow.AddMinutes(30); // Резерв на 10 минут
     }
 
     /// <summary>
@@ -25,22 +25,16 @@
         public List<Guid> ReservationIds { get; set; } = new(); // ID резервирований для подтверждения
     }
 
-    // StorageService/Models/DTO/Responses.cs
+    /// <summary>
+    /// Проверка достпуности товара для заказа
+    /// </summary>
     public class StockAvailabilityResponse
     {
         public bool IsAvailable { get; set; }
         public int AvailableQuantity { get; set; }
-        public List<ProductAvailability> ProductAvailabilities { get; set; } = new();
         public DateTime CheckedAt { get; set; } = DateTime.UtcNow;
-    }
-
-    public class ProductAvailability
-    {
         public Guid ProductId { get; set; }
-        public bool IsAvailable { get; set; }
-        public int AvailableQuantity { get; set; }
         public int RequestedQuantity { get; set; }
-        public string? Message { get; set; }
     }
 
     public class ReservationResponse
@@ -71,7 +65,5 @@
     {
         public Guid ProductId { get; set; }
         public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
-        public decimal TotalPrice => Quantity * UnitPrice;
     }
 }
