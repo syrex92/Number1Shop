@@ -152,11 +152,41 @@
       - shop-network
       - shop-pg-network
   
+  storage-service:
+    image: storage-orders-service
+    build:
+      context: .
+      dockerfile: StorageService/StorageService/Dockerfile
+    pull_policy: build
+    environment:
+      CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=StorageDb
+      RMQ_HOST: rabbitmq
+      RMQ_PORT: 5672
+      RMQ_USER: guest
+      RMQ_PASSWORD: guest
+      RMQ_CART_PRODUCT_QUEUE: storage-product-messages-queue
+      RMQ_PRODUCT_EXCHANGE: storage-messages-exchange
+
+    healthcheck:
+      test: "curl -f http://localhost:8080/health"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - shop-network
+      - shop-pg-network
+  
   postgres:
     image: postgres:latest
     environment:
       POSTGRES_PASSWORD: P@ssw0rd
-      POSTGRES_MULTIPLE_DATABASES: UsersDb,CartDb,FavoriteDb,CatalogDb
+      POSTGRES_MULTIPLE_DATABASES: UsersDb,CartDb,FavoriteDb,CatalogDb,Orders,StorageDb
     ports:
       - "5432:5432"
     networks:
