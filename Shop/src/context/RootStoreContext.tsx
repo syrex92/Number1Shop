@@ -24,7 +24,7 @@ export const RootStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     
   const rootStore = useMemo(() => ({
     auth: auth,
-    products: createProductsStore(),
+    products: createProductsStore(auth),
     cart: createCartStore(auth),
     favorites: createFavoritesStore(),
     orders: createOrdersStore(auth)

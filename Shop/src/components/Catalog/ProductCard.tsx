@@ -47,8 +47,7 @@ const ProductCard = observer(
               />
 
               <Group gap={6} pos="absolute" top={8} right={8}>
-                {/* Должен быть зареганный */}
-                {auth.role == "guest" && (
+                {auth.user?.role == "user" && (
                   <ActionIcon
                     size="md"
                     radius="md"
@@ -59,8 +58,7 @@ const ProductCard = observer(
                     <IconHeart size={16} />
                   </ActionIcon>
                 )}
-                {/* Должен быть админ */}
-                {auth.role == "guest" && (
+                {auth.user?.role == "admin" && (
                   <>
                     <ActionIcon
                       size="md"
@@ -94,8 +92,7 @@ const ProductCard = observer(
             <Text fw={700}>{product.price} ₽</Text>
 
             <Group justify="center" gap="sm">
-              {/* Должен быть зареганный пользователь */}
-              {auth.role == "guest" && <AddToCartButton product={product} />}
+              {auth.user?.role == "user" && <AddToCartButton product={product} />}
               <Button size="sm" variant="light" onClick={handleViewClick}>
                 Просмотр товара
               </Button>
