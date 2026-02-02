@@ -120,7 +120,7 @@ const ProductsPage = observer(() => {
         )}
       </Modal>
 
-      {auth.user && auth.user.role == "admin" && (
+      {auth.user && auth.user.role === 'admin' && (
         <div>
           <Group mb="10">
             <Button

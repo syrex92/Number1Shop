@@ -8,7 +8,7 @@ import {
   Stack,
   Button,
   NumberInput,
-    Typography
+  Typography,
 } from "@mantine/core";
 import { useStores } from "../../../context/RootStoreContext";
 import type { Product } from "../../../stores/ProductsStore";
@@ -52,15 +52,19 @@ const ViewProductComponent = observer(({ product, onClose }: Props) => {
           {product.title}
         </Text>
 
-        <Text size={"md"}>
+        {product.description && (
+          <Text size={"md"}>
             <Typography>
               <div
-                  dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(product.description)}}
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(product.description),
+                }}
               />
-            </Typography>              
-        </Text>
+            </Typography>
+          </Text>
+        )}
 
-        {auth.user?.role == "user" && (
+        {auth.user?.role === "user" && (
           <>
             {quantity === 0 ? (
               <Button size="sm" variant="light" onClick={handleAddClick}>
