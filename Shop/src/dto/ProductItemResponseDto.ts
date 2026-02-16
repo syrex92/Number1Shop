@@ -1,12 +1,23 @@
 ﻿
+// export interface ProductItemResponseDto {
+//     id: string;
+//     stockQuantity: number;
+//     productTitle: string;
+//     productDescription: string;
+//     productCategory: string;
+//     price: number;
+//     imagesUrls: string[];
+// }
+
 export interface ProductItemResponseDto {
     id: string;
     stockQuantity: number;
     productTitle: string;
     productDescription: string;
     productCategory: string;
+    article: number;
     price: number;
-    imagesUrls: string[];
+    imageUrl?: string;
 }
 
 //export default ProductItemResponseDto

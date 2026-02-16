@@ -11,9 +11,10 @@ import {logger} from "../utils/logger.ts";
 const CartPage = observer(() => {
     const {cart} = useStores();
 
-    const items = Array.from(cart.items.values());
+    //const items = Array.from(cart.items.values());
 
     useEffect(() => {
+        console.log(cart.items)
         cart.fetchItems().catch(error => {
             console.log(error);
         })
@@ -24,8 +25,8 @@ const CartPage = observer(() => {
             <>
                 <CartItemsHeader/>
                 <div className="cart-list">
-                    {items.map((item) => (
-                        <CartItemCard key={item.product.id} cartItem={item}/>
+                    {Array.from(cart.items.values()).map((item) => (
+                        <CartItemCard key={item.productId} cartItem={item}/>
                     ))}
                 </div>
 
@@ -69,7 +70,7 @@ const CartPage = observer(() => {
             return <CartError/>
         } else if (cart.loading) {
             return <CartLoading/>
-        } else if (items.length === 0) {
+        } else if (cart.items.size === 0) {
             return <EmptyCart/>
         }
         return <FilledCart/>
