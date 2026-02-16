@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Headers;
+using CartService.Dto;
 using Shop.CartService;
 using Xunit.Abstractions;
 

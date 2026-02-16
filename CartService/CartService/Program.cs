@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using CartService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;

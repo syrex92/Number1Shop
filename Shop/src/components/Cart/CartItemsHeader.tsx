@@ -19,7 +19,7 @@ const CartItemsHeader = observer(() => {
                             checked={cart.orderAll}    
                             label={"Выбрать все"} onChange={(event) => {
                             cart.items.forEach((element) => { 
-                                cart.toOrder(element.product.id, event.currentTarget.checked) 
+                                cart.toOrder(element.product.id, event.target.checked) 
                             });
                         }} />
                     </Grid.Col>

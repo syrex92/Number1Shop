@@ -1,17 +1,34 @@
 ﻿using System.Security.Claims;
+using CartService.Dto;
 using Shop.CartService.Abstractions;
 using Shop.CartService.Dto;
 using Shop.CartService.Model;
 
-namespace Shop.CartService;
+namespace CartService;
 
 /// <summary>
 /// Обработка запросов к корзине
 /// </summary>
 public static class CartRequestsHandler
 {
+    private static async Task<Cart> CreateNewCart(
+        Guid userId,
+        IRepository<Cart> repository
+        )
+    {
+        var cart = new Cart
+        {
+            Id = userId,
+            CartItems = new List<CartItem>()
+        };
+        await repository.Add(cart);
+
+        return cart;
+    }
+    
     /// <summary>
-    /// Получение содержимого корзины
+    /// Получение содержимого корзины. Если корзина ещё не существует -
+    /// возвращается ответ без товаров, корзина не создаётся
     /// </summary>
     /// <remarks>
     /// Метод получает идентификатор корзины, равный идентификатору пользователя,
@@ -27,36 +44,38 @@ public static class CartRequestsHandler
         CancellationToken cancellationToken
     )
     {
-        var userId = Guid.ParseExact(
-            context.User.Claims.Single(x => x.Type == ClaimTypes.Sid).Value, 
-            "D");
+        try
+        {
+            var userId = Guid.ParseExact(
+                context.User.Claims.Single(x => x.Type == ClaimTypes.Sid).Value,
+                "D");
 
-        var cart = await repository.GetById(userId);
-        if (cart != null)
+            var cart = await repository.GetById(userId);
+            if (cart != null)
+                return TypedResults.Ok(new CartResponse
+                {
+                    Items = cart.CartItems.Select(x => new CartItemResponse
+                    {
+                        ProductId = x.ProductId,
+                        Quantity = x.Quantity
+                    }).ToList()
+                });
+
+            //await CreateNewCart(userId, repository, cancellationToken);
+            
             return TypedResults.Ok(new CartResponse
             {
-                Items = (cart.CartItems?.Select(x => new CartItemResponse
-                {
-                    ProductId = x.ProductId,
-                    Quantity = x.Quantity
-                }) ?? []).ToList()
+                Items = []
             });
-
-
-        cart = new Cart
+        }
+        catch (Exception e)
         {
-            Id = userId
-        };
-        await repository.Add(cart);
-
-        return TypedResults.Ok(new CartResponse
-        {
-            Items = []
-        });
+            return TypedResults.InternalServerError(e.Message);
+        }
     }
 
     /// <summary>
-    /// Добавление товара в корзину
+    /// Добавление товара в корзину. Если корзина пользователя ещё не существует - она создаётся
     /// </summary>
     /// <remarks>
     /// При вызове добавляется количество указанного товара в корзину.
@@ -66,7 +85,7 @@ public static class CartRequestsHandler
     /// <param name="repository"></param>
     /// <param name="updateCartRequest"></param>
     /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <returns>Описание добавленного элемента <see cref="CartItemResponse"/></returns>
     public static async Task<IResult> AddToCart(
         HttpContext context,
         IRepository<Cart> repository,
@@ -74,52 +93,43 @@ public static class CartRequestsHandler
         CancellationToken cancellationToken
     )
     {
-        if(updateCartRequest.Quantity == 0)
-            return TypedResults.BadRequest();
-        
-        var userId = Guid.ParseExact(
-            context.User.Claims.Single(x => x.Type == ClaimTypes.Sid).Value, 
-            "D");
+        if (updateCartRequest.Quantity == 0)
+            return TypedResults.BadRequest("Quantity must be greater than zero");
 
-        var cart = await repository.GetById(userId);
-        if (cart == null)
+        try
         {
-            cart = new Cart()
+            var userId = Guid.ParseExact(
+                context.User.Claims.Single(x => x.Type == ClaimTypes.Sid).Value,
+                "D");
+
+            var cart = await repository.GetById(userId) ?? await CreateNewCart(userId, repository);
+            
+            var item = cart.CartItems.FirstOrDefault(x => x.ProductId == updateCartRequest.ProductId);
+            if (item != null)
+                return TypedResults.Conflict();
+
+            item = new CartItem
             {
-                Id = userId,
-                CartItems = new List<CartItem>()
+                ProductId = updateCartRequest.ProductId,
+                Quantity = updateCartRequest.Quantity
             };
-            await repository.Add(cart);
-            //return TypedResults.NotFound<CartResponse>(null);
-        }
 
-        var item = cart.CartItems?.FirstOrDefault(x => x.ProductId == updateCartRequest.ProductId);
-        if (item != null)
-            return TypedResults.Conflict();
+            cart.CartItems.Add(item);
 
-        item = new CartItem()
-        {
-            ProductId = updateCartRequest.ProductId,
-            Quantity = updateCartRequest.Quantity
-        };
-        
-        // if (updateCartRequest.Quantity > 0)
-        //     item.Quantity = updateCartRequest.Quantity;
-        // else
-            cart.CartItems?.Add(item);
+            await repository.Update(cart);
 
-        await repository.Update(cart);
-
-        return TypedResults.Ok(new CartResponse
-        {
-            Items = cart.CartItems?.Select(x => new CartItemResponse()
+            return TypedResults.Ok(new CartItemResponse()
             {
-                ProductId = x.ProductId,
-                Quantity = x.Quantity
-            }).ToList() ?? []
-        });
+                ProductId = item.ProductId,
+                Quantity = item.Quantity
+            });
+        }
+        catch (Exception e)
+        {
+            return TypedResults.InternalServerError(e.Message);
+        }
     }
-    
+
     /// <summary>
     /// Обновление количества товара в корзине 
     /// </summary>
@@ -139,33 +149,33 @@ public static class CartRequestsHandler
         CancellationToken cancellationToken
     )
     {
-        
         var userId = Guid.ParseExact(
-            context.User.Claims.Single(x => x.Type == ClaimTypes.Sid).Value, 
+            context.User.Claims.Single(x => x.Type == ClaimTypes.Sid).Value,
             "D");
 
         var cart = await repository.GetById(userId);
         if (cart == null)
             return TypedResults.NotFound<CartResponse>(null);
 
-        var item = cart.CartItems?.FirstOrDefault(x => x.ProductId == updateCartRequest.ProductId);
+        var item = cart.CartItems.FirstOrDefault(x => x.ProductId == updateCartRequest.ProductId);
         if (item == null)
             return TypedResults.NotFound<CartResponse>(null);
-        
+
         if (updateCartRequest.Quantity > 0)
             item.Quantity = updateCartRequest.Quantity;
         else
-            cart.CartItems?.Remove(item);
+            cart.CartItems.Remove(item);
 
         await repository.Update(cart);
 
-        return TypedResults.Ok(new CartResponse
+
+        if (updateCartRequest.Quantity <= 0)
+            item.Quantity = 0;
+
+        return TypedResults.Ok(new CartItemResponse()
         {
-            Items = cart.CartItems?.Select(x => new CartItemResponse()
-            {
-                ProductId = x.ProductId,
-                Quantity = x.Quantity
-            }).ToList() ?? []
+            ProductId = item.ProductId,
+            Quantity = item.Quantity
         });
     }
 
@@ -186,19 +196,19 @@ public static class CartRequestsHandler
     )
     {
         var userId = Guid.ParseExact(
-            context.User.Claims.Single(x => x.Type == ClaimTypes.Sid).Value, 
+            context.User.Claims.Single(x => x.Type == ClaimTypes.Sid).Value,
             "D");
 
         var cart = await repository.GetById(userId);
         if (cart == null)
-            return TypedResults.NoContent();
+            return TypedResults.Ok();
 
         cart.CartItems = new List<CartItem>();
 
         await repository.Update(cart);
         return TypedResults.Ok();
     }
-    
+
     /// <summary>
     /// Проверка доступности сервиса
     /// </summary>
