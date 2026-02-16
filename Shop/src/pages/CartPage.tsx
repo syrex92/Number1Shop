@@ -11,12 +11,10 @@ import {logger} from "../utils/logger.ts";
 const CartPage = observer(() => {
     const {cart} = useStores();
 
-    //const items = Array.from(cart.items.values());
-
     useEffect(() => {
         console.log(cart.items)
         cart.fetchItems().catch(error => {
-            console.log(error);
+            logger.error(error);
         })
     }, []);
 
@@ -26,7 +24,7 @@ const CartPage = observer(() => {
                 <CartItemsHeader/>
                 <div className="cart-list">
                     {Array.from(cart.items.values()).map((item) => (
-                        <CartItemCard key={item.productId} cartItem={item}/>
+                        <CartItemCard key={item.product.id} cartItem={item}/>
                     ))}
                 </div>
 
@@ -42,8 +40,6 @@ const CartPage = observer(() => {
     }
 
     const CartLoading = () => {
-        
-        logger.warn("Cart Loading");
         
         return (
             <div className="empty">Загружаем корзину...</div>
@@ -65,7 +61,7 @@ const CartPage = observer(() => {
         )
     }
 
-    const CartContent = observer(() => {
+    const CartContent = () => {
         if (cart.error) {
             return <CartError/>
         } else if (cart.loading) {
@@ -74,7 +70,7 @@ const CartPage = observer(() => {
             return <EmptyCart/>
         }
         return <FilledCart/>
-    })
+    }
 
     return (
         <div className="cart-page">

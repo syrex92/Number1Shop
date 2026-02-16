@@ -29,7 +29,7 @@ export interface CartStore {
     orderTotalPrice: number;
     //orderTotalCount: number;
 
-    toOrder: (productId: string, inOrder: boolean) => void;
+    toOrder: (productId: string, inOrder: boolean) => Promise<boolean>;
 
     orderAll: boolean;
     //decrease: (productId: string) => void;
@@ -104,6 +104,10 @@ export const createCartStore = (
 
                 for (const item of loadedItems.items) {
                     try {
+                        if(item.toOrder === undefined){
+                            runInAction(() => {item.toOrder = false;})
+                        }
+                            
                         const response = await fetch(`${catalogApiUrl}products/${item.productId}`);
                         const dto = await response.json() as ProductItemResponseDto;
                         const newItem = {
@@ -140,53 +144,7 @@ export const createCartStore = (
                 runInAction(() => {
                     this.loading = false;
                 });
-            }
-
-
-            // await cartApi
-            //     .getItems()
-            //     .then(async (dto) => {
-            //         runInAction(() => {
-            //             dto.items.forEach(async (x: CartItemResponseDto) => {
-            //
-            //                     const response = await fetch(`${catalogApiUrl}products/${x.productId}`);
-            //                     const product = await response.json() as Product;
-            //
-            //                     var newItem = {
-            //                         toOrder: false,
-            //                         product: product,
-            //                         //     {
-            //                         //     id: x.productId,
-            //                         //     imageUrl: undefined,
-            //                         //     title: "title",
-            //                         //     price: 150,
-            //                         //     article: 0,
-            //                         //     description: "",
-            //                         //     category: "",
-            //                         // },
-            //                         qty: x.quantity,
-            //                     };
-            //
-            //                     console.error("new cart item: ", x);
-            //                     this.items.set(x.productId, newItem);
-            //                 }
-            //             );
-            //         });
-            //     })
-            //     .catch((reason) => {
-            //         runInAction(() => {
-            //             this.items.clear();
-            //             this.error = true;
-            //             this.errorText = reason.message;
-            //         });
-            //     })
-            //     .finally(() => {
-            //         runInAction(() => {
-            //             this.loading = false;
-            //         });
-            //
-            //         console.error(this.items)
-            //     });
+            }            
         },
 
         getItemQuantity(product: Product) {
@@ -200,19 +158,14 @@ export const createCartStore = (
 
         async add(product: Product): Promise<CartItem> {
 
-            //console.log(this.items.get(product.id));
-
             const existingItem = this.items.get(product.id);
-            console.warn("existing item", existingItem);
 
             if (existingItem) {
                 const updatedItem = await cartApi.updateItem({...existingItem, qty: existingItem.qty + 1} as CartItem);
                 if (updatedItem !== undefined) {
                     runInAction(() => {
-                        //existingItem.qty = updatedItem.qty;
                         this.items.set(product.id, updatedItem as CartItem);
                     })
-                    
                 }
                 return toJS(existingItem);
 
@@ -228,49 +181,13 @@ export const createCartStore = (
 
                 return toJS(newItem);
             }
-            //return toJS(existingItem);
         },
-
-        // async addWithQuantity(product: Product, quantity: number) {
-        //     if (quantity < 1) return;
-        //
-        //     let rec = this.items.get(product.id);
-        //
-        //     if (rec) {
-        //         rec.qty += quantity;
-        //
-        //         await cartApi
-        //             .updateItem(rec)
-        //             .then((x) => {
-        //                 logger.debug(`cart item updated: ${JSON.stringify(x)}`);
-        //                 return rec;
-        //             })
-        //             .catch((reason) => {
-        //                 logger.error("update error:", reason);
-        //             });
-        //     } else {
-        //         rec = {product, qty: quantity, toOrder: true};
-        //         // await cartApi
-        //         //     .addItem(rec)
-        //         //     .then((dto) => {
-        //         //         runInAction(() => {
-        //         //             this.items.set(product.id, dto);
-        //         //         });
-        //         //         return rec;
-        //         //     })
-        //         //     .catch((reason) => {
-        //         //         console.log(reason);
-        //         //     });
-        //     }
-        //     return toJS(rec);
-        // },
 
         async remove(productId: string, all: boolean): Promise<boolean> {
             try {
                 const existingItem = this.items.get(productId);
 
                 if (existingItem) {
-                    console.warn("existing item qty", existingItem.qty);
                     if(existingItem.qty === 1 || all) {
                         await cartApi.deleteItem(existingItem)
                         runInAction(() => {
@@ -301,25 +218,18 @@ export const createCartStore = (
             return this.items.get(productId);
         },
 
-        // decrease(productId: string): void {
-        //     const rec = this.items.get(productId);
-        //     if (!rec) return;
-        //    
-        //     rec.qty -= 1;
-        //     if (rec.qty <= 0) this.items.delete(productId);
-        // },
-        //
-        // increase(productId: string): void {
-        //     const rec = this.items.get(productId);
-        //     if (!rec) return;
-        //     rec.qty += 1;
-        //     if (rec.qty <= 0) this.items.delete(productId);
-        // },
-
-        toOrder(productId: string, inOrder: boolean): void {
+        async toOrder(productId: string, inOrder: boolean): Promise<boolean> {
             const rec = this.items.get(productId);
-            if (!rec) return;
-            rec.toOrder = inOrder;
+            if (!rec) 
+                return false;
+            //console.warn("toOrder", productId, inOrder);
+            
+            runInAction(() => {
+                //this.items.set(productId, {...rec, toOrder: inOrder});
+                rec.toOrder = inOrder;    
+            })
+            
+            return true;
         },
 
         clear(): void {
@@ -331,7 +241,7 @@ export const createCartStore = (
         errorText: "",
     };
 
-    return makeAutoObservable(store);
+    return makeAutoObservable(store, undefined, {autoBind: true, deep: true});
 };
 
 export default createCartStore;

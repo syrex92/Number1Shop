@@ -25,6 +25,7 @@ import {Carousel} from "@mantine/carousel";
 import shopConfig from "../../config/shopConfig.ts";
 import {runInAction} from "mobx";
 import {BeatLoader} from "react-spinners";
+import {openConfirmModal} from "@mantine/modals";
 
 export interface CartItemCardProps {
     cartItem: CartItem;
@@ -37,6 +38,30 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
 
     //const [product, setProduct] = React.useState<ProductItemResponseDto | undefined>();
 
+    function openDeleteDialog(productId: string) {
+        console.log("openDeleteDialog");
+        openConfirmModal({
+            title: 'Подтвердите удаление',
+            children: (
+                <Text size="sm">
+                    Удалить товар из корзины?
+                </Text>
+            ),
+            labels: {confirm: 'Удалить', cancel: 'Отмена'},
+            confirmProps: {color: 'red'},
+            onConfirm: async () => {
+                setExec(true)
+                try {
+                    await cart.remove(productId, true)
+                } finally {
+                    setExec(false)
+                }
+            },
+            onCancel: () => {
+            },
+        });
+    }
+    
     const getProduct = () => {
 
         //products.products
@@ -71,19 +96,10 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
     }
 
     useEffect(() => {
-        //console.log(cartItem)
-        console.log(cartItem.product)
         if (!cartItem.product) {
-            console.warn(`loading product ${cartItem.productId}`)
             getProduct();
         }
     }, [])
-
-
-    // useEffect(() => {
-    //     console.log(product);
-    //
-    // }, [product])
 
     const productImages = () => {
 
@@ -151,12 +167,15 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
                     <Grid>
                         <Grid.Col span={1}>
                             <Checkbox checked={cartItem.toOrder} onChange={(event) => {
-                                cart.toOrder(cartItem.product.id, event.currentTarget.checked);
+                                runInAction(() => {
+                                    //cartItem.toOrder = event.target.checked
+                                    cart.toOrder(cartItem.product.id, event.target.checked);
+                                })
+                                //cart.toOrder(cartItem.product.id, event.target.checked);
                             }}/>
                         </Grid.Col>
                         <Grid.Col span={2}>
                             {productImages()}
-
                         </Grid.Col>
                         <Grid.Col span={6}>
                             <Flex justify={"space-evenly"} align={"flex-start"} direction={"column"}>
@@ -181,7 +200,7 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
                                                 onClick={async () => {
                                                     setExec(true)
                                                     try {
-                                                        await cart.remove(cartItem.product.id, true);
+                                                        openDeleteDialog(cartItem.product.id)
                                                     }
                                                     finally {
                                                         setExec(false)
