@@ -2,70 +2,67 @@
 import {useStores} from "../../context/RootStoreContext.tsx";
 import type {CartItem} from "../../stores/CartStore.tsx";
 import {
-    Checkbox,
-    Grid,
-    Image,
-    Text,
-    Flex,
-    Group,
     ActionIcon,
+    Box,
     Card,
-    NumberFormatter, Stack, Typography, Skeleton, Spoiler, Box
+    Checkbox,
+    Flex,
+    Grid,
+    Group,
+    Image,
+    NumberFormatter,
+    Skeleton,
+    Spoiler,
+    Stack,
+    Text,
+    Typography
 } from "@mantine/core";
-import React, {useEffect} from "react";
-import {
-    IconArrowLeft,
-    IconArrowRight,
-    IconHeart,
-    IconMinus,
-    IconPlus,
-    IconTrash
-} from "@tabler/icons-react";
+import {useEffect, useState} from "react";
+import {IconArrowLeft, IconArrowRight, IconHeart, IconMinus, IconPlus, IconTrash} from "@tabler/icons-react";
 import type {ProductItemResponseDto} from "../../dto/ProductItemResponseDto.tsx";
+import DOMPurify from "dompurify";
+import {Carousel} from "@mantine/carousel";
+import shopConfig from "../../config/shopConfig.ts";
+import {runInAction} from "mobx";
+import {BeatLoader} from "react-spinners";
 
 export interface CartItemCardProps {
     cartItem: CartItem;
 }
-
-import DOMPurify from "dompurify";
-import {Carousel} from "@mantine/carousel";
-import shopConfig from "../../config/shopConfig.ts";
-
-interface HtmlBlockProps {
-    html: string;
-}
-
-export const SafeHtmlBlock: React.FC<HtmlBlockProps> = ({html}) => {
-    const sanitized = DOMPurify.sanitize(html);
-
-    return (
-        <div
-            dangerouslySetInnerHTML={{__html: sanitized}}
-        />
-    );
-};
 
 const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
 
     const {cart} = useStores();
     const {catalogApiUrl, imagesUrl} = shopConfig;
 
-    const [product, setProduct] = React.useState<ProductItemResponseDto | undefined>();
+    //const [product, setProduct] = React.useState<ProductItemResponseDto | undefined>();
 
     const getProduct = () => {
 
-        fetch(`${catalogApiUrl}${cartItem.product.id}`)
+        //products.products
+
+        fetch(`${catalogApiUrl}products/${cartItem.product.id}`)
             .then(res => {
                 console.log(res);
                 if (res.ok) {
-                    const js = res.json()
-                    return js;
+                    return res.json();
                 }
             })
             .then(res => res as ProductItemResponseDto)
             .then(data => {
-                setProduct(data);
-                //return data;
+                //setProduct(data);
+                runInAction(() => {
+                    cartItem.product = {
+                        article: data.article,
+                        price: data.price,
+                        imageUrl: data.imageUrl,
+                        category: data.productCategory,
+                        description: data.productDescription,
+                        title: data.productTitle,
+                        id: data.id
+                    };
+                })
+
             })
             .catch(err => {
                 console.log(err);
@@ -75,24 +72,28 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
 
     useEffect(() => {
         //console.log(cartItem)
-        getProduct();
-    }, [cartItem])
+        console.log(cartItem.product)
+        if (!cartItem.product) {
+            console.warn(`loading product ${cartItem.productId}`)
+            getProduct();
+        }
+    }, [])
 
 
-    useEffect(() => {
-        console.log(product);
-
-    }, [product])
+    // useEffect(() => {
+    //     console.log(product);
+    //
+    // }, [product])
 
     const productImages = () => {
 
-        if (!product || !product.imagesUrls || !product.imagesUrls.length)
-            return (<Text>No image</Text>);
+        if (!cartItem.product || !cartItem.product.imageUrl)
+            return (<Text mx={"auto"}>No image</Text>);
 
         const getSingleImage = () => {
             return (
                 <Box h={180} style={{alignContent: "center"}}>
-                    <Image radius={10} src={`${imagesUrl}${product.imagesUrls[0]}`} />
+                    <Image radius={10} src={`${imagesUrl}${cartItem.product.imageUrl}`}/>
                 </Box>
             );
         }
@@ -105,32 +106,32 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
                     previousControlIcon={<IconArrowLeft size={16}/>}
                 >
                     {
-                        product.imagesUrls.map((url) => (
-                            <Carousel.Slide key={url} style={{alignContent: "center"}}>
-                                <Image radius={10} src={`${imagesUrl}${url}`}/>
-                            </Carousel.Slide>
-                        ))
+                        //product.imagesUrls.map((url) => (
+                        //<Carousel.Slide key={url} style={{alignContent: "center"}}>
+                        <Image radius={10} src={`${imagesUrl}${cartItem.product.imageUrl}`}/>
+                        //</Carousel.Slide>
+                        //))
                     }
                 </Carousel>
             );
         }
 
         return (
-
             <>
                 {
-                    product && product.imagesUrls && product.imagesUrls.length === 1
+                    cartItem.product && cartItem.product.imageUrl
                         ? getSingleImage()
                         : getSlides()
                 }
             </>
-
         )
     }
 
+    const [exec, setExec] = useState<boolean>(false);
+
     return (
         <>
-            {product === undefined ?
+            {cartItem.product === undefined ?
                 <>
 
                     <Card shadow={"xs"}>
@@ -159,25 +160,33 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
                         </Grid.Col>
                         <Grid.Col span={6}>
                             <Flex justify={"space-evenly"} align={"flex-start"} direction={"column"}>
-                                <Text size={"xl"} mb={"md"}>{product.productTitle}</Text>
-                                <Text size={"md"}>
+                                <Text size={"xl"} mb={"md"}>{cartItem.product.title}</Text>
+                                <Box size={"md"}>
                                     <Spoiler maxHeight={120} showLabel={"показать больше"} hideLabel={"скрыть"}
                                              style={{textAlign: "justify"}}>
                                         <Typography>
-                                            <div
-                                                dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(product.productDescription)}}
+                                            <span
+                                                dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(cartItem.product.description ?? 'Описание отсутствует')}}
                                             />
                                         </Typography>
                                     </Spoiler>
-                                </Text>
+                                </Box>
                                 <Group m={"xs"} align={"flex-start"}>
-                                    <ActionIcon variant="outline" aria-label="Settings"
+                                    <ActionIcon variant="outline" aria-label="Settings" disabled={exec}
                                                 onClick={() => console.log("Set favourite")}>
                                         <IconHeart style={{width: '80%', height: '80%'}} stroke={1.5}/>
                                     </ActionIcon>
 
-                                    <ActionIcon variant="outline" aria-label="Settings"
-                                                onClick={() => cart.remove(cartItem.product.id)}>
+                                    <ActionIcon variant="outline" aria-label="Settings" disabled={exec}
+                                                onClick={async () => {
+                                                    setExec(true)
+                                                    try {
+                                                        await cart.remove(cartItem.product.id, true);
+                                                    }
+                                                    finally {
+                                                        setExec(false)
+                                                    }                                                    
+                                                }}>
                                         <IconTrash style={{width: '80%', height: '80%'}} stroke={1.5}/>
                                     </ActionIcon>
                                 </Group>
@@ -186,19 +195,44 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
                         </Grid.Col>
                         <Grid.Col span={3}>
                             <Stack align={"center"}>
-                                <Group justify={"center"}>
+                                <Group justify={"center"} h={30}>
 
-                                    <ActionIcon variant="outline" aria-label="Settings"
-                                                onClick={() => cart.decrease(cartItem.product.id)}>
-                                        <IconMinus style={{width: '80%', height: '80%'}} stroke={1.5}/>
-                                    </ActionIcon>
+                                    {exec && <BeatLoader color={"green"} size={5} />}
 
-                                    <Text>{cartItem.qty}</Text>
+                                    {!exec &&
+                                        (<>
+                                            <ActionIcon variant="outline" aria-label="Settings"
+                                                        onClick={async () => {
+                                                            setExec(true);
+                                                            try {
+                                                                await cart.remove(cartItem.product.id, false)
+                                                            }
+                                                            finally {
+                                                                setExec(false)
+                                                            }                                                            
+                                                        }}>
+                                                <IconMinus style={{width: '80%', height: '80%'}} stroke={1.5}/>
+                                            </ActionIcon>
 
-                                    <ActionIcon variant="outline" aria-label="Settings"
-                                                onClick={() => cart.add(cartItem.product)}>
-                                        <IconPlus style={{width: '80%', height: '80%'}} stroke={1.5}/>
-                                    </ActionIcon>
+                                            <Text>{cart.getItemQuantity(cartItem.product)}</Text>
+
+                                            <ActionIcon variant="outline" aria-label="Settings"
+                                                        onClick={async () => {
+
+                                                            setExec(true)
+                                                            try {
+                                                                await cart.add(cartItem.product);                                                                
+                                                            }
+                                                            finally {
+                                                                setExec(false)
+                                                            }
+                                                            
+                                                            
+                                                        }}>
+                                                <IconPlus style={{width: '80%', height: '80%'}} stroke={1.5}/>
+                                            </ActionIcon>
+                                        </>)
+                                    }
 
 
                                 </Group>
