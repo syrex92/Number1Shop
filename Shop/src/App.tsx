@@ -4,14 +4,16 @@ import LoginPage from './pages/LoginPage';
 import MainLayout from './pages/MainLayout';
 import '@mantine/core/styles.css';
 import '@mantine/carousel/styles.css';
-
+import '@mantine/notifications/styles.css';
 import {MantineProvider} from '@mantine/core';
 import RegistrationPage from './pages/RegistrationPage';
 import {ModalsProvider} from "@mantine/modals";
+import {Notifications} from "@mantine/notifications";
 
 function App() {
     return (
         <MantineProvider defaultColorScheme="dark">
+            <Notifications />
             <ModalsProvider>
                 <Routes>
                     <Route path="/login" element={<LoginPage/>}/>

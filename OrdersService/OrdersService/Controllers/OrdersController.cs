@@ -39,6 +39,8 @@ public class OrdersController : ControllerBase
             c.Street == address.Street
         ) ?? address;
 
+        orderCreate.DeliveryAddressId = address.Id;
+        
         for (int i = 0; i < orderCreate.Items.Count; i++)
         {
             orderCreate.Items[i].Cost = 10;

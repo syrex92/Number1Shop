@@ -12,7 +12,6 @@ const CartPage = observer(() => {
     const {cart} = useStores();
 
     useEffect(() => {
-        console.log(cart.items)
         cart.fetchItems().catch(error => {
             logger.error(error);
         })
@@ -61,20 +60,27 @@ const CartPage = observer(() => {
         )
     }
 
-    const CartContent = () => {
-        if (cart.error) {
-            return <CartError/>
-        } else if (cart.loading) {
-            return <CartLoading/>
-        } else if (cart.items.size === 0) {
-            return <EmptyCart/>
-        }
-        return <FilledCart/>
-    }
+    // const CartContent = () => {
+    //     if (cart.error) {
+    //         return <CartError/>
+    //     } else if (cart.loading) {
+    //         return <CartLoading/>
+    //     } else if (cart.items.size === 0) {
+    //         return <EmptyCart/>
+    //     }
+    //     return <FilledCart/>
+    // }
 
     return (
         <div className="cart-page">
-            <CartContent/>
+            {cart.error && <CartError/> }
+
+            {cart.loading && <CartLoading/> }
+
+            {!cart.loading && cart.items.size === 0 && <EmptyCart/>}
+
+            {!cart.loading && cart.items.size !== 0 && <FilledCart/>}
+            
         </div>
     );
 });
