@@ -34,9 +34,9 @@ namespace StorageService.Handlers
             try
             {
                 // Получаем ID пользователя из токена
-                var userId = GetUserIdFromClaims(httpContext);
-                if (userId == Guid.Empty)
-                    return Results.Unauthorized();
+                //var userId = GetUserIdFromClaims(httpContext);
+                //if (userId == Guid.Empty)
+                //    return Results.Unauthorized();
 
                 var response = await inventoryService.ReserveStockAsync(request);
 
@@ -58,9 +58,9 @@ namespace StorageService.Handlers
         {
             try
             {
-                var userId = GetUserIdFromClaims(httpContext);
-                if (userId == Guid.Empty)
-                    return Results.Unauthorized();
+                //var userId = GetUserIdFromClaims(httpContext);
+                //if (userId == Guid.Empty)
+                //    return Results.Unauthorized();
 
                 var response = await inventoryService.ConfirmPurchaseAsync(request);
 
@@ -82,9 +82,9 @@ namespace StorageService.Handlers
         {
             try
             {
-                var userId = GetUserIdFromClaims(httpContext);
-                if (userId == Guid.Empty)
-                    return Results.Unauthorized();
+                //var userId = GetUserIdFromClaims(httpContext);
+                //if (userId == Guid.Empty)
+                //    return Results.Unauthorized();
 
                 var success = await inventoryService.CancelReservationAsync(reservationId);
 
@@ -106,9 +106,9 @@ namespace StorageService.Handlers
         {
             try
             {
-                var userId = GetUserIdFromClaims(httpContext);
-                if (userId == Guid.Empty)
-                    return Results.Unauthorized();
+                //var userId = GetUserIdFromClaims(httpContext);
+                //if (userId == Guid.Empty)
+                //    return Results.Unauthorized();
 
                 var stockItem = await inventoryService.GetStockItemAsync(productId);
 

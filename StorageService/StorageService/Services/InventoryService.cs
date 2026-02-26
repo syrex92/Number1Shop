@@ -56,10 +56,13 @@ namespace StorageService.Services
 
             try
             {
+                // Устанавливаем срок действия 30 минут часа от текущего момента UTC
+                var expiresAt = DateTime.UtcNow.AddMinutes(30);
+
                 var reservation = new StockReservation
                 {
                     OrderId = request.OrderId,
-                    ExpiresAt = request.ReservationExpiry,
+                    ExpiresAt = expiresAt,
                     Status = ReservationStatus.Reserved
                 };
 
