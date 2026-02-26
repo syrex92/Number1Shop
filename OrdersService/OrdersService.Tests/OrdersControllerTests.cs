@@ -32,7 +32,7 @@ public class OrdersControllerTests : IDisposable
             .Without(o => o.Items));
             
         _fixture.Customize<Address>(composer => composer
-            .Without(a => a.Order));
+            .Without(a => a.Orders));
             
         // Setup in-memory database
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -101,7 +101,6 @@ public class OrdersControllerTests : IDisposable
                 .With(o => o.DeliveryAddressId, address.Id)
                 .Create();
 
-            address.Order = order;
             orders.Add(order);
         }
 
