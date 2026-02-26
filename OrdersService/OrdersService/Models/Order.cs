@@ -5,18 +5,22 @@ using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace OrdersService.Models
 {
     public class Order
     {
         [Key]
+        [SwaggerIgnore]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [Required]
+        [SwaggerIgnore]
         public Guid UserId { get; set; }
 
         [Required]
+        [SwaggerIgnore]
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
         [Required]

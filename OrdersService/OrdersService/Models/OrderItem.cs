@@ -19,7 +19,7 @@ namespace OrdersService.Models
 
         [JsonInclude]
         public virtual string Name {
-            get { return "Тестовый товар №" + (new Random()).Next(); }
+            get { return "Тестовый товар №" + new Random().Next(); }
         }
 
         [Required]

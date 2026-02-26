@@ -19,6 +19,6 @@ namespace OrdersService.Models
         public string PostalCode { get; set; } = null!;
         public string Country { get; set; } = null!;
         [JsonIgnore]
-        public Order? Order { get; set; }
+        public List<Order>? Orders { get; set; }
     }
 }

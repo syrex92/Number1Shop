@@ -135,18 +135,15 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=Orders
-
     healthcheck:
       test: "curl -f http://localhost:8080/health"
       interval: 5s
       timeout: 5s
       retries: 5
-
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
-
     networks:
       - shop-network
       - shop-pg-network
@@ -250,6 +247,8 @@ services:
     labels:
       - app=shop
 
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 networks:
   shop-network:
