@@ -65,6 +65,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{72
 		ApiGate\services\catalog-upstream.conf = ApiGate\services\catalog-upstream.conf
 		ApiGate\services\favorite-location.conf = ApiGate\services\favorite-location.conf
 		ApiGate\services\favorite-upstream.conf = ApiGate\services\favorite-upstream.conf
+		keycloak.conf = keycloak.conf
 		ApiGate\services\order-location.conf = ApiGate\services\order-location.conf
 		ApiGate\services\order-upstream.conf = ApiGate\services\order-upstream.conf
 		ApiGate\services\users-location.conf = ApiGate\services\users-location.conf
@@ -87,6 +88,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UsersService.Test", "UsersService\UsersService.Test\UsersService.Test.csproj", "{F6B5846A-A4A3-47E0-84B5-FA586C894CD8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shop.Demo.Data", "Common\Shop.Demo.Data\Shop.Demo.Data.csproj", "{CB0F778D-12D3-416F-80AD-B965A592B58A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak-config", "keycloak-config", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		realm-export.json = realm-export.json
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

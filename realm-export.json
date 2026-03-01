@@ -1,0 +1,43 @@
+{
+  "realm": "shop",
+  "enabled": true,
+  "displayName": "Shop Realm",
+  "registrationAllowed": true,
+  "loginWithEmailAllowed": true,
+  "resetPasswordAllowed": true,
+  "clients": [
+    {
+      "clientId": "shop-ui",
+      "enabled": true,
+      "publicClient": true,
+      "redirectUris": [ "http://localhost:8105/*" ],
+      "webOrigins": [ "http://localhost:8105" ],
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true
+    },
+    {
+      "clientId": "shop-services",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "service-secret-123",
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": true
+    }
+  ],
+  "users": [
+    {
+      "username": "testuser",
+      "enabled": true,
+      "email": "test@example.com",
+      "firstName": "Test",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password123",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

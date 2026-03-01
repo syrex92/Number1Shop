@@ -180,7 +180,7 @@
     image: postgres:latest
     environment:
       POSTGRES_PASSWORD: P@ssw0rd
-      POSTGRES_MULTIPLE_DATABASES: UsersDb,CartDb,FavoriteDb,CatalogDb,Orders,StorageDb
+      POSTGRES_MULTIPLE_DATABASES: UsersDb,CartDb,FavoriteDb,CatalogDb,Orders,StorageDb,Keycloak
     ports:
       - "5432:5432"
     networks:
@@ -217,7 +217,40 @@
       interval: 5s
       timeout: 5s
       retries: 5
- 
+      
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.0
+    command: start-dev 
+    environment:
+      KC_HOSTNAME: localhost
+      KC_HTTP_ENABLED: true
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin123
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak?currentSchema=keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: P@ssw0rd
+    volumes:
+      - ./keycloak-config:/opt/keycloak/data/import:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - shop-network
+      - shop-pg-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    labels:
+      - app=shop
+       
   nginx-proxy:
     image: nginx:stable
     ports:
@@ -255,3 +288,6 @@ networks:
     name: shop-pg-network
     labels:
       - app=shop
+
+volumes:
+  keycloak-data:
