@@ -14,8 +14,14 @@ public class OrdersController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly IStorageService _storageService;
+    private readonly ICatalogService _catalogService;
 
-    public OrdersController(AppDbContext db, IStorageService storageService) => (_db, _storageService) = (db, storageService);
+    public OrdersController(AppDbContext db, IStorageService storageService, ICatalogService catalogService)
+    {
+        _db = db;
+        _storageService = storageService;
+        _catalogService = catalogService;
+    }
 
     [Authorize(AuthenticationSchemes = "Bearer")]
     [HttpPost]
@@ -30,6 +36,8 @@ public class OrdersController : ControllerBase
         orderCreate.Id = Guid.NewGuid();
         orderCreate.UserId = Guid.Parse(userIdClaim.Value);
         orderCreate.CreatedAt = DateTime.UtcNow;
+
+        orderCreate.OrderNumber = await _db.Orders.CountAsync() + 1;
 
         var address = orderCreate.DeliveryAddress;
 
@@ -115,6 +123,12 @@ public class OrdersController : ControllerBase
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null) return NotFound();
+
+        foreach (var item in order.Items)
+        {
+            var productInfo = await _catalogService.GetById(item.Product);
+            item.Name = productInfo.ProductTitle;
+        }
 
         return Ok(order);
     }

@@ -88,10 +88,23 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddHttpClient("StorageService", client =>
 {
-    client.BaseAddress = new Uri(Environment.GetEnvironmentVariable("STORAGE_SERVICE_URL") ?? configuration["StorageService:BaseUrl"]);
+    client.BaseAddress = new Uri(Environment.GetEnvironmentVariable("STORAGE_SERVICE_URL") ?? configuration["StorageService:BaseUrl"] ?? "");
+});
+
+builder.Services.AddHttpClient("CatalogService", client =>
+{
+    client.BaseAddress = new Uri(Environment.GetEnvironmentVariable("CATALOG_SERVICE_URL") ?? configuration["CatalogService:BaseUrl"] ?? "");
+});
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING") ?? configuration.GetConnectionString("Redis");
+    options.InstanceName = "OrdersService_";
 });
 
 builder.Services.AddScoped<IStorageService, StorageService>();
+
+builder.Services.AddScoped<ICatalogService, CatalogService>();
 
 var app = builder.Build();
 

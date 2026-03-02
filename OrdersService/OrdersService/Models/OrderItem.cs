@@ -19,9 +19,9 @@ namespace OrdersService.Models
         public Guid Product { get; set; }
 
         [JsonInclude]
-        public virtual string Name {
-            get { return "Тестовый товар №" + new Random().Next(); }
-        }
+        [SwaggerIgnore]
+        [NotMapped]
+        public string Name { get; set; } = string.Empty;
 
         [Required]
         public int Quantity { get; set; }

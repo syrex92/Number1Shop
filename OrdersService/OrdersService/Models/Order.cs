@@ -33,13 +33,7 @@ namespace OrdersService.Models
         public List<OrderItem> Items { get; set; } = new();
 
         [JsonInclude]
-        public virtual int OrderNumber
-        {
-            get
-            {
-                return (new Random()).Next();
-            }
-        }
+        public int OrderNumber { get; set; }
 
         [JsonInclude]
         public virtual decimal Cost
