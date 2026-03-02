@@ -14,6 +14,9 @@ import type {IOrderDto} from "../../dto/IOrderDto.ts";
 import type {IAddressDto} from "../../dto/IAddressDto.ts";
 import shopConfig from "../../config/shopConfig.ts";
 import ApiClient from "../../utils/api.ts";
+import {notifications} from "@mantine/notifications";
+import {useState} from "react";
+import {logger} from "../../utils/logger.ts";
 
 const CartItemsFooter = observer(() => {
 
@@ -23,45 +26,77 @@ const CartItemsFooter = observer(() => {
 
     const ordersApi = new ApiClient(ordersApiUrl, auth);
 
-    const createOrder = async () : Promise<boolean> => {
-        const itemsToOrder = Array.from(cart.items.values())
-            .filter((item) => item.toOrder)
-        
-        const orderItems = itemsToOrder.map((item) => {
-            return {
-                product: item.product.id,
-                quantity: item.qty,
-                cost: item.product.price
-            } as IOrderItemDto;
-        })
-        
-        const address = {
-            country: "Россия",
-            city: "Краснодар",
-            street: "Красная",
-            house: "19",
-            appartment: "99",
-            postalCode: "350011"            
-        } as IAddressDto;
-        
-        const order = {
-            createdAt: Date.now().toString(),
-            items: orderItems,
-            status: "New",
-            id: crypto.randomUUID(),//"3fa85f64-5717-4562-b3fc-2c963f66afa6",
-            userId: "",
-            deliveryAddress: address
-        } as IOrderDto;
+    // function takeFirstLines(text: string, n: number): string {
+    //     const lines = text.split(/\r?\n/);            // учтёт \n и \r\n
+    //     return lines.slice(0, n).join('\n');
+    // }
 
+
+    const [creatingOrder, setCreatingOrder] = useState<boolean>(false);
+    const createOrder = async () : Promise<boolean> => {
+        let created = false;
         
+        try {
+            setCreatingOrder(true);
+
+
+            const itemsToOrder = Array.from(cart.items.values())
+                .filter((item) => item.toOrder)
+
+            const orderItems = itemsToOrder.map((item) => {
+                return {
+                    product: item.product.id,
+                    quantity: item.qty,
+                    cost: item.product.price
+                } as IOrderItemDto;
+            })
+
+            const address = {
+                country: "Россия",
+                city: "Краснодар",
+                street: "Красная",
+                house: "19",
+                appartment: "99",
+                postalCode: "350011"
+            } as IAddressDto;
+
+            const order = {
+                createdAt: (new Date()).toISOString(),
+                items: orderItems,
+                status: "New",
+                id: crypto.randomUUID(),
+                userId: crypto.randomUUID(),
+                deliveryAddress: address
+            } as IOrderDto;
+
+            const response = await ordersApi.post("", order);
+            
+            created = response.ok;
+        }
+        catch(error: any){
+            logger.error(error);
+        }
+        finally {
+            setCreatingOrder(false);
+            if(created){
+                notifications.show({
+                    position: "top-center",
+                    color: "green",
+                    title: "Успех",
+                    message: 'Заказ успешно оформлен и скоро появится в разделе "Заказы"'
+                })  
+            }
+            else{
+                notifications.show({
+                    position: "top-center",
+                    color: "red",
+                    title: "Ошибка",
+                    message: "Произошла ошибка при оформлении заказа. Попробуйте повторить позже"
+                })
+            }
+        }
         
-        console.log("order to create: ", order);
-        
-        const response = await ordersApi.post("", order);
-        
-        console.log("response", response);
-        
-        return response.ok;
+        return created;
         
     }
     
@@ -90,7 +125,8 @@ const CartItemsFooter = observer(() => {
                         <Group justify={"right"}>
                             <Button rightSection={<IconArrowsRight size={14} style={{width: '80%', height: '80%'}}/>}
                                 disabled={cart.orderTotalPrice === 0}
-                                    onClick={() => createOrder()}
+                                    loading={creatingOrder}
+                                    onClick={createOrder}
                             >
                                 Заказать
                             </Button>

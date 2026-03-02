@@ -50,6 +50,8 @@ public class OrdersController : ControllerBase
             c.Street == address.Street
         ) ?? address;
 
+        orderCreate.DeliveryAddressId = address.Id;
+        
         for (int i = 0; i < orderCreate.Items.Count; i++)
         {
             var stockInfo = await _storageService.GetStockInfo(orderCreate.Items[i].Product);
