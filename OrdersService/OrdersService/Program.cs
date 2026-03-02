@@ -5,6 +5,8 @@ using Microsoft.IdentityModel.Tokens;
 using OrdersService.Data;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
+using OrdersService.Interfaces;
+using OrdersService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -83,6 +85,13 @@ builder.Services.AddAuthorization(options =>
         .RequireAuthenticatedUser()
         .Build();
 });
+
+builder.Services.AddHttpClient("StorageService", client =>
+{
+    client.BaseAddress = new Uri(Environment.GetEnvironmentVariable("STORAGE_SERVICE_URL") ?? configuration["StorageService:BaseUrl"]);
+});
+
+builder.Services.AddScoped<IStorageService, StorageService>();
 
 var app = builder.Build();
 

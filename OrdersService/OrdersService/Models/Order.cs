@@ -42,7 +42,7 @@ namespace OrdersService.Models
         }
 
         [JsonInclude]
-        public virtual int Cost
+        public virtual decimal Cost
         {
             get
             {

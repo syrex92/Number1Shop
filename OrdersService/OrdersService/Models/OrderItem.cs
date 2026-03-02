@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace OrdersService.Models
 {
@@ -26,7 +27,8 @@ namespace OrdersService.Models
         public int Quantity { get; set; }
 
         [Required]
-        public int Cost { get; set; }
+        [SwaggerIgnore]
+        public decimal Cost { get; set; }
 
         [Required]
         [JsonIgnore]
