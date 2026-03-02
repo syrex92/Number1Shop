@@ -144,9 +144,26 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - shop-network
       - shop-pg-network
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - shop-network
+    labels:
+      - app=shop
+    restart: unless-stopped
+    healthcheck:
+      test: "redis-cli ping"
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   storage-service:
     image: shop-storage-service
@@ -178,9 +195,6 @@ services:
     networks:
       - shop-network
       - shop-pg-network
-
-    # ports:
-    #   - "8081:8080"
   
   postgres:
     image: postgres:latest
