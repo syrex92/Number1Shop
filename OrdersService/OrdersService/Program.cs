@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
 using OrdersService.Interfaces;
 using OrdersService.Services;
+using RabbitMqService;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -101,6 +102,26 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING") ?? configuration.GetConnectionString("Redis");
     options.InstanceName = "OrdersService_";
 });
+
+builder.Services.AddSingleton(_ =>
+{
+    var host = Environment.GetEnvironmentVariable("RMQ_HOST") ?? "rabbitmq";
+    var user = Environment.GetEnvironmentVariable("RMQ_USER") ?? "guest";
+    var password = Environment.GetEnvironmentVariable("RMQ_PASSWORD") ?? "guest";
+    var vhost = Environment.GetEnvironmentVariable("RMQ_VHOST") ?? "/";
+    var port = int.TryParse(Environment.GetEnvironmentVariable("RMQ_PORT"), out var p) ? p : 5672;
+
+    return new RabbitMqClientOptions
+    {
+        HostName = host,
+        Port = port,
+        UserName = user,
+        Password = password,
+        VirtualHost = vhost,
+        PrefetchCount = 10
+    };
+});
+builder.Services.AddScoped<IUiNotificationPublisher, UiNotificationPublisher>();
 
 builder.Services.AddScoped<IStorageService, StorageService>();
 

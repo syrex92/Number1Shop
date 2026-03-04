@@ -6,7 +6,7 @@
 
 .header {
     display: grid;
-    grid-template-columns: 220px 1fr auto;
+    grid-template-columns: 220px 1fr auto auto auto;
     align-items: center;
     gap: var(--space-4);
     padding: var(--space-4) var(--space-6);

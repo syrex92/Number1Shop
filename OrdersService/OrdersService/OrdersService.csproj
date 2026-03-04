@@ -18,4 +18,8 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\RabbitMqService\RabbitMqService.csproj" />
+  </ItemGroup>
+
 </Project>

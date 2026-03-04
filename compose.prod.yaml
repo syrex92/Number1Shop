@@ -1,4 +1,4 @@
-﻿services:
+services:
   
   ui-service:
     image: shop-ui-service
@@ -24,6 +24,11 @@
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=UsersDb
+      RMQ_HOST: rabbitmq
+      RMQ_PORT: 5672
+      RMQ_USER: guest
+      RMQ_PASSWORD: guest
+      RMQ_VHOST: /
     healthcheck:
       test: "curl -f http://localhost:8080/health"
       interval: 5s
@@ -136,6 +141,11 @@
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=Orders
+      RMQ_HOST: rabbitmq
+      RMQ_PORT: 5672
+      RMQ_USER: guest
+      RMQ_PASSWORD: guest
+      RMQ_VHOST: /
 
     healthcheck:
       test: "curl -f http://localhost:8080/health"
@@ -181,6 +191,8 @@
     environment:
       POSTGRES_PASSWORD: P@ssw0rd
       POSTGRES_MULTIPLE_DATABASES: UsersDb,CartDb,FavoriteDb,CatalogDb,Orders,StorageDb
+    volumes:
+      - ./init-multiple-postgres-databases.sql:/docker-entrypoint-initdb.d/10-init-multiple-postgres-databases.sql:ro
     ports:
       - "5432:5432"
     networks:
@@ -194,6 +206,24 @@
       interval: 5s
       timeout: 5s
       retries: 5
+
+  postgres-init:
+    image: postgres:latest
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: P@ssw0rd
+      PGDATABASE: postgres
+    volumes:
+      - ./init-multiple-postgres-databases.sql:/init.sql:ro
+    command: ["psql", "-f", "/init.sql"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - shop-pg-network
+    restart: "no"
       
       
   rabbitmq:
@@ -202,6 +232,10 @@
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
       RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - rabbitmq-data:/var/lib/rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -217,6 +251,32 @@
       interval: 5s
       timeout: 5s
       retries: 5
+
+  notification-service:
+    image: shop-notification-service
+    build:
+      context: .
+      dockerfile: NotificationService/Dockerfile
+    pull_policy: build
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Port: 5672
+      RabbitMq__User: guest
+      RabbitMq__Password: guest
+      RabbitMq__VirtualHost: /
+      RabbitMq__UiQueue: shop.notifications.ui
+    healthcheck:
+      test: "curl -f http://localhost:8080/health"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - shop-network
  
   nginx-proxy:
     image: nginx:stable
@@ -234,6 +294,8 @@
       favorite-service:
         condition: service_healthy
       orders-service:
+        condition: service_healthy
+      notification-service:
         condition: service_healthy
       ui-service:
         condition: service_healthy
@@ -255,3 +317,6 @@ networks:
     name: shop-pg-network
     labels:
       - app=shop
+
+volumes:
+  rabbitmq-data:

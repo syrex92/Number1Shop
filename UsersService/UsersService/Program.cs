@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using RabbitMqService;
 using UsersService.Extensions;
 using UsersService.Infrastructure;
 using UsersService.Persistence;
+using UsersService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,9 +14,29 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
-builder.Host.AddLoggerServices(builder.Configuration, builder.Environment); // регистрация Log
+builder.Host.AddLoggerServices(builder.Configuration, builder.Environment); // СЂРµРіРёСЃС‚СЂР°С†РёСЏ Log
 builder.Services.AddPersistanceServices(builder.Configuration, builder.Environment);
 builder.Services.AddInfastructureServices(builder.Configuration, builder.Environment);
+
+builder.Services.AddSingleton(_ =>
+{
+    var host = Environment.GetEnvironmentVariable("RMQ_HOST") ?? "rabbitmq";
+    var user = Environment.GetEnvironmentVariable("RMQ_USER") ?? "guest";
+    var password = Environment.GetEnvironmentVariable("RMQ_PASSWORD") ?? "guest";
+    var vhost = Environment.GetEnvironmentVariable("RMQ_VHOST") ?? "/";
+    var port = int.TryParse(Environment.GetEnvironmentVariable("RMQ_PORT"), out var p) ? p : 5672;
+
+    return new RabbitMqClientOptions
+    {
+        HostName = host,
+        Port = port,
+        UserName = user,
+        Password = password,
+        VirtualHost = vhost,
+        PrefetchCount = 10
+    };
+});
+builder.Services.AddScoped<IUiNotificationPublisher, UiNotificationPublisher>();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
@@ -24,7 +46,7 @@ builder.Services.AddSwaggerGen(options =>
         Description = "JWT Authentication Microservice"
     });
 
-    // Добавляем JWT поддержку в Swagger
+    // Р”РѕР±Р°РІР»СЏРµРј JWT РїРѕРґРґРµСЂР¶РєСѓ РІ Swagger
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -50,7 +72,7 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-    // Включаем XML комментарии для всех сборок
+    // Р’РєР»СЋС‡Р°РµРј XML РєРѕРјРјРµРЅС‚Р°СЂРёРё РґР»СЏ РІСЃРµС… СЃР±РѕСЂРѕРє
     var xmlFiles = Directory.GetFiles(AppContext.BaseDirectory, "*.xml", SearchOption.TopDirectoryOnly);
     foreach (var xmlFile in xmlFiles)
     {
@@ -93,7 +115,7 @@ else
     app.UseExceptionHandler("/error");
     app.UseHsts();
 }
-// Инициализация базы данных
+// РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ Р±Р°Р·С‹ РґР°РЅРЅС‹С…
 await app.InitializeDatabaseAsync();
 
 app.UseHttpsRedirection();
@@ -109,6 +131,6 @@ app.Map("/error", () => Results.Problem("An error occurred.", statusCode: 500));
 app.Run();
 
 /// <summary>
-/// Для тестов
+/// Р”Р»СЏ С‚РµСЃС‚РѕРІ
 /// </summary>
 public abstract partial class Program { };

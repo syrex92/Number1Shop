@@ -5,6 +5,7 @@ import { createProductsStore } from '../stores/ProductsStore';
 import { createCartStore } from '../stores/CartStore';
 import { createFavoritesStore } from '../stores/FavoritesStore';
 import { createOrdersStore } from '../stores/OrdersStore';
+import { createNotificationStore } from '../stores/NotificationStore';
 
 enableStaticRendering(typeof window === 'undefined');
 
@@ -14,6 +15,7 @@ interface RootStore {
   cart: ReturnType<typeof createCartStore>;
   favorites: ReturnType<typeof createFavoritesStore>;
   orders: ReturnType<typeof createOrdersStore>;
+  notifications: ReturnType<typeof createNotificationStore>;
 }
 
 const RootStoreContext = createContext<RootStore | null>(null);
@@ -27,7 +29,8 @@ export const RootStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     products: createProductsStore(auth),
     cart: createCartStore(auth),
     favorites: createFavoritesStore(),
-    orders: createOrdersStore(auth)
+    orders: createOrdersStore(auth),
+    notifications: createNotificationStore(auth)
   }), []);
 
   // Инициализируем аутентификацию при монтировании провайдера
