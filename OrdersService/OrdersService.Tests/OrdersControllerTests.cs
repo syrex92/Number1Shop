@@ -4,8 +4,11 @@ using AutoFixture.AutoMoq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using OrdersService.Data;
+using OrdersService.Interfaces;
 using OrdersService.Models;
+using OrdersService.Services;
 using Shouldly;
 
 namespace OrdersService.Tests;
@@ -16,6 +19,9 @@ public class OrdersControllerTests : IDisposable
     private readonly AppDbContext _dbContext;
     private readonly OrdersController _controller;
     private readonly Guid _userId;
+    private readonly Mock<IStorageService> _storageService;
+    private readonly Mock<ICatalogService> _catalogService;
+    private readonly Mock<IUiNotificationPublisher> _notifications;
 
     public OrdersControllerTests()
     {
@@ -41,8 +47,22 @@ public class OrdersControllerTests : IDisposable
             
         _dbContext = new AppDbContext(options);
         
-        // Setup controller with database context
-        _controller = new OrdersController(_dbContext);
+        _storageService = new Mock<IStorageService>(MockBehavior.Strict);
+        _catalogService = new Mock<ICatalogService>(MockBehavior.Strict);
+        _notifications = new Mock<IUiNotificationPublisher>(MockBehavior.Strict);
+
+        _notifications
+            .Setup(x => x.PublishAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<object?>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        // Setup controller with dependencies
+        _controller = new OrdersController(_dbContext, _storageService.Object, _catalogService.Object, _notifications.Object);
         
         // Setup user context
         _userId = Guid.NewGuid();
@@ -69,11 +89,33 @@ public class OrdersControllerTests : IDisposable
     public async Task Create_WithValidOrder_ReturnsCreatedResult()
     {
         // Arrange
+        var stockInfo = new Mock<IStockInfo>();
+        stockInfo.SetupGet(x => x.PurchasePrice).Returns(123m);
+
+        _storageService
+            .Setup(x => x.GetStockInfo(It.IsAny<Guid>()))
+            .ReturnsAsync(stockInfo.Object);
+
+        var reservationId = Guid.NewGuid();
+        _storageService
+            .Setup(x => x.Reserve(It.IsAny<Order>()))
+            .ReturnsAsync(reservationId);
+
+        _storageService
+            .Setup(x => x.ConfirmReservation(It.IsAny<Guid>(), reservationId))
+            .Returns(Task.CompletedTask);
+
         var order = _fixture.Build<Order>()
             .Without(o => o.Id)
             .Without(o => o.UserId)
             .Without(o => o.CreatedAt)
             .With(o => o.DeliveryAddress, _fixture.Create<Address>())
+            .With(o => o.Items, new List<OrderItem>
+            {
+                _fixture.Build<OrderItem>()
+                    .With(i => i.Product, Guid.NewGuid())
+                    .Create()
+            })
             .Create();
 
         // Act
@@ -121,9 +163,22 @@ public class OrdersControllerTests : IDisposable
     public async Task GetById_WithExistingOrder_ReturnsOrder()
     {
         // Arrange
+        var productInfo = new Mock<IProductInfo>();
+        productInfo.SetupGet(x => x.ProductTitle).Returns("Test product");
+
+        _catalogService
+            .Setup(x => x.GetById(It.IsAny<Guid>()))
+            .ReturnsAsync(productInfo.Object);
+
         var order = _fixture.Build<Order>()
             .With(o => o.UserId, _userId)
             .With(o => o.DeliveryAddress, _fixture.Create<Address>())
+            .With(o => o.Items, new List<OrderItem>
+            {
+                _fixture.Build<OrderItem>()
+                    .With(i => i.Product, Guid.NewGuid())
+                    .Create()
+            })
             .Create();
             
         _dbContext.Orders.Add(order);
