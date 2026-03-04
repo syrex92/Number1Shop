@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { ActionIcon, Badge, Button, Group, Popover, ScrollArea, Stack, Text, Title } from "@mantine/core";
+import { ActionIcon, Badge, Button, Group, Indicator, Popover, ScrollArea, Stack, Text, Title } from "@mantine/core";
 import { IconBell, IconCheck, IconTrash } from "@tabler/icons-react";
 import { useStores } from "../../context/RootStoreContext";
 
@@ -14,19 +14,23 @@ function formatTime(iso: string) {
 const NotificationsBell = observer(() => {
   const { notifications } = useStores();
   const unread = notifications.unreadCount;
+  const unreadLabel = unread > 99 ? "99+" : String(unread);
 
   return (
     <Popover width={360} position="bottom-end" withArrow shadow="md">
       <Popover.Target>
         <ActionIcon variant="subtle" color="gray" aria-label="Notifications">
-          <Group gap={6} wrap="nowrap">
+          <Indicator
+            disabled={unread <= 0}
+            label={unreadLabel}
+            size={16}
+            offset={4}
+            position="top-end"
+            color="red"
+            withBorder
+          >
             <IconBell size={20} />
-            {unread > 0 && (
-              <Badge size="sm" variant="filled" color="red">
-                {unread}
-              </Badge>
-            )}
-          </Group>
+          </Indicator>
         </ActionIcon>
       </Popover.Target>
 
