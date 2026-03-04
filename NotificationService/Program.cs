@@ -1,5 +1,6 @@
 using NotificationService.Hubs;
 using NotificationService.Services.RabbitMq;
+using NotificationService.Services.Realtime;
 using RabbitMqService;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -24,6 +25,8 @@ builder.Services.AddSingleton(sp =>
 
 builder.Services.AddSignalR();
 builder.Services.AddHostedService<NotificationConsumerHostedService>();
+builder.Services.AddSingleton<ConnectedUsersTracker>();
+builder.Services.AddSingleton<PendingNotificationsStore>();
 
 builder.Services.AddCors(options =>
 {
@@ -53,7 +56,8 @@ app.Use(async (ctx, next) =>
                 var handler = new JwtSecurityTokenHandler();
                 var jwt = handler.ReadJwtToken(token);
                 var sid = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Sid)?.Value?.Trim();
-                if (!string.IsNullOrWhiteSpace(sid))
+                var nameId = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value?.Trim();
+                if (!string.IsNullOrWhiteSpace(sid) || !string.IsNullOrWhiteSpace(nameId))
                 {
                     var identity = new ClaimsIdentity(jwt.Claims, "jwt");
                     ctx.User = new ClaimsPrincipal(identity);

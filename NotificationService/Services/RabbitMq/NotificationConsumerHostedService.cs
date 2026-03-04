@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 using NotificationService.Hubs;
 using NotificationService.Models;
+using NotificationService.Services.Realtime;
 using RabbitMqService;
 
 namespace NotificationService.Services.RabbitMq;
@@ -13,16 +14,22 @@ public sealed class NotificationConsumerHostedService : BackgroundService
     private readonly IHubContext<NotificationsHub> _hub;
     private readonly RabbitMqClientOptions _clientOptions;
     private readonly ILogger<NotificationConsumerHostedService> _logger;
+    private readonly ConnectedUsersTracker _connected;
+    private readonly PendingNotificationsStore _pending;
 
     public NotificationConsumerHostedService(
         IOptions<RabbitMqOptions> options,
         IHubContext<NotificationsHub> hub,
         RabbitMqClientOptions clientOptions,
+        ConnectedUsersTracker connected,
+        PendingNotificationsStore pending,
         ILogger<NotificationConsumerHostedService> logger)
     {
         _options = options.Value;
         _hub = hub;
         _clientOptions = clientOptions;
+        _connected = connected;
+        _pending = pending;
         _logger = logger;
     }
 
@@ -69,7 +76,14 @@ public sealed class NotificationConsumerHostedService : BackgroundService
 
         if (!string.IsNullOrWhiteSpace(envelope.UserId))
         {
-            await _hub.Clients.Group($"user:{envelope.UserId}").SendAsync("notification", envelope);
+            if (_connected.IsConnected(envelope.UserId))
+            {
+                await _hub.Clients.Group($"user:{envelope.UserId}").SendAsync("notification", envelope);
+            }
+            else
+            {
+                _pending.Enqueue(envelope.UserId, envelope);
+            }
         }
         else
         {
