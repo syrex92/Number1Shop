@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrdersService.Data;
+using OrdersService.Interfaces;
 using OrdersService.Models;
 
 [ApiController]
@@ -12,8 +13,15 @@ using OrdersService.Models;
 public class OrdersController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly IStorageService _storageService;
+    private readonly ICatalogService _catalogService;
 
-    public OrdersController(AppDbContext db) => _db = db;
+    public OrdersController(AppDbContext db, IStorageService storageService, ICatalogService catalogService)
+    {
+        _db = db;
+        _storageService = storageService;
+        _catalogService = catalogService;
+    }
 
     [Authorize(AuthenticationSchemes = "Bearer")]
     [HttpPost]
@@ -25,8 +33,11 @@ public class OrdersController : ControllerBase
             return Unauthorized("User ID claim not found.");
         }
         
+        orderCreate.Id = Guid.NewGuid();
         orderCreate.UserId = Guid.Parse(userIdClaim.Value);
         orderCreate.CreatedAt = DateTime.UtcNow;
+
+        orderCreate.OrderNumber = await _db.Orders.CountAsync() + 1;
 
         var address = orderCreate.DeliveryAddress;
 
@@ -39,9 +50,32 @@ public class OrdersController : ControllerBase
             c.Street == address.Street
         ) ?? address;
 
+        orderCreate.DeliveryAddressId = address.Id;
+        
         for (int i = 0; i < orderCreate.Items.Count; i++)
         {
-            orderCreate.Items[i].Cost = 10;
+            var stockInfo = await _storageService.GetStockInfo(orderCreate.Items[i].Product);
+            orderCreate.Items[i].Cost = stockInfo.PurchasePrice;
+        }
+
+        Guid reservationId;
+
+        try
+        {
+            reservationId = await _storageService.Reserve(orderCreate);            
+        } catch (Exception ex)
+        {
+            return BadRequest("Failed to reserve items: " + ex.Message);
+        }
+
+        try
+        {
+            await _storageService.ConfirmReservation(orderCreate.Id, reservationId);
+        }
+        catch (Exception ex)
+        {
+            await _storageService.CancelReservation(reservationId);
+            return BadRequest("Failed to confirm reservation: " + ex.Message + ". Reservation has been cancelled. Reservation ID: " + reservationId);
         }
 
         _db.Orders.Add(orderCreate);
@@ -91,6 +125,12 @@ public class OrdersController : ControllerBase
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null) return NotFound();
+
+        foreach (var item in order.Items)
+        {
+            var productInfo = await _catalogService.GetById(item.Product);
+            item.Name = productInfo.ProductTitle;
+        }
 
         return Ok(order);
     }

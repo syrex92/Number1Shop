@@ -6,7 +6,11 @@ using CatalogService.Helpers;
 using CatalogService.Interfaces;
 using CatalogService.Services;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +38,7 @@ builder.Services.AddMassTransit(x => {
 
 builder.Services.AddScoped<IProductService, ProductsService>();
 builder.Services.AddScoped<ICategoriesService, CategoriesService>();
+builder.Services.AddScoped<IImageStorage, LocalImageStorage>();
 
 builder.Services.AddScoped<IProductsRepository, ProductsRepository>();
 builder.Services.AddScoped<ICategoriesRepository, CategoriesRepository>();
@@ -41,11 +46,34 @@ builder.Services.AddControllers();
 
 builder.Services.AddSwaggerGen(c =>
 {
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer {token}' or just the token.",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            new string[] { }
+        }
+    });
+
     var xmlPath = $"{AppContext.BaseDirectory}{Path.DirectorySeparatorChar}{builder.Environment.ApplicationName}.xml";
     if (File.Exists(xmlPath))
     {
         c.IncludeXmlComments(xmlPath, true);
     }
+
+    c.MapType<IFormFile>(() => new OpenApiSchema { Type = "string", Format = "binary" });
 });
 
 builder.Services.AddCors(options =>
@@ -54,6 +82,43 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowAnyOrigin()));
+
+var jwtSection = builder.Configuration.GetSection("Jwt");
+var key = Encoding.UTF8.GetBytes(jwtSection["Key"]!);
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSection["Issuer"],
+        ValidAudience = jwtSection["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = ctx =>
+        {
+            Console.WriteLine(ctx.Exception);
+            return Task.CompletedTask;
+        }
+    };
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 var app = builder.Build();
 
@@ -87,8 +152,25 @@ app.UseCors(policy =>
         .SetIsOriginAllowed(x => true)
         .AllowCredentials());
 
+
+var webRootPath = app.Environment.WebRootPath;
+
+if (string.IsNullOrWhiteSpace(webRootPath))
+{
+    webRootPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+    app.Environment.WebRootPath = webRootPath;
+}
+
+if (!Directory.Exists(webRootPath))
+{
+    Directory.CreateDirectory(webRootPath);
+}
+
+app.UseStaticFiles();
+
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -5,6 +5,8 @@ using Microsoft.IdentityModel.Tokens;
 using OrdersService.Data;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
+using OrdersService.Interfaces;
+using OrdersService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -83,6 +85,26 @@ builder.Services.AddAuthorization(options =>
         .RequireAuthenticatedUser()
         .Build();
 });
+
+builder.Services.AddHttpClient("StorageService", client =>
+{
+    client.BaseAddress = new Uri(Environment.GetEnvironmentVariable("STORAGE_SERVICE_URL") ?? configuration["StorageService:BaseUrl"] ?? "");
+});
+
+builder.Services.AddHttpClient("CatalogService", client =>
+{
+    client.BaseAddress = new Uri(Environment.GetEnvironmentVariable("CATALOG_SERVICE_URL") ?? configuration["CatalogService:BaseUrl"] ?? "");
+});
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING") ?? configuration.GetConnectionString("Redis");
+    options.InstanceName = "OrdersService_";
+});
+
+builder.Services.AddScoped<IStorageService, StorageService>();
+
+builder.Services.AddScoped<ICatalogService, CatalogService>();
 
 var app = builder.Build();
 

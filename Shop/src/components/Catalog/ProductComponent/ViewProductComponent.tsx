@@ -1,86 +1,105 @@
-import { Button, Card, Image, Text, Group } from "@mantine/core";
-import type { Product } from "../../../stores/ProductsStore";
+import { observer } from "mobx-react-lite";
 import { useState } from "react";
-
-interface IViewProductProps {
+import {
+  Card,
+  Image,
+  Text,
+  Group,
+  Stack,
+  Button,
+  NumberInput,
+  Typography,
+} from "@mantine/core";
+import { useStores } from "../../../context/RootStoreContext";
+import type { Product } from "../../../stores/ProductsStore";
+import shopConfig from "../../../config/shopConfig";
+import DOMPurify from "dompurify";
+interface Props {
   product: Product;
-  onConfirm(product: Product, productCount: number): void;
-  onCancel(): void;
+  onClose(): void;
 }
 
-const ViewProductComponent = ({ product, onConfirm, onCancel }: IViewProductProps) => {
-  const [productCount, setProductCount] = useState<number>(0);
-  const handleClick = () => {
-    setProductCount((prevCount) => prevCount + 1);
+const ViewProductComponent = observer(({ product, onClose }: Props) => {
+  const { cart, auth } = useStores();
+  const [quantity, setQuantity] = useState(0);
+  const { siteUrl } = shopConfig;
+
+  const handleAddClick = () => {
+    setQuantity(1);
   };
 
-  const handleDeleteClick = () => {
-    setProductCount((prevCount) => prevCount - 1);
+  const handleConfirm = () => {
+    cart.addWithQuantity(product, quantity);
+    onClose();
   };
 
-  const handleCompleteClick = () => {
-    onConfirm(product, productCount);
+  const handleCancel = () => {
+    setQuantity(0);
+    onClose();
   };
 
   return (
-    <>
-      <Card shadow="sm" padding="lg" radius="md" withBorder>
-        <Card.Section>
-          <Image src={product.image} height={200} alt="ProductImage" />
-        </Card.Section>
+    <Card radius="md" withBorder>
+      <Stack gap="md">
+        <Image
+          src={`${siteUrl}images/${product.imageUrl}`}
+          height={240}
+          fit="contain"
+          fallbackSrc="/no-image.png"
+        />
 
-        <Group justify="space-between" mt="md" mb="xs">
-          <Text fw={500}>{product.title}</Text>
-        </Group>
-
-        <Text size="sm" c="dimmed">
-          {product.description}
+        <Text fw={600} size="lg">
+          {product.title}
         </Text>
 
-        <Button
-          color="blue"
-          fullWidth
-          mt="md"
-          radius="md"
-          onClick={handleClick}
-        >
-          {productCount == 0 ? "Добавить в корзину" : productCount}
-        </Button>
-
-        {productCount !== 0 && (
-          <Button
-            color="blue"
-            fullWidth
-            mt="md"
-            radius="md"
-            onClick={handleDeleteClick}
-          >
-            Убрать из корзины
-          </Button>
+        {product.description && (
+          <Text size={"md"}>
+            <Typography>
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(product.description),
+                }}
+              />
+            </Typography>
+          </Text>
         )}
 
-        <Button
-          color="blue"
-          fullWidth
-          mt="md"
-          radius="md"
-          onClick={handleCompleteClick}
-        >
-          Подтвердить
-        </Button>
+        {auth.user?.role === "user" && (
+          <>
+            {quantity === 0 ? (
+              <Button size="sm" variant="light" onClick={handleAddClick}>
+                Добавить в корзину
+              </Button>
+            ) : (
+              <Stack gap="sm">
+                <NumberInput
+                  label="Количество"
+                  min={1}
+                  value={quantity}
+                  onChange={(value) => setQuantity(Number(value))}
+                />
 
-        <Button
-          color="blue"
-          fullWidth
-          mt="md"
-          radius="md"
-          onClick={onCancel}
-        >
-          Отменить
-        </Button>
-      </Card>
-    </>
+                <Group justify="space-between">
+                  <Button
+                    size="sm"
+                    variant="light"
+                    color="gray"
+                    onClick={handleCancel}
+                  >
+                    Отменить
+                  </Button>
+
+                  <Button size="sm" variant="filled" onClick={handleConfirm}>
+                    Подтвердить
+                  </Button>
+                </Group>
+              </Stack>
+            )}
+          </>
+        )}
+      </Stack>
+    </Card>
   );
-};
+});
 
 export default ViewProductComponent;

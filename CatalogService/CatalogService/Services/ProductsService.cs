@@ -5,6 +5,7 @@ using CatalogService.Interfaces;
 using CatalogService.Mappers;
 using CatalogService.Models;
 using MassTransit;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Shop.Core.Messages;
 
 namespace CatalogService.Services
@@ -13,14 +14,16 @@ namespace CatalogService.Services
     {
         private readonly IProductsRepository _productsRepository;
         private readonly ICategoriesRepository _categoriesRepository;
+        private readonly IImageStorage _imageStorage;
         private readonly IBusControl _busControl;
         private readonly string? _queueForSendMessage;
 
-        public ProductsService(IProductsRepository productsRepository, ICategoriesRepository categoriesRepository, IBusControl busControl, IConfiguration configuration)
+        public ProductsService(IProductsRepository productsRepository, ICategoriesRepository categoriesRepository, IBusControl busControl, IConfiguration configuration, IImageStorage imageStorage)
         {
             _productsRepository = productsRepository;
             _categoriesRepository = categoriesRepository;
             _busControl = busControl;
+            _imageStorage = imageStorage;
             var rmqSettings = configuration.GetSection("RabbitMqConfiguration").Get<RabbitMqConfiguration>();
             _queueForSendMessage = configuration["RMQ_PRODUCT_FROM_CATALOG_QUEUE"] ?? rmqSettings?.ProductsFromCatalogQueue;
 
@@ -34,6 +37,19 @@ namespace CatalogService.Services
         {
             var existCategory = await _categoriesRepository.GetCategoryByNameAsync(createDto.ProductCategory);
 
+            string? imageUrl = null;
+            if (createDto.Image != null)
+            {
+                try
+                {
+                    imageUrl = await _imageStorage.SaveAsync(createDto.Image);
+                }
+                catch (Exception)
+                {
+                    //TODO:log
+                }
+            }
+
             var res = await _productsRepository.CreateAsync(new Product
             {
                 Name = createDto.ProductTitle,
@@ -42,7 +58,7 @@ namespace CatalogService.Services
                 CreatedAt = DateTime.UtcNow,
                 Price = createDto.Price,
                 Article = createDto.Article,
-                ProductImages = createDto.ImagesUrls.Select(i => new ProductImage { ImageUrl =  i.ToString() }).ToList(),
+                ProductImageUrl = imageUrl,
             });
 
             var sendEndpoint = await _busControl.GetSendEndpoint(new Uri($"queue:{_queueForSendMessage}"));
@@ -64,6 +80,7 @@ namespace CatalogService.Services
             var existProduct = await _productsRepository.GetProductByIdAsync(productId);
             if (existProduct == null) { return false; }
 
+            var imageInfo = existProduct.ProductImageUrl;
             await _productsRepository.DeleteProductAsync(existProduct);
 
             var categoryOfProduct = await _categoriesRepository.GetCategoryByNameAsync(existProduct.Category.Name);
@@ -71,6 +88,19 @@ namespace CatalogService.Services
             if (categoryOfProduct != null && categoryOfProduct.Products.Count == 0)
             {
                 await _categoriesRepository.DeleteCategoryAsync(categoryOfProduct);
+            }
+
+            try
+            {
+                if (!string.IsNullOrEmpty(imageInfo))
+                {
+                    _imageStorage.DeleteFile(imageInfo);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                //TODO: log
             }
 
             var sendEndpoint = await _busControl.GetSendEndpoint(new Uri($"queue:{_queueForSendMessage}"));
@@ -95,17 +125,47 @@ namespace CatalogService.Services
             return (await _productsRepository.GetProductByIdAsync(productId))?.ToDto();
         }
 
+        public async Task<ProductDto?> UpdateImageAsync(Guid id, IFormFile file)
+        {
+            var existProduct = await _productsRepository.GetProductByIdAsync(id);
+            if (existProduct == null) { return null; }
+
+            try
+            {
+                var oldImageUrl = existProduct.ProductImageUrl;
+                var imageUrl = await _imageStorage.SaveAsync(file);
+
+                existProduct.UpdatedAt = DateTime.Now;
+                existProduct.ProductImageUrl = imageUrl;
+                var res = await _productsRepository.UpdateAsync(existProduct);
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(oldImageUrl))
+                    {
+                        _imageStorage.DeleteFile(oldImageUrl);
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    //TODO: log
+                }
+
+                return res.ToDto();
+            }
+            catch (Exception)
+            {
+                //TODO: logic
+                return null;
+            }
+        }
+
         public async Task<ProductDto?> UpdateProductAsync(Guid productId, UpdateProductDto updateDto)
         {
             var existProduct = await _productsRepository.GetProductByIdAsync(productId);
 
             if (existProduct == null) { return null; }
-
-            if (updateDto.ImagesUrls.Any())
-            {
-                existProduct.ProductImages.Clear();
-                existProduct.ProductImages = updateDto.ImagesUrls.Select(i => new ProductImage { ImageUrl = i.ToString() }).ToList();
-            }
 
             existProduct.UpdatedAt = DateTime.UtcNow;
             existProduct.Price = updateDto.Price;

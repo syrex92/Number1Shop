@@ -457,3 +457,8 @@ $RECYCLE.BIN/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+/CatalogService/CatalogService/wwwroot/*
+.vscode/launch.json
+.vscode/tasks.json
+ApiGate/services/order-upstream.conf

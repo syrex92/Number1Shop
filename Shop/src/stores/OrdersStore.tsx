@@ -1,5 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import type createAuthStore from './AuthStore';
+import shopConfig from '../config/shopConfig';
 
 export interface OrderItem {
   id: string;
@@ -27,17 +28,22 @@ export interface OrdersStore {
 }
 
 export const createOrdersStore = (_auth: ReturnType<typeof createAuthStore>): OrdersStore => {
+  const { ordersApiUrl } = shopConfig
+
   const store = {
     orders: [] as Order[],
     isLoading: false,
 
     async fetchOrders(): Promise<void> {
+      if (this.isLoading) {
+        return;
+      }
       this.isLoading = true;
       try {
         if (this.orders.length > 0) {
           return;
         }
-        const response = await fetch("/api/orders/", { headers: _auth.getAuthHeaders()}).then(function (response) {
+        const response = await fetch(ordersApiUrl, { headers: _auth.getAuthHeaders()}).then(function (response) {
           return response.json();
         })
         for (let i=0; i < response.data.length; i++) {
@@ -70,10 +76,10 @@ export const createOrdersStore = (_auth: ReturnType<typeof createAuthStore>): Or
         if (index > -1 && this.orders[index]?.items?.length > 0) {
           return;
         }
-        const response = await fetch("/api/orders/" + id, { headers: _auth.getAuthHeaders()}).then(function (response) {
+        const response = await fetch(ordersApiUrl + id, { headers: _auth.getAuthHeaders()}).then(function (response) {
           return response.json();
         })
-        let order = this.orders[index];
+        const order = this.orders[index];
         order.items = [];
         response.items.forEach((element: OrderItem) => {
           order.items.push(element);
@@ -87,10 +93,10 @@ export const createOrdersStore = (_auth: ReturnType<typeof createAuthStore>): Or
     async cancelOrder(id: string): Promise<void> {
       this.isLoading = true;
       try {
-        let index = this.orders.findIndex(o => o.id === id);
-        const response = await fetch("/api/orders/" + id, { method: 'PATCH', headers: _auth.getAuthHeaders(), body: JSON.stringify({ status: 'Cancelled' }) });
+        const index = this.orders.findIndex(o => o.id === id);
+        const response = await fetch(ordersApiUrl + id, { method: 'PATCH', headers: _auth.getAuthHeaders(), body: JSON.stringify({ status: 'Cancelled' }) });
         if (response.ok) {
-          let order = this.orders[index];
+          const order = this.orders[index];
           order.status = 'Cancelled';
           this.orders[index] = { ...order };
         } else {

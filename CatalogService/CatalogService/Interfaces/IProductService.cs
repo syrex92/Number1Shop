@@ -6,6 +6,8 @@ namespace CatalogService.Interfaces
     {
         public Task<ProductDto> CreateProductAsync(CreateProductDto createDto);
 
+        public Task<ProductDto?> UpdateImageAsync(Guid id, IFormFile file);
+
         public Task<ProductDto?> GetProductByIdAsync(Guid productId);
 
         public Task<IList<ProductDto>> GetAllProductsAsync(int? page = null, int? pageSize = null);

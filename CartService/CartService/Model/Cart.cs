@@ -11,5 +11,5 @@ public class Cart : BaseEntity
     /// <summary>
     /// Список товаров в корзине
     /// </summary>
-    public ICollection<CartItem>? CartItems { get; set; }
+    public required ICollection<CartItem> CartItems { get; set; }
 }

@@ -28,8 +28,7 @@ namespace OrdersService.Data
 
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.DeliveryAddress)
-                .WithOne(a => a.Order)
-                .HasForeignKey<Order>(o => o.DeliveryAddressId)
+                .WithMany(a => a.Orders)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 

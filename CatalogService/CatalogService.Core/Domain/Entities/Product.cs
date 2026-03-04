@@ -22,6 +22,6 @@
 
         public long Article { get; set; }
 
-        public IList<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
+        public string? ProductImageUrl { get; set; }
     }
 }

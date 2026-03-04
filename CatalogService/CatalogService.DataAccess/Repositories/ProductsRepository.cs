@@ -31,13 +31,13 @@ namespace CatalogService.DataAccess.Repositories
 
         public async Task<Product?> GetProductByIdAsync(Guid productId)
         {
-            return await _dataContext.Products.Include(p => p.ProductImages).Include(p => p.Category)
+            return await _dataContext.Products.Include(p => p.Category)
                 .FirstOrDefaultAsync(p => p.Id == productId);
         }
 
         public async Task<List<Product>> GetProductsAsync(Guid? categoryId = null, string? categoryName = null, int? page = null, int? pageSize = null)
         {
-            var query = _dataContext.Products.Include(p => p.ProductImages).Include(p => p.Category).AsQueryable();
+            var query = _dataContext.Products.Include(p => p.Category).AsQueryable();
 
             if (categoryId.HasValue)
             {

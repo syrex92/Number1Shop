@@ -27,6 +27,9 @@ export interface IShopConfig {
 
     /** Адрес API заказов (http://server/api/v1/orders/) */
     ordersApiUrl: string;
+    
+    /** Адрес (базовый) хранилища картинок (http://server/images/) */
+    imagesUrl: string;
 }
 
 const shopConfig : IShopConfig = {
@@ -38,7 +41,8 @@ const shopConfig : IShopConfig = {
     usersApiUrl: addEndSlash(import.meta.env.VITE_SHOP_USERS_API_URL),
     authApiUrl: addEndSlash(import.meta.env.VITE_SHOP_AUTH_API_URL),
     storageApiUrl: addEndSlash(import.meta.env.VITE_SHOP_STORAGE_API_URL),
-    ordersApiUrl: addEndSlash(import.meta.env.VITE_SHOP_ORDERS_API_URL)
+    ordersApiUrl: addEndSlash(import.meta.env.VITE_SHOP_ORDERS_API_URL),
+    imagesUrl: addEndSlash(import.meta.env.VITE_SHOP_IMAGES_URL)
 }
 
 export default shopConfig;

@@ -1,56 +1,122 @@
-﻿import {Button, Group, Indicator} from "@mantine/core";
-import {IconShoppingCart} from "@tabler/icons-react";
+﻿import {ActionIcon, Button, Group, Text} from "@mantine/core";
+import {IconMinus, IconPlus, IconX} from "@tabler/icons-react";
 import type {Product} from "../../stores/ProductsStore.tsx";
 import {useStores} from "../../context/RootStoreContext.tsx";
-import {useEffect, useState} from "react";
-import type {CartItem} from "../../stores/CartStore.tsx";
 import {observer} from "mobx-react-lite";
+import {BeatLoader} from "react-spinners";
+import {useState} from "react";
+import {openConfirmModal} from "@mantine/modals";
 
 interface AddToCartButtonProps {
-    product: Product;    
+    product: Product;
 }
 
 const AddToCartButton = observer(({product}: AddToCartButtonProps) => {
-
-    const [cartItem, setCartItem] = useState<CartItem | undefined>(undefined);
-    const [executing, setExecuting] = useState<boolean>(false);
-    
     const {cart} = useStores();
-    
-    useEffect(() => {
-        const cartItem = cart.find(product.id);
-        if(cartItem)
-            setCartItem(cartItem);
-    }, [cart.loading])
 
-    const onAddClick = () => {
-        setExecuting(true);
-        cart.add(product).then((itm) => {
-            setCartItem(itm);
-            setExecuting(false);            
-        })        
+    const quantity = cart.getItemQuantity(product);
+
+    const [exec, setExec] = useState<boolean>(false);
+
+    function openDeleteDialog() {
+        console.log("openDeleteDialog");
+        openConfirmModal({
+            title: 'Подтвердите удаление',
+            children: (
+                <Text size="sm">
+                    Удалить товар из корзины?
+                </Text>
+            ),
+            labels: {confirm: 'Удалить', cancel: 'Отмена'},
+            confirmProps: {color: 'red'},
+            onConfirm: async () => {
+                setExec(true)
+                try {
+                    await cart.remove(product.id, true)
+                } finally {
+                    setExec(false)
+                }
+            },
+            onCancel: () => {
+            },
+        });
     }
 
-    const inCart = cart.find(product.id) !== undefined;
-    
     return (
-        <div>
-            <Group justify="center">
-                <Indicator size="16" color="orange" label={cartItem?.qty} disabled={!inCart}>
-                    <Button
-                        loading={executing}
-                        onClick={onAddClick}
-                        leftSection={<IconShoppingCart size={20} stroke={1.5}/>}
-                        variant="default">
-                        В корзину
-                    </Button>
-                </Indicator>
-            </Group>        
-            
-        </div>
+        <>
+            {quantity === 0 ? (
+                <Button size="sm"
+                        variant="light"
+                        onClick={async () => {
+                            await cart.add(product);
+                        }}
+                        loading={cart.loading}>
+                    В корзину
+                </Button>
+            ) : (
+                <Group gap={4} h={30}>
 
+                    {exec && <BeatLoader color={"green"} size={5}/>}
 
-    )
-})
+                    {!exec && (
+                        <>
+                            <ActionIcon
+                                size="sm"
+                                variant="light"
+                                onClick={async () => {
+                                    setExec(true);
+                                    try {
+                                        await cart.remove(product.id, false)
+                                    } finally {
+                                        setExec(false);
+                                    }
+
+                                }}
+                            >
+                                <IconMinus size={14}/>
+                            </ActionIcon>
+
+                            <Text fw={500} w={24} ta="center">
+                                {quantity}
+                            </Text>
+
+                            <ActionIcon
+                                size="sm"
+                                variant="light"
+                                onClick={async () => {
+                                    setExec(true);
+                                    try {
+                                        await cart.add(product)
+                                    } finally {
+                                        setExec(false);
+                                    }
+
+                                }}
+                            >
+                                <IconPlus size={14}/>
+                            </ActionIcon>
+
+                            <ActionIcon
+                                size="sm"
+                                variant="subtle"
+                                color="red"
+                                onClick={async () => {
+                                    setExec(true);
+                                    try {
+                                        openDeleteDialog()
+                                    } finally {
+                                        setExec(false);
+                                    }
+                                }}
+                            >
+                                <IconX size={14}/>
+                            </ActionIcon>
+                        </>
+                    )}
+                </Group>
+            )}
+        </>
+    );
+});
 
 export default AddToCartButton;

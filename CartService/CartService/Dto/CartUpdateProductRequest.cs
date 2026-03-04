@@ -1,4 +1,4 @@
-﻿namespace Shop.CartService.Dto;
+﻿namespace CartService.Dto;
 
 /// <summary>
 /// Модель запроса на обновление корзины
@@ -8,10 +8,10 @@ public class CartUpdateProductRequest
     /// <summary>
     /// Идентификатор продукта
     /// </summary>
-    public Guid ProductId { get; set; }
+    public required Guid ProductId { get; set; }
     
     /// <summary>
-    /// Новое количество. Если значение меньше или равно нулю - продукт удаляется из корзины
+    /// Новое количество, должно быть больше нуля.
     /// </summary>
-    public int Quantity { get; set; }
+    public required int Quantity { get; set; }
 }

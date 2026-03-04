@@ -2,11 +2,13 @@ import { makeAutoObservable } from 'mobx';
 import shopConfig from "../config/shopConfig.ts";
 import type { RegistrationFormData } from '../components/registration/RegistrationFormFields';
 
+export type Role = 'admin' | 'user'; 
+
 // Интерфейс пользователь
 export interface User {
   id: string;           // Guid из C#
   name: string;
-  role: 'admin' | 'user';
+  role: Role;
   email: string;
   username: string;
 }
@@ -256,11 +258,11 @@ export const createAuthStore = (): AuthStore => {
       this.user = {
         id: tokens.userId,
         name: tokens.username,
-        role: tokens.role as 'admin' | 'user',
+        role: tokens.role.toLowerCase() as Role,
         email: tokens.email,
         username: tokens.username
       };
-
+      
       localStorage.setItem('accessToken', tokens.accessToken);
       localStorage.setItem('refreshToken', tokens.refreshToken);
       localStorage.setItem('tokenExpiry', tokens.expiresAt);

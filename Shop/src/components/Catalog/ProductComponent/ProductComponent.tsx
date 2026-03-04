@@ -1,10 +1,10 @@
-import { Button, CloseButton, Flex, Input, NumberInput } from "@mantine/core";
+import { Button, CloseButton, FileInput, Flex, Input, NumberInput } from "@mantine/core";
 import type { NewProduct, Product } from "../../../stores/ProductsStore";
 import { useState } from "react";
 
 interface INewProductProps {
   product: Product | undefined;
-  onConfirm(newProduct: NewProduct | Product, isCreate: boolean): void;
+  onConfirm(newProduct: NewProduct | Product, isCreate: boolean, file: File | null): void;
   onCancel(): void;
 }
 
@@ -27,6 +27,7 @@ const ProductComponent = ({
     undefined
   );
   const [price, setPrice] = useState<string | number>(product?.price ?? 0);
+  const [image, setImage] = useState<File | null>(null);
 
   const handleConfirm = () => {
     if (!title || title == "") {
@@ -50,9 +51,9 @@ const ProductComponent = ({
         title: title,
         description: description,
         category: category,
-        image: undefined,
+        image: image,
       };
-      onConfirm(newProduct, true);
+      onConfirm(newProduct, true, null);
     } else {
       const updatedProduct: Product = {
         id: product.id,
@@ -61,9 +62,8 @@ const ProductComponent = ({
         title: title,
         description: description,
         category: category,
-        image: undefined,
       };
-      onConfirm(updatedProduct, false);
+      onConfirm(updatedProduct, false, image);
     }
     onCancel();
   };
@@ -181,6 +181,15 @@ const ProductComponent = ({
             />
           }
         />
+
+        <FileInput
+            label="Картинка товара"
+            placeholder="Выберите изображение"
+            accept="image/*"
+            value={image}
+            onChange={setImage}
+          />
+
         <Flex
           mih={50}
           gap="md"

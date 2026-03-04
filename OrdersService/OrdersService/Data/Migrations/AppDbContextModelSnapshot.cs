@@ -67,6 +67,9 @@ namespace OrdersService.Data.Migrations
                     b.Property<Guid>("DeliveryAddressId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("OrderNumber")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("Status")
                         .HasColumnType("integer");
 
@@ -75,8 +78,7 @@ namespace OrdersService.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DeliveryAddressId")
-                        .IsUnique();
+                    b.HasIndex("DeliveryAddressId");
 
                     b.ToTable("Orders");
                 });
@@ -87,8 +89,8 @@ namespace OrdersService.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Cost")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("Cost")
+                        .HasColumnType("numeric");
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
@@ -109,8 +111,8 @@ namespace OrdersService.Data.Migrations
             modelBuilder.Entity("OrdersService.Models.Order", b =>
                 {
                     b.HasOne("OrdersService.Models.Address", "DeliveryAddress")
-                        .WithOne("Order")
-                        .HasForeignKey("OrdersService.Models.Order", "DeliveryAddressId")
+                        .WithMany("Orders")
+                        .HasForeignKey("DeliveryAddressId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -130,7 +132,7 @@ namespace OrdersService.Data.Migrations
 
             modelBuilder.Entity("OrdersService.Models.Address", b =>
                 {
-                    b.Navigation("Order");
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("OrdersService.Models.Order", b =>

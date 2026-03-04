@@ -17,14 +17,14 @@ import type { NewProduct, Product } from "../stores/ProductsStore";
 import ViewProductComponent from "../components/Catalog/ProductComponent/ViewProductComponent";
 
 const ProductsPage = observer(() => {
-  const { products, favorites } = useStores();
+  const { products, favorites, auth } = useStores();
   const [isNewModalOpen, setIsNewModalOpen] = useState<boolean>(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
   const [productForEdit, setProductForEdit] = useState<Product | undefined>(
-    undefined
+    undefined,
   );
   const [productForView, setProductForView] = useState<Product | undefined>(
-    undefined
+    undefined,
   );
 
   useEffect(() => {
@@ -35,18 +35,27 @@ const ProductsPage = observer(() => {
     products.deleteProduct(productId);
   };
 
-  const handleConfirm = (product: Product | NewProduct, isCreate: boolean) => {
+  const handleConfirm = (
+    product: Product | NewProduct,
+    isCreate: boolean,
+    file: File | null,
+  ) => {
     if (isCreate) {
       products.createProduct(product as NewProduct);
       return;
     }
 
-    products.updateProduct(product as Product);
+    const prod = product as Product;
+
+    if (file && prod.imageUrl !== file.name) {
+      products.updateProductImage(prod.id, file);
+    }
+    products.updateProduct(prod);
   };
 
   const handleEdit = (productId: string) => {
     setProductForEdit(
-      products.filteredProducts.find((p) => p.id === productId)
+      products.filteredProducts.find((p) => p.id === productId),
     );
   };
 
@@ -64,13 +73,6 @@ const ProductsPage = observer(() => {
 
   const handleClick = (product: Product) => {
     setProductForView(product);
-  };
-
-  const handleConfirmView = (product: Product, productCount: number) => {
-    // TODO: Логика добавления в корзину
-    console.log(product, productCount);
-    setProductForView(undefined);
-    setIsViewModalOpen(false);
   };
 
   return (
@@ -110,26 +112,28 @@ const ProductsPage = observer(() => {
         {productForView && (
           <ViewProductComponent
             product={productForView}
-            onCancel={() => {
+            onClose={() => {
               setIsViewModalOpen(false);
               setProductForView(undefined);
             }}
-            onConfirm={handleConfirmView}
           />
         )}
       </Modal>
 
-      <div>
-        <Group mb="10">
-          <Button
-            variant="filled"
-            color="orange"
-            onClick={() => setIsNewModalOpen(true)}
-          >
-            Добавить товар
-          </Button>
-        </Group>
-      </div>
+      {auth.user && auth.user.role === 'admin' && (
+        <div>
+          <Group mb="10">
+            <Button
+              variant="filled"
+              color="orange"
+              onClick={() => setIsNewModalOpen(true)}
+            >
+              Добавить товар
+            </Button>
+          </Group>
+        </div>
+      )}
+      
       {products.isLoading ? (
         <Center>
           <Stack justify="center" align="center">

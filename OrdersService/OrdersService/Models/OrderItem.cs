@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace OrdersService.Models
 {
@@ -18,15 +19,16 @@ namespace OrdersService.Models
         public Guid Product { get; set; }
 
         [JsonInclude]
-        public virtual string Name {
-            get { return "Тестовый товар №" + (new Random()).Next(); }
-        }
+        [SwaggerIgnore]
+        [NotMapped]
+        public string Name { get; set; } = string.Empty;
 
         [Required]
         public int Quantity { get; set; }
 
         [Required]
-        public int Cost { get; set; }
+        [SwaggerIgnore]
+        public decimal Cost { get; set; }
 
         [Required]
         [JsonIgnore]

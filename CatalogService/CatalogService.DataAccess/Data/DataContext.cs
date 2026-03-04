@@ -26,7 +26,7 @@ namespace CatalogService.DataAccess.Data
                 b.Property(a => a.UpdatedAt);
                 b.Property(a => a.Price).IsRequired();
                 b.Property(a => a.Description);
-                b.HasMany(a => a.ProductImages).WithOne(pi => pi.Product).HasForeignKey(pi => pi.ProductId).OnDelete(DeleteBehavior.Cascade);
+                b.Property(a => a.ProductImageUrl);
             });
 
             modelBuilder.Entity<ProductImage>(b =>
