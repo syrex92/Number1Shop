@@ -83,7 +83,7 @@ export const createAuthStore = (): AuthStore => {
 
       try {
         // запрос на аутентификацию
-        const response = await fetch(`${authApiUrl}/login`, {
+        const response = await fetch(`${authApiUrl}login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -91,10 +91,11 @@ export const createAuthStore = (): AuthStore => {
           body: JSON.stringify({ email, password }),
         });
 
-        const data = await response.json();
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : null;
 
         if (!response.ok) {
-          throw new Error(data.message || 'Ошибка авторизации');
+          throw new Error((data && data.message) || `Ошибка авторизации (HTTP ${response.status})`);
         }
 
         // СОХРАНЯЕМ ПОЛУЧЕННЫЕ ТОКЕНЫ И ДАННЫЕ ПОЛЬЗОВАТЕЛЯ
@@ -129,16 +130,17 @@ export const createAuthStore = (): AuthStore => {
           }),
         });
 
-        const responseData = await response.json();
+        const text = await response.text();
+        const responseData = text ? JSON.parse(text) : null;
 
         if (!response.ok) {
-          const errorMessage = responseData.message ||
+          const errorMessage = (responseData && responseData.message) ||
             (response.status === 409 ? 'Пользователь с таким email уже существует' : response.status === 400 ? 'Некорректные данные регистрации' : 'Ошибка регистрации');
           throw new Error(errorMessage);
         }
 
         // После успешной регистрации автоматически логиним пользователя
-        if (responseData.data && responseData.data.accessToken) {
+        if (responseData && responseData.data && responseData.data.accessToken) {
           this.setTokens(responseData.data);
         }
       }
@@ -172,10 +174,11 @@ export const createAuthStore = (): AuthStore => {
           }),
         });
 
-        const data = await response.json();
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : null;
 
-        if (!response.ok || !data.success) {
-          throw new Error(data.message || 'Failed to refresh token');
+        if (!response.ok || !data || !data.success) {
+          throw new Error((data && data.message) || `Failed to refresh token (HTTP ${response.status})`);
         }
 
         this.setTokens(data.data); return true;

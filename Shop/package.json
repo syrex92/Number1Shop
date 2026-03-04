@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@microsoft/signalr": "^9.0.0",
     "@mantine/carousel": "^8.3.9",
     "@mantine/core": "^8.3.5",
     "@mantine/form": "^8.3.7",

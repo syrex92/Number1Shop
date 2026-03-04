@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using UsersService.Application.Services;
 using UsersService.Domain.Models;
+using UsersService.Services;
 
 namespace UsersService.Controllers
 {
@@ -14,12 +15,14 @@ namespace UsersService.Controllers
         private readonly IAppLogger<AuthController> _logger;
         private readonly IAuthService _authService;
         private readonly IUserService _userService;
+        private readonly IUiNotificationPublisher _notifications;
 
-        public AuthController(IAppLogger<AuthController> logger, IAuthService authService, IUserService userService)
+        public AuthController(IAppLogger<AuthController> logger, IAuthService authService, IUserService userService, IUiNotificationPublisher notifications)
         {
             _logger = logger;
             _authService = authService;
             _userService = userService;
+            _notifications = notifications;
         }
 
         /// <summary>
@@ -76,6 +79,13 @@ namespace UsersService.Controllers
                         Role = user.UserRoles.Select(x => x.Role).FirstOrDefault()?.RoleName ?? string.Empty
                     }
                 };
+
+                await _notifications.PublishAsync(
+                    userId: user.Id.ToString(),
+                    type: "user.login",
+                    title: "Вход выполнен",
+                    message: $"Вы вошли как {user.UserName}.",
+                    data: new { userId = user.Id, email = user.Email });
 
                 return Ok(response);
             }
@@ -421,6 +431,13 @@ namespace UsersService.Controllers
                 };
 
                 _logger.LogInfo("User registered successfully: {Email}", request.Email);
+
+                await _notifications.PublishAsync(
+                    userId: newUser.Id.ToString(),
+                    type: "user.registered",
+                    title: "Добро пожаловать",
+                    message: $"Аккаунт {newUser.UserName} создан.",
+                    data: new { userId = newUser.Id, email = newUser.Email });
 
                 return Ok(response);
             }

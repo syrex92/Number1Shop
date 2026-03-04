@@ -26,6 +26,7 @@
     <ProjectReference Include="..\UsersService.Application\UsersService.Application.csproj" />
     <ProjectReference Include="..\UsersService.Infrastructure\UsersService.Infrastructure.csproj" />
     <ProjectReference Include="..\UsersService.Persistence\UsersService.Persistence.csproj" />
+    <ProjectReference Include="..\..\RabbitMqService\RabbitMqService.csproj" />
   </ItemGroup>
 
 </Project>
