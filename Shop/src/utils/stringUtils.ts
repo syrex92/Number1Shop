@@ -1,7 +1,8 @@
-﻿const addEndSlash = (url: string) => {
+const addEndSlash = (url: string) => {
     if(!url) return '';
     const trimmed = url.trim();
-    return trimmed;
+    if (!trimmed) return '';
+    return trimmed.endsWith('/') ? trimmed : `${trimmed}/`;
 }
 
 export default addEndSlash;

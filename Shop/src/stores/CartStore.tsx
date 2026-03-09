@@ -125,7 +125,10 @@ export const createCartStore = (
                             qty: item.quantity,
                             toOrder: item.toOrder
                         } as CartItem;
-                        this.items.set(item.productId, newItem);
+                        runInAction(() => {
+                            this.items.set(item.productId, newItem);                            
+                        })
+                        
                     } catch (e) {
                         logger.error(`Failed to get product with id=${item.productId}`, e);
                     }
@@ -222,8 +225,7 @@ export const createCartStore = (
             const rec = this.items.get(productId);
             if (!rec) 
                 return false;
-            //console.warn("toOrder", productId, inOrder);
-            
+                        
             runInAction(() => {
                 //this.items.set(productId, {...rec, toOrder: inOrder});
                 rec.toOrder = inOrder;    

@@ -29,8 +29,12 @@ const ViewProductComponent = observer(({ product, onClose }: Props) => {
   };
 
   const handleConfirm = () => {
-    cart.addWithQuantity(product, quantity);
-    onClose();
+    (async () => {
+      for (let i = 0; i < quantity; i++) {
+        await cart.add(product);
+      }
+      onClose();
+    })();
   };
 
   const handleCancel = () => {

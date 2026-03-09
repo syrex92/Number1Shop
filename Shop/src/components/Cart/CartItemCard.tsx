@@ -1,4 +1,4 @@
-﻿import {observer} from "mobx-react-lite";
+﻿//import {observer} from "mobx-react-lite";
 import {useStores} from "../../context/RootStoreContext.tsx";
 import type {CartItem} from "../../stores/CartStore.tsx";
 import {
@@ -31,7 +31,7 @@ export interface CartItemCardProps {
     cartItem: CartItem;
 }
 
-const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
+const CartItemCard = ({cartItem}: CartItemCardProps) => {
 
     const {cart} = useStores();
     const {catalogApiUrl, imagesUrl} = shopConfig;
@@ -101,6 +101,7 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
         }
     }, [])
 
+    
     const productImages = () => {
 
         if (!cartItem.product || !cartItem.product.imageUrl)
@@ -167,8 +168,7 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
                     <Grid>
                         <Grid.Col span={1}>
                             <Checkbox checked={cartItem.toOrder} onChange={(event) => {
-                                runInAction(() => {
-                                    //cartItem.toOrder = event.target.checked
+                                runInAction(() => {                                    
                                     cart.toOrder(cartItem.product.id, event.target.checked);
                                 })
                                 //cart.toOrder(cartItem.product.id, event.target.checked);
@@ -269,6 +269,6 @@ const CartItemCard = observer(({cartItem}: CartItemCardProps) => {
             }
         </>
     )
-})
+}
 
 export default CartItemCard;

@@ -1,0 +1,54 @@
+{
+  "rabbit_version": "4.1.0",
+  "vhosts": [
+    { "name": "/" }
+  ],
+  "users": [
+    {
+      "name": "guest",
+      "password_hash": "i7swW5hPYnU5x2+KB5dacRMKjh4Oh2bl4yUtPaO7t1h/ywCR",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "administrator"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "guest",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "shop.notifications",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "shop.notifications.ui",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "shop.notifications",
+      "vhost": "/",
+      "destination": "shop.notifications.ui",
+      "destination_type": "queue",
+      "routing_key": "ui.#",
+      "arguments": {}
+    }
+  ]
+}
+

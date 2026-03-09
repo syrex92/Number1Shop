@@ -35,6 +35,9 @@ export const createOrdersStore = (_auth: ReturnType<typeof createAuthStore>): Or
     isLoading: false,
 
     async fetchOrders(): Promise<void> {
+      if (this.isLoading) {
+        return;
+      }
       this.isLoading = true;
       try {
         if (this.orders.length > 0) {

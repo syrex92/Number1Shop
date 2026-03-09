@@ -9,6 +9,7 @@ import FavoritesPage from './FavoritesPage';
 import '../styles/MainLayout.css';
 import CartLinkButton from "../components/Cart/CartLinkButton.tsx";
 import OrdersDetailsPage from './OrdersDetailsPage.tsx';
+import NotificationsBell from "../components/Notifications/NotificationsBell";
 
 const MainLayout = observer(() => {
   const { auth, products } = useStores();
@@ -44,6 +45,9 @@ const MainLayout = observer(() => {
               <FiLogIn /> Войти
             </NavLink>
           )}
+        </div>
+        <div>
+          <NotificationsBell />
         </div>
         <div>
           <CartLinkButton />

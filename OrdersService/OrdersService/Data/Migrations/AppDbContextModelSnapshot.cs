@@ -67,6 +67,9 @@ namespace OrdersService.Data.Migrations
                     b.Property<Guid>("DeliveryAddressId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("OrderNumber")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("Status")
                         .HasColumnType("integer");
 
@@ -86,8 +89,8 @@ namespace OrdersService.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Cost")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("Cost")
+                        .HasColumnType("numeric");
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
