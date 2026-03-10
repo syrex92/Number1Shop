@@ -21,10 +21,12 @@ export interface Order {
 
 export interface OrdersStore {
   orders: Order[];
+  isAdmin: boolean;
   isLoading: boolean;
   fetchOrders: () => Promise<void>;
   fetchOrderDetails: (id: string) => Promise<void>;
   cancelOrder: (id: string) => Promise<void>;
+  changeStatus: (id: string, status: string) => Promise<void>;
 }
 
 export const createOrdersStore = (_auth: ReturnType<typeof createAuthStore>): OrdersStore => {
@@ -32,7 +34,28 @@ export const createOrdersStore = (_auth: ReturnType<typeof createAuthStore>): Or
 
   const store = {
     orders: [] as Order[],
+    isAdmin: false,
     isLoading: false,
+
+    async changeStatus(id: string, new_status: string): Promise<void> {
+      if (this.isLoading) {
+        return;
+      }
+      this.isLoading = true;
+      try {
+        const response = await fetch(ordersApiUrl + id, { method: 'PATCH', headers: _auth.getAuthHeaders(), body: JSON.stringify({ status: new_status }) });
+        if (response.ok) {
+          const index = this.orders.findIndex(o => o.id === id);
+          const order = this.orders[index];
+          order.status = new_status;
+          this.orders[index] = { ...order };
+        } else {
+          alert(response.statusText);
+        }
+      } finally {
+        this.isLoading = false;
+      }
+    },
 
     async fetchOrders(): Promise<void> {
       if (this.isLoading) {
@@ -59,6 +82,9 @@ export const createOrdersStore = (_auth: ReturnType<typeof createAuthStore>): Or
               items: []
             }
           );
+        }
+        if (response.isAdmin) {
+          this.isAdmin = true;
         }
       } finally {
         this.isLoading = false;

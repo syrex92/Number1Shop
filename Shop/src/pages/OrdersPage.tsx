@@ -17,7 +17,7 @@ const OrdersPage = observer(() => {
       ) : (
         <div className="orders-list">
           { orders.orders.map((o) => (
-            <OrderCard order={o} />
+            <OrderCard order={o} isAdmin={orders.isAdmin} />
           )) }
         </div>
       )}

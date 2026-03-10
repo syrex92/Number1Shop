@@ -102,6 +102,7 @@ services:
       dockerfile: CatalogService/CatalogService/Dockerfile
     pull_policy: build
     environment:
+      ASPNETCORE_ENVIRONMENT: Development
       CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=CatalogDb
       RMQ_HOST: rabbitmq
       RMQ_PORT: 5672
@@ -149,6 +150,8 @@ services:
     networks:
       - shop-network
       - shop-pg-network
+    ports:
+      - "8106:8080"
 
   redis:
     image: redis:latest

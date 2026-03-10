@@ -92,17 +92,18 @@ public class OrdersController : ControllerBase
             return Unauthorized("User ID claim not found.");
         }
         var userId = Guid.Parse(userIdClaim.Value);
+        var isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
 
         var query = _db.Orders
             .Include(o => o.DeliveryAddress)
             .Include(o => o.Items)
-            .Where(o => o.UserId == userId)
+            .Where(o => isAdmin || o.UserId == userId)
             .OrderByDescending(o => o.CreatedAt);
 
         var total = await query.CountAsync();
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
-        return Ok(new OrderListResponse { Total = total, Page = page, PageSize = pageSize, Data = items });
+        return Ok(new OrderListResponse { Total = total, Page = page, PageSize = pageSize, Data = items, isAdmin = isAdmin });
     }
 
     [Authorize(AuthenticationSchemes = "Bearer")]
@@ -115,11 +116,12 @@ public class OrdersController : ControllerBase
             return Unauthorized("User ID claim not found.");
         }
         var userId = Guid.Parse(userIdClaim.Value);
+        var isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
 
         var order = await _db.Orders
             .Include(o => o.DeliveryAddress)
             .Include(o => o.Items)
-            .Where(o => o.UserId == userId)
+            .Where(o => isAdmin || o.UserId == userId)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null) return NotFound();
@@ -145,13 +147,15 @@ public class OrdersController : ControllerBase
         if (order == null) return NotFound();
 
         var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Sid);
+        var isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
         if (userIdClaim == null)
         {
             return Unauthorized("User ID claim not found.");
         }
         var userId = Guid.Parse(userIdClaim.Value);
 
-        if (order.UserId != userId) return Forbid();
+        if (order.UserId != userId && !isAdmin) return Forbid();
+        if (!isAdmin && orderUpdate.Status.HasValue && orderUpdate.Status != OrderStatus.Cancelled) return Forbid();
 
         if (orderUpdate.Status.HasValue) order.Status = orderUpdate.Status;
 
@@ -172,8 +176,9 @@ public class OrdersController : ControllerBase
             return Unauthorized("User ID claim not found.");
         }
         var userId = Guid.Parse(userIdClaim.Value);
+        var isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
 
-        if (order.UserId != userId) return Forbid();
+        if (order.UserId != userId && !isAdmin) return Forbid();
 
         _db.Orders.Remove(order);
         await _db.SaveChangesAsync();
