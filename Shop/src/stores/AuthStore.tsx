@@ -1,317 +1,308 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, runInAction } from 'mobx';
+import keycloak from '../config/keycloakConfig'; // Импортируем настроенный экземпляр
 import shopConfig from "../config/shopConfig.ts";
 import type { RegistrationFormData } from '../components/registration/RegistrationFormFields';
 
-export type Role = 'admin' | 'user'; 
-
-// Интерфейс пользователь
+// --- Ваши интерфейсы User, Role, LoginResponseData остаются БЕЗ ИЗМЕНЕНИЙ ---
+export type Role = 'admin' | 'user';
 export interface User {
-  id: string;           // Guid из C#
+  id: string;
   name: string;
   role: Role;
   email: string;
   username: string;
 }
-
-// Интерфейс ответа от сервера 
 export interface LoginResponseData {
   accessToken: string;
   refreshToken: string;
-  tokenType: string;                // Тип токена ("Bearer")
-  expiresIn: number;                // Время жизни access token в секундах
-  expiresAt: string;                // Дата и время истечения access token
-  refreshTokenExpiresIn: number;    // Время жизни refresh token в секундах
-  refreshTokenExpiresAt: string;    // Дата и время истечения refresh token
+  tokenType: string;
+  expiresIn: number;
+  expiresAt: string;
+  refreshTokenExpiresIn: number;
+  refreshTokenExpiresAt: string;
   username: string;
   role: string;
-  userId: string;                  // ID пользователя (Guid)
-  email: string;                   // Email пользователя
+  userId: string;
+  email: string;
 }
+// ------------------------------------------------------------------------
 
-
-// Интерфейс хранилища аутентификации
+// Интерфейс хранилища можно оставить тем же
 export interface AuthStore {
-  user: User | null;                // Данные текущего пользователя
-  isLoading: boolean;               // Флаг загрузки
+  user: User | null;
+  isLoading: boolean;
   error: string | null;
   accessToken: string | null;
   refreshToken: string | null;
 
-  isAuthenticated: boolean;         // true если пользователь авторизован и токен валиден
-  role: string;                     // Роль текущего пользователя или 'guest' если не авторизован
+  // Геттеры
+  isAuthenticated: boolean;
+  role: string;
 
-  // ОСНОВНЫЕ МЕТОДЫ АУТЕНТИФИКАЦИИ
-  login: (email: string, password: string) => Promise<void>;    // Вход в систему
-  logout: () => Promise<void>;                                  // Выход из системы
-  registration: (data: RegistrationFormData) => Promise<void>   // Регистрация нового пользователя
-  refreshTokens: () => Promise<boolean>;                        // Обновление токенов
-  initializeAuth: () => void;                                   // Инициализация при загрузке приложения
-  checkAuth: () => Promise<boolean>;                            // Проверка валидности аутентификации
-
-  // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
-  setTokens: (tokens: LoginResponseData) => void;               // Сохранение токенов и данных пользователя
-  clearTokens: () => void;                                      // Очистка токенов и данных пользователя
-  isTokenExpired: () => boolean;                                // Проверка истечения срока действия токена
-  getAuthHeaders: () => Record<string, string>;                 // Получение заголовков для API запросов
+  // Методы
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  registration: (data: RegistrationFormData) => Promise<void>;
+  refreshTokens: () => Promise<boolean>;
+  initializeAuth: () => void;
+  checkAuth: () => Promise<boolean>;
+  setTokens: (tokens: LoginResponseData) => void;
+  clearTokens: () => void;
+  isTokenExpired: () => boolean;
+  getAuthHeaders: () => Record<string, string>;
+  
+  // Вспомогательные (если нужны снаружи)
+  extractUserFromToken?: () => User | null;
+  saveUserToStorage?: () => void;
 }
 
-// Фабричный метод - возавращет хранилище авторизации
-
 export const createAuthStore = (): AuthStore => {
+  // Пытаемся восстановить пользователя из localStorage (если сохраняли раньше)
+  const savedUserJson = localStorage.getItem('user');
+  let initialUser = null;
+  try {
+    if (savedUserJson) initialUser = JSON.parse(savedUserJson);
+  } catch (e) { /* ignore */ }
 
- const { authApiUrl } = shopConfig
-
-  const store =
-  {
-    user: null as User | null,
+  const store = {
+    user: initialUser as User | null,
     isLoading: false,
     error: null as string | null,
-    accessToken: localStorage.getItem('accessToken'),         // Восстанавливаем токен из localStorage
-    refreshToken: localStorage.getItem('refreshToken'),       // Восстанавливаем refresh token из localStorage
+    accessToken: keycloak.token || null, // Токен теперь живет в keycloak
+    refreshToken: null, // Keycloak управляет refresh токеном сам
 
+    // Геттер для isAuthenticated обращается к keycloak
     get isAuthenticated(): boolean {
-      return !!this.accessToken && !this.isTokenExpired();
+      return !!keycloak.authenticated && !!keycloak.token && !keycloak.isTokenExpired();
     },
 
     get role(): string {
+      // Роль можно достать из токена keycloak
+      const realmAccess = keycloak.realmAccess;
+      if (realmAccess?.roles?.includes('admin')) return 'admin';
+      if (realmAccess?.roles?.includes('user')) return 'user';
       return this.user?.role || 'guest';
     },
 
-    async login(email: string, password: string): Promise<void> {
-      this.isLoading = true;
-      this.error = null;
+    // --- НОВАЯ РЕАЛИЗАЦИЯ МЕТОДОВ ---
 
-      try {
-        // запрос на аутентификацию
-        const response = await fetch(`${authApiUrl}login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password }),
-        });
+    // login теперь вызывает keycloak
+  async login(email: string, password: string): Promise<void> {
+  this.isLoading = true;
+  this.error = null;
+  
+  try {
+    console.log('Attempting login for:', email);
+    
+    // Прямой запрос к Keycloak API через Nginx
+    const response = await fetch(`${shopConfig.keycloakUrl}realms/shop/protocol/openid-connect/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: 'shop-ui',
+        grant_type: 'password',
+        username: email,
+        password: password,
+      }),
+    });
 
-        const text = await response.text();
-        const data = text ? JSON.parse(text) : null;
+    const data = await response.json();
+    console.log('Login response:', data);
 
-        if (!response.ok) {
-          throw new Error((data && data.message) || `Ошибка авторизации (HTTP ${response.status})`);
-        }
+    if (!response.ok) {
+      throw new Error(data.error_description || data.error || 'Ошибка авторизации');
+    }
 
-        // СОХРАНЯЕМ ПОЛУЧЕННЫЕ ТОКЕНЫ И ДАННЫЕ ПОЛЬЗОВАТЕЛЯ
-        this.setTokens(data.data);
-
-      }
-      catch (error) {
-        this.error = error instanceof Error ? error.message : 'Ошибка авторизации';
-        console.error('Login error:', error);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
-
-    async registration(data: RegistrationFormData): Promise<void> {
-      this.isLoading = true;
-      this.error = null;
-
-      try {
-        console.log(`${authApiUrl}register`);
-        // запрос на регистрацию
-        const response = await fetch(`${authApiUrl}register`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: data.name,
-            email: data.email,
-            password: data.password,
-          }),
-        });
-
-        const text = await response.text();
-        const responseData = text ? JSON.parse(text) : null;
-
-        if (!response.ok) {
-          const errorMessage = (responseData && responseData.message) ||
-            (response.status === 409 ? 'Пользователь с таким email уже существует' : response.status === 400 ? 'Некорректные данные регистрации' : 'Ошибка регистрации');
-          throw new Error(errorMessage);
-        }
-
-        // После успешной регистрации автоматически логиним пользователя
-        if (responseData && responseData.data && responseData.data.accessToken) {
-          this.setTokens(responseData.data);
-        }
-      }
-      catch (error) {
-        this.error = error instanceof Error ? error.message : 'Ошибка регистрации';
-        console.error('Register error:', error);
-      }
-      finally {
-        this.isLoading = false;
-      }
-    },
-
-    // Обновляет access token с использованием refresh token
-    // Вызывается автоматически при истечении срока действия access token
-    async refreshTokens(): Promise<boolean> {
-
-      if (!this.refreshToken || !this.accessToken) {
-        this.logout(); // Если токенов нет - разлогиниваем пользователя
-        return false;
-      }
-
-      try {
-        const response = await fetch(`${authApiUrl}refresh`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            accessToken: this.accessToken,
-            refreshToken: this.refreshToken
-          }),
-        });
-
-        const text = await response.text();
-        const data = text ? JSON.parse(text) : null;
-
-        if (!response.ok || !data || !data.success) {
-          throw new Error((data && data.message) || `Failed to refresh token (HTTP ${response.status})`);
-        }
-
-        this.setTokens(data.data); return true;
+    // Сохраняем токен в keycloak instance (если нужно)
+    // Но keycloak.token не обновится автоматически, поэтому используем runInAction
+    
+    runInAction(() => {
+      // Сохраняем токен в store
+      this.accessToken = data.access_token;
       
+      // Декодируем JWT токен чтобы получить информацию о пользователе
+      try {
+        const tokenParts = data.access_token.split('.');
+        if (tokenParts.length === 3) {
+          const tokenData = JSON.parse(atob(tokenParts[1]));
+          console.log('Token data:', tokenData);
+          
+          this.user = {
+            id: tokenData.sub || '',
+            name: tokenData.name || tokenData.preferred_username || email,
+            role: tokenData.realm_access?.roles?.includes('admin') ? 'admin' : 'user',
+            email: tokenData.email || email,
+            username: tokenData.preferred_username || email,
+          };
+          
+          // Сохраняем в localStorage
+          this.saveUserToStorage();
+        }
+      } catch (e) {
+        console.error('Error parsing token:', e);
+      }
+      
+      this.isLoading = false;
+    });
+
+  } catch (error) {
+    runInAction(() => {
+      this.error = error instanceof Error ? error.message : 'Ошибка авторизации';
+      this.isLoading = false;
+    });
+    console.error('Login error:', error);
+  }
+},
+
+    // logout теперь вызывает keycloak.logout()
+    async logout(): Promise<void> {
+      this.isLoading = true;
+      try {
+        // keycloak.logout() перенаправит браузер на страницу выхода из Keycloak
+        // и потом вернет обратно на siteUrl
+        await keycloak.logout({ redirectUri: shopConfig.siteUrl });
       } catch (error) {
-        console.error('Token refresh error:', error);
+        console.error('Logout error:', error);
+      } finally {
+        // Очищаем локальное состояние
+        runInAction(() => {
+          this.user = null;
+          this.accessToken = null;
+          this.isLoading = false;
+        });
+        this.clearTokens(); // Очистит localStorage
+      }
+    },
+
+    // registration через Keycloak (если включена self-registration)
+async registration(data: RegistrationFormData): Promise<void> {
+  this.isLoading = true;
+  this.error = null;
+  try {
+    // Редирект на страницу регистрации Keycloak
+    await keycloak.register({
+      redirectUri: window.location.origin, // Вернуться на главную после регистрации
+      locale: 'ru',
+      // Можно передать email как подсказку через loginHint
+      loginHint: data.email
+    });
+    // После редиректа управление сюда НЕ вернется!
+  } catch (error) {
+    runInAction(() => {
+      this.error = error instanceof Error ? error.message : 'Ошибка регистрации';
+      this.isLoading = false;
+    });
+    console.error('Register error:', error);
+  }
+},
+
+    // refreshTokens теперь просто вызывает keycloak.updateToken()
+    async refreshTokens(): Promise<boolean> {
+      if (!keycloak.authenticated) return false;
+      try {
+        // updateToken(30) означает "обнови токен, если он истекает через 30 секунд или меньше"
+        const refreshed = await keycloak.updateToken(30);
+        if (refreshed) {
+          runInAction(() => {
+            this.accessToken = keycloak.token || null;
+          });
+          console.log('Token refreshed');
+        }
+        return true;
+      } catch (error) {
+        console.error('Failed to refresh token:', error);
         this.logout();
         return false;
       }
     },
 
-     // Выход пользователя из системы
-     // Отправляет запрос на сервер для отзыва токенов и очищает локальные данные
-    async logout(): Promise<void> {
-      try {
-        if (this.accessToken) {
-          await fetch(`${authApiUrl}logout`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${this.accessToken}`
-            },
-            body: JSON.stringify({
-              refreshToken: this.refreshToken,
-              revokeAllSessions: false
-            })
-          });
-        }
-      } catch (error) {
-        console.error('Logout error:', error);
-      } finally {
-        this.user = null;
-        this.error = null;
+    // initializeAuth теперь проверяет статус keycloak
+    initializeAuth(): void {
+      // keycloak.init должен быть вызван один раз при старте приложения.
+      // Обычно это делается в корневом компоненте (App.tsx), но мы можем сделать это здесь.
+      // Лучше вынести инициализацию в отдельный эффект в App.tsx.
+      // Здесь мы просто синхронизируем состояние с keycloak.
+      if (keycloak.authenticated) {
+        this.user = this.extractUserFromToken();
+        this.accessToken = keycloak.token || null;
+        this.saveUserToStorage();
+      } else {
         this.clearTokens();
       }
     },
 
-     // Инициализация состояния аутентификации при загрузке приложения
-     // Восстанавливает пользователя из localStorage и проверяет валидность токенов
-    initializeAuth(): void {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        try {
-          this.user = JSON.parse(savedUser);
-        } catch (error) {
-          console.error('Error parsing saved user:', error);
-          this.clearTokens(); 
-        }
-      }
-
-      if (this.accessToken && this.isTokenExpired()) {
-        // ЕСЛИ TOKEN ИСТЕК, НО ЕСТЬ REFRESH TOKEN - ПЫТАЕМСЯ ОБНОВИТЬ
-        if (this.refreshToken) {
-          this.refreshTokens().catch(console.error);
-        } else {
-          // ЕСЛИ REFRESH TOKEN НЕТ - ОЧИЩАЕМ ДАННЫЕ
-          this.clearTokens();
-        }
-      }
-    },
-
-     // Проверяет валидность текущей аутентификации
-     // Автоматически обновляет токены при необходимости
+    // checkAuth просто проверяет keycloak
     async checkAuth(): Promise<boolean> {
-      if (!this.accessToken) return false; 
+  // Проверяем, есть ли токен в localStorage
+  const token = localStorage.getItem('accessToken');
+  if (!token) return false;
+  
+  // Проверяем, не истек ли токен
+  try {
+    const tokenData = JSON.parse(atob(token.split('.')[1]));
+    const exp = tokenData.exp * 1000; // в миллисекундах
+    if (Date.now() >= exp) {
+      // Токен истек, пробуем обновить
+      return await this.refreshTokens();
+    }
+    
+    // Токен валиден
+    this.accessToken = token;
+    this.user = JSON.parse(localStorage.getItem('user') || 'null');
+    return true;
+  } catch {
+    return false;
+  }
+},
 
-      // ЕСЛИ TOKEN ИСТЕК - ПЫТАЕМСЯ ОБНОВИТЬ
-      if (this.isTokenExpired()) {
-        return await this.refreshTokens();
-      }
-
-      return true; // Token валиден
+    // setTokens больше не нужен, так как токенами управляет keycloak.
+    // Оставим для совместимости, но он будет пустым.
+    setTokens(_tokens: LoginResponseData): void {
+      console.warn('setTokens is deprecated. Keycloak manages tokens.');
     },
 
-     // Сохраняет токены и данные пользователя в store и localStorage
-    setTokens(tokens: LoginResponseData): void {
-      this.accessToken = tokens.accessToken;
-      this.refreshToken = tokens.refreshToken;
-
-      this.user = {
-        id: tokens.userId,
-        name: tokens.username,
-        role: tokens.role.toLowerCase() as Role,
-        email: tokens.email,
-        username: tokens.username
-      };
-      
-      localStorage.setItem('accessToken', tokens.accessToken);
-      localStorage.setItem('refreshToken', tokens.refreshToken);
-      localStorage.setItem('tokenExpiry', tokens.expiresAt);
-      localStorage.setItem('user', JSON.stringify(this.user));
-    },
-
-     // Очищает все данные аутентификации из store и localStorage
-     // Вызывается при logout или при обнаружении невалидных данных
     clearTokens(): void {
       this.accessToken = null;
-      this.refreshToken = null;
       this.user = null;
-
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('tokenExpiry');
       localStorage.removeItem('user');
+      // Не очищаем токены keycloak, так как они в памяти библиотеки
     },
 
-    // Проверяет, истек ли срок действия access token
     isTokenExpired(): boolean {
-      try {
-        const expiry = localStorage.getItem('tokenExpiry');
-        if (!expiry) return true; // Если даты нет - считаем токен истекшим
-
-        const expiryDate = new Date(expiry);
-        // Добавляем запас в 1 минуту чтобы избежать ситуации, когда токен истекает во время запроса
-        return Date.now() >= (expiryDate.getTime() - 60000);
-      } catch {
-        // При любой ошибке парсинга считаем токен истекшим
-        return true;
-      }
+      return keycloak.isTokenExpired ? keycloak.isTokenExpired() : true;
     },
 
-     // Генерирует заголовки для HTTP запросов с авторизацией
     getAuthHeaders(): Record<string, string> {
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json' // Стандартный заголовок для JSON API
+        'Content-Type': 'application/json'
       };
-
-      // ЕСЛИ ЕСТЬ ACCESS TOKEN - ДОБАВЛЯЕМ ЗАГОЛОВОК АВТОРИЗАЦИИ
-      if (this.accessToken) {
-        headers['Authorization'] = `Bearer ${this.accessToken}`;
+      if (keycloak.authenticated && keycloak.token) {
+        headers['Authorization'] = `Bearer ${keycloak.token}`;
       }
       return headers;
     },
+
+    // --- ВСПОМОГАТЕЛЬНЫЙ МЕТОД ---
+    extractUserFromToken(): User | null {
+      if (!keycloak.tokenParsed) return null;
+      const parsed = keycloak.tokenParsed;
+      // Парсим информацию из токена Keycloak. Названия полей могут отличаться.
+      return {
+        id: parsed.sub || '', // sub - стандартный ID пользователя в Keycloak
+        name: parsed.name || parsed.preferred_username || '',
+        role: parsed.realm_access?.roles?.includes('admin') ? 'admin' : 'user',
+        email: parsed.email || '',
+        username: parsed.preferred_username || '',
+      };
+    },
+
+    saveUserToStorage(): void {
+      if (this.user) {
+        localStorage.setItem('user', JSON.stringify(this.user));
+      }
+    }
 
   };
 

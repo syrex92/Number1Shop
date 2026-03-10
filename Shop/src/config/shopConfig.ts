@@ -30,6 +30,9 @@ export interface IShopConfig {
     
     /** Адрес (базовый) хранилища картинок (http://server/images/) */
     imagesUrl: string;
+
+    /** Адрес Keycloak сервера (http://server/auth/) */
+    keycloakUrl: string; 
 }
 
 const shopConfig : IShopConfig = {
@@ -42,7 +45,9 @@ const shopConfig : IShopConfig = {
     authApiUrl: addEndSlash(import.meta.env.VITE_SHOP_AUTH_API_URL),
     storageApiUrl: addEndSlash(import.meta.env.VITE_SHOP_STORAGE_API_URL),
     ordersApiUrl: addEndSlash(import.meta.env.VITE_SHOP_ORDERS_API_URL),
-    imagesUrl: addEndSlash(import.meta.env.VITE_SHOP_IMAGES_URL)
+    imagesUrl: addEndSlash(import.meta.env.VITE_SHOP_IMAGES_URL),
+    keycloakUrl: addEndSlash(import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost/auth/'),
+    
 }
 
 export default shopConfig;

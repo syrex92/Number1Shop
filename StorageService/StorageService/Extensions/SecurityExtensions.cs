@@ -1,88 +1,61 @@
-﻿using Microsoft.AspNetCore.Authentication.BearerToken;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
-namespace StorageService.Extensions
+namespace StorageService.Extensions;
+
+internal static class SecurityExtensions
 {
-    internal static class SecurityExtensions
+    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        private static ClaimsPrincipal? GetPrincipal(string token)
-        {
-            const string secret = "XCAP05H6LoKvbRRa/QkqLNMI7cOHguaRyHzyg7n5qEkGjQmtBhz4SzYh4Fqwjyi3KJHlSXKPwVu2+bXr6CtpgQ==";
-            try
+        // Получаем настройки Keycloak из конфигурации
+        var authServerUrl = configuration["Keycloak:AuthServerUrl"] ?? "http://keycloak:8080";
+        var realm = configuration["Keycloak:Realm"] ?? "shop";
+
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
             {
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var jwtToken = (JwtSecurityToken)tokenHandler.ReadToken(token);
-                if (jwtToken == null)
-                    return null;
-                byte[] key = Convert.FromBase64String(secret);
-                var parameters = new TokenValidationParameters
+                // Адрес Keycloak
+                options.Authority = $"{authServerUrl}/realms/{realm}";
+                options.MetadataAddress = $"{authServerUrl}/realms/{realm}/.well-known/openid-configuration";
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+
+                // Параметры проверки токена
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    RequireExpirationTime = true,
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                    ValidateIssuer = true,
+                    ValidIssuer = $"{authServerUrl}/realms/{realm}",
+                    ValidateAudience = false, // Для простоты
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromMinutes(2),
+                    NameClaimType = "preferred_username",
+                    RoleClaimType = "realm_access"
                 };
-                var principal = tokenHandler.ValidateToken(token,
-                    parameters, out _);
-                return principal;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return null;
-            }
-        }
 
-        public static IServiceCollection AddJwtAuthentication(this IServiceCollection services)
-        {
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = BearerTokenDefaults.AuthenticationScheme;
-            })
-                .AddJwtBearer(options =>
+                // Логирование для отладки
+                options.Events = new JwtBearerEvents
                 {
-                    options.TokenValidationParameters.LogValidationExceptions = true;
-                    options.TokenValidationParameters.ValidateAudience = false;
-                    options.RequireHttpsMetadata = false;
-                    options.TokenValidationParameters.ValidateIssuer = false;
-                    options.SaveToken = true;
-                    options.TokenValidationParameters.RoleClaimType = "roles";
-                    options.TokenValidationParameters.NameClaimType = "preferred_username";
-                    options.TokenValidationParameters.SaveSigninToken = true;
-
-                    options.Events = new JwtBearerEvents
+                    OnAuthenticationFailed = context =>
                     {
-                        OnMessageReceived = context =>
-                        {
-                            if (!context.Request.Headers.TryGetValue("Authorization", out var value))
-                                return Task.CompletedTask;
-                            try
-                            {
-                                var basicToken = value.ToString()
-                                    .Trim()
-                                    .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                                    .LastOrDefault() ?? string.Empty;
-                                context.Principal = GetPrincipal(basicToken);
-                                context.Success();
+                        Log.Error(context.Exception, "Authentication failed: {Message}", context.Exception.Message);
+                        return Task.CompletedTask;
+                    },
+                    OnChallenge = context =>
+                    {
+                        Log.Warning("Challenge: {Error}, {ErrorDescription}", context.Error, context.ErrorDescription);
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = context =>
+                    {
+                        var userId = context.Principal?.FindFirst("sub")?.Value;
+                        var userName = context.Principal?.FindFirst("preferred_username")?.Value;
+                        Log.Information("User {UserName} ({UserId}) authenticated successfully", userName, userId);
+                        return Task.CompletedTask;
+                    }
+                };
+            });
 
-                                return Task.CompletedTask;
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Error(e, "Failed to parse JWT token: [{msg}]", e.Message);
-                                context.Fail(e);
-                                return Task.CompletedTask;
-                            }
-                        }
-                    };
-                });
-
-            return services;
-
-        }
+        return services;
     }
 }

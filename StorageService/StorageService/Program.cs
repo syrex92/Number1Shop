@@ -23,7 +23,7 @@ builder.Services
     })
     .AddOpenApi()
     .AddSecuredSwagger()
-    .AddJwtAuthentication()
+    .AddJwtAuthentication(builder.Configuration)
     .AddAuthorization()
     .AddDbContext<EfContext>(options =>
     {
@@ -81,6 +81,9 @@ app.UseCors(policy =>
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();  
+app.UseAuthorization();   
+
 // Политика авторизации
 var jwtAuthorizationPolicy = new AuthorizationPolicyBuilder()
     .RequireAssertion(c => c.User.Claims.Any(x => x.Type == ClaimTypes.Sid))
@@ -92,8 +95,8 @@ var jwtAuthorizationPolicy = new AuthorizationPolicyBuilder()
 
 // Проверка доступности товара
 app.MapGet("/availability/{productId:guid}", InventoryRequestsHandler.CheckAvailability)
-    //.RequireAuthorization(jwtAuthorizationPolicy)
-    .WithName("CheckAvailability")
+    .RequireAuthorization(jwtAuthorizationPolicy)
+    .WithName("CheckAvailability") 
     .WithTags("Склад")
     .Produces<StockAvailabilityResponse>(200, "application/json")
     .Produces(401)
@@ -108,7 +111,7 @@ app.MapGet("/availability/{productId:guid}", InventoryRequestsHandler.CheckAvail
 
 // Резервирование товара
 app.MapPost("/reserve", InventoryRequestsHandler.ReserveStock)
-    //.RequireAuthorization(jwtAuthorizationPolicy)
+    .RequireAuthorization(jwtAuthorizationPolicy)
     .WithName("ReserveStock")
     .WithTags("Склад")
     .Produces<ReservationResponse>(200, "application/json")
@@ -123,7 +126,7 @@ app.MapPost("/reserve", InventoryRequestsHandler.ReserveStock)
 
 // Подтверждение покупки (списание)
 app.MapPost("/confirm", InventoryRequestsHandler.ConfirmPurchase)
-    //.RequireAuthorization(jwtAuthorizationPolicy)
+    .RequireAuthorization(jwtAuthorizationPolicy)
     .WithName("ConfirmPurchase")
     .WithTags("Склад")
     .Produces<PurchaseConfirmationResponse>(200, "application/json")
@@ -138,7 +141,7 @@ app.MapPost("/confirm", InventoryRequestsHandler.ConfirmPurchase)
 
 // Отмена резервирования
 app.MapDelete("/reserve/{reservationId:guid}", InventoryRequestsHandler.CancelReservation)
-    //.RequireAuthorization(jwtAuthorizationPolicy)
+    .RequireAuthorization(jwtAuthorizationPolicy)
     .WithName("CancelReservation")
     .WithTags("Склад")
     .Produces(200)
@@ -154,7 +157,7 @@ app.MapDelete("/reserve/{reservationId:guid}", InventoryRequestsHandler.CancelRe
 
 // Получение информации о товаре на складе
 app.MapGet("/stock/{productId:guid}", InventoryRequestsHandler.GetStockItem)
-    //.RequireAuthorization(jwtAuthorizationPolicy)
+    .RequireAuthorization(jwtAuthorizationPolicy)
     .WithName("GetStockItem")
     .WithTags("Склад")
     .Produces<StockItem>(200, "application/json")

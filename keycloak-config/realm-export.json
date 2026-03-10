@@ -1,0 +1,43 @@
+{
+  "realm": "shop",
+  "enabled": true,
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@shop.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123"
+        }
+      ]
+    },
+    {
+      "username": "user",
+      "enabled": true,
+      "email": "user@shop.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user123"
+        }
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "shop-services",
+      "publicClient": false,
+      "secret": "service-secret-123"
+    },
+    {
+      "clientId": "shop-ui",
+      "publicClient": true,
+      "redirectUris": [ "http://localhost:8105/*" ],
+      "webOrigins": [ "http://localhost:8105" ],
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true
+    }
+  ]
+}
