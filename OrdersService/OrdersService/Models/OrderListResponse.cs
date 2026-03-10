@@ -6,4 +6,5 @@ public class OrderListResponse
     public int Page { get; set; }
     public int PageSize { get; set; }
     public List<Order> Data { get; set; } = new();
+    public bool isAdmin { get; set; }
 }

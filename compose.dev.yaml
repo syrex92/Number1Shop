@@ -146,6 +146,7 @@ services:
       RMQ_USER: guest
       RMQ_PASSWORD: guest
       RMQ_VHOST: /
+      #AllUsersIsAdmin: "true"
     healthcheck:
       test: "curl -f http://localhost:8080/health"
       interval: 5s
