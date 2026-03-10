@@ -18,14 +18,6 @@ const OrderCard = (props: {order: Order, isAdmin: boolean}) => {
         orders.cancelOrder(event.currentTarget.dataset.id ?? "");
     }
 
-    function handleClickChangeStatusBtn(event: React.MouseEvent<HTMLButtonElement>) {
-        event.preventDefault();
-        const newStatus = (event.currentTarget.previousSibling as HTMLDivElement).firstChild?.textContent;
-        if (newStatus) {
-            orders.changeStatus(event.currentTarget.dataset.id ?? "", newStatus);
-        }
-    }
-
     return <div key={order.id} className="order-card">
             <div className="order-card-header">Заказ #{order.orderNumber}</div>
             <div className="order-card-body">
@@ -50,7 +42,7 @@ const OrderCard = (props: {order: Order, isAdmin: boolean}) => {
                                 { value: "Delivered", label: "Доставлен" },
                                 { value: "Cancelled", label: "Отменён" }
                             ]}
-                            id={order.id}
+                            id={"select-" + order.id}
                             onChange={(value) => orders.changeStatus(order.id, value ?? "")}
                         />
                     </>
@@ -58,7 +50,7 @@ const OrderCard = (props: {order: Order, isAdmin: boolean}) => {
             </div>
             <div className="order-card-footer">
                 <Button onClick={handleClickEditBtn}>Детали заказа</Button>
-                {!isAdmin && (order.status === 'New' || order.status === 'Processing') && (
+                {(order.status === 'New' || order.status === 'Processing') && (
                     <>
                         <Button color="red" data-id={order.id} onClick={handleClickRemoveBtn}>Отменить</Button>
                     </>
