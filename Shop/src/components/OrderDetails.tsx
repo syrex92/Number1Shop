@@ -16,7 +16,11 @@ const OrderDetails = (props: {order: Order}) => {
             <div className="order-card-body">
                 <div>Дата создания: {order.createdAt}</div>
                 <div>Адрес доставки: {order.deviveryAddress}</div>
-                <div>Статус: {order.status}</div>
+                <div>Статус: {order.status === "New" && "Новый"}
+                                {order.status === "Processing" && "В обработке"}
+                                {order.status === "Shipping" && "Отправлен"}
+                                {order.status === "Delivered" && "Доставлен"}
+                                {order.status === "Cancelled" && "Отменён"}</div>
                 <div>Итоговая сумма: {order.totalPrice} ₽</div>
             </div>
             <div className="order-card-products">

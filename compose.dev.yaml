@@ -1,20 +1,20 @@
 
 services:
   
-  ui-service:
-    image: shop-ui-service
-    build:
-      context: ./Shop
-      dockerfile: Dockerfile
-    pull_policy: build
-    ports: 
-      - "8105:8105"    
-    healthcheck:
-      test: "curl -f http://localhost:8105/"
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
+  # ui-service:
+  #   image: shop-ui-service
+  #   build:
+  #     context: ./Shop
+  #     dockerfile: Dockerfile
+  #   pull_policy: build
+  #   ports: 
+  #     - "8105:8105"    
+  #   healthcheck:
+  #     test: "curl -f http://localhost:8105/"
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+  #   restart: unless-stopped
   
   users-service:
     image: shop-users-service
@@ -161,6 +161,8 @@ services:
     networks:
       - shop-network
       - shop-pg-network
+    ports:
+      - "8080:8080"
 
   redis:
     image: redis:latest
