@@ -136,6 +136,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       CONNECTION_STRING: Host=postgres:5432;Username=postgres;Password=P@ssw0rd;Database=Orders
+      #AllUsersIsAdmin: "true"
     healthcheck:
       test: "curl -f http://localhost:8080/health"
       interval: 5s

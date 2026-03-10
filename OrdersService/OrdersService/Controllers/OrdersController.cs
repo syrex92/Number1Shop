@@ -15,12 +15,14 @@ public class OrdersController : ControllerBase
     private readonly AppDbContext _db;
     private readonly IStorageService _storageService;
     private readonly ICatalogService _catalogService;
+    private readonly IConfiguration _configuration;
 
-    public OrdersController(AppDbContext db, IStorageService storageService, ICatalogService catalogService)
+    public OrdersController(AppDbContext db, IStorageService storageService, ICatalogService catalogService, IConfiguration configuration )
     {
         _db = db;
         _storageService = storageService;
         _catalogService = catalogService;
+        _configuration = configuration;
     }
 
     [Authorize(AuthenticationSchemes = "Bearer")]
@@ -92,7 +94,7 @@ public class OrdersController : ControllerBase
             return Unauthorized("User ID claim not found.");
         }
         var userId = Guid.Parse(userIdClaim.Value);
-        var isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
+        var isAdmin = _configuration.GetValue<bool>("AllUsersIsAdmin") || User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
 
         var query = _db.Orders
             .Include(o => o.DeliveryAddress)
@@ -116,7 +118,7 @@ public class OrdersController : ControllerBase
             return Unauthorized("User ID claim not found.");
         }
         var userId = Guid.Parse(userIdClaim.Value);
-        var isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
+        var isAdmin = _configuration.GetValue<bool>("AllUsersIsAdmin") || User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
 
         var order = await _db.Orders
             .Include(o => o.DeliveryAddress)
@@ -147,7 +149,7 @@ public class OrdersController : ControllerBase
         if (order == null) return NotFound();
 
         var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Sid);
-        var isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
+        var isAdmin = _configuration.GetValue<bool>("AllUsersIsAdmin") || User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
         if (userIdClaim == null)
         {
             return Unauthorized("User ID claim not found.");
@@ -176,7 +178,7 @@ public class OrdersController : ControllerBase
             return Unauthorized("User ID claim not found.");
         }
         var userId = Guid.Parse(userIdClaim.Value);
-        var isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
+        var isAdmin = _configuration.GetValue<bool>("AllUsersIsAdmin") || User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
 
         if (order.UserId != userId && !isAdmin) return Forbid();
 
