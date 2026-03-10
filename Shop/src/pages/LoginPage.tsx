@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // ← ВАЖНО: добавить этот импорт
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStores } from '../context/RootStoreContext';
 import { Button, TextInput, PasswordInput, Paper, Title, Container } from '@mantine/core';
 
@@ -7,14 +7,22 @@ function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const { auth } = useStores();
-    const navigate = useNavigate(); // ← теперь работает
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        console.log('LoginPage render, isAuthenticated =', auth.isAuthenticated);
+        console.log('LoginPage render, accessToken =', auth.accessToken);
+        if (auth.isAuthenticated) {
+            console.log('LoginPage: Redirecting to /');
+            navigate('/');
+        }
+    }, [auth.isAuthenticated, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        console.log('LoginPage: submitting', email);
         await auth.login(email, password);
-        if (auth.isAuthenticated) {
-            navigate('/');
-        }
+        console.log('LoginPage: after login, isAuthenticated =', auth.isAuthenticated);
     };
 
     return (

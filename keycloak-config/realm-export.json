@@ -1,35 +1,61 @@
 {
   "realm": "shop",
   "enabled": true,
+  "registrationAllowed": true,
+  "loginWithEmailAllowed": true,
+  "resetPasswordAllowed": true,
   "users": [
     {
       "username": "admin",
       "enabled": true,
       "email": "admin@shop.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "emailVerified": true,
       "credentials": [
         {
           "type": "password",
-          "value": "admin123"
+          "value": "admin123",
+          "temporary": false
         }
-      ]
+      ],
+      "realmRoles": [ "admin" ]
     },
     {
       "username": "user",
       "enabled": true,
       "email": "user@shop.com",
+      "firstName": "Regular",
+      "lastName": "User",
+      "emailVerified": true,
       "credentials": [
         {
           "type": "password",
-          "value": "user123"
+          "value": "user123",
+          "temporary": false
         }
-      ]
+      ],
+      "realmRoles": [ "user" ]
     }
   ],
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Administrator role"
+      },
+      {
+        "name": "user",
+        "description": "Regular user"
+      }
+    ]
+  },
   "clients": [
     {
       "clientId": "shop-services",
       "publicClient": false,
-      "secret": "service-secret-123"
+      "secret": "service-secret-123",
+      "serviceAccountsEnabled": true
     },
     {
       "clientId": "shop-ui",

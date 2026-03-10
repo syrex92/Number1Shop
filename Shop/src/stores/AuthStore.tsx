@@ -68,13 +68,13 @@ export const createAuthStore = (): AuthStore => {
     user: initialUser as User | null,
     isLoading: false,
     error: null as string | null,
-    accessToken: keycloak.token || null, // Токен теперь живет в keycloak
+    accessToken: localStorage.getItem('accessToken') || keycloak.token || null,
     refreshToken: null, // Keycloak управляет refresh токеном сам
 
     // Геттер для isAuthenticated обращается к keycloak
-    get isAuthenticated(): boolean {
-      return !!keycloak.authenticated && !!keycloak.token && !keycloak.isTokenExpired();
-    },
+get isAuthenticated(): boolean {
+  return !!this.accessToken && !this.isTokenExpired();
+},
 
     get role(): string {
       // Роль можно достать из токена keycloak
@@ -121,6 +121,7 @@ export const createAuthStore = (): AuthStore => {
     runInAction(() => {
       // Сохраняем токен в store
       this.accessToken = data.access_token;
+      localStorage.setItem('accessToken', data.access_token);
       
       // Декодируем JWT токен чтобы получить информацию о пользователе
       try {
@@ -264,15 +265,23 @@ async registration(data: RegistrationFormData): Promise<void> {
     },
 
     clearTokens(): void {
-      this.accessToken = null;
-      this.user = null;
-      localStorage.removeItem('user');
-      // Не очищаем токены keycloak, так как они в памяти библиотеки
-    },
+  this.accessToken = null;
+  this.user = null;
+  localStorage.removeItem('user');
+  localStorage.removeItem('accessToken'); // добавить
+  // Не очищаем keycloak, так как это его ответственность
+},
 
     isTokenExpired(): boolean {
-      return keycloak.isTokenExpired ? keycloak.isTokenExpired() : true;
-    },
+  if (!this.accessToken) return true;
+  try {
+    const payload = JSON.parse(atob(this.accessToken.split('.')[1]));
+    const exp = payload.exp * 1000; // в миллисекундах
+    return Date.now() >= exp;
+  } catch {
+    return true;
+  }
+},
 
     getAuthHeaders(): Record<string, string> {
       const headers: Record<string, string> = {
