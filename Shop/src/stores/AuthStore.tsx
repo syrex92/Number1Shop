@@ -1,9 +1,9 @@
 import { makeAutoObservable, runInAction } from 'mobx';
-import keycloak from '../config/keycloakConfig'; // Импортируем настроенный экземпляр
+import keycloak from '../config/keycloakConfig'; 
 import shopConfig from "../config/shopConfig.ts";
 import type { RegistrationFormData } from '../components/registration/RegistrationFormFields';
 
-// --- Ваши интерфейсы User, Role, LoginResponseData остаются БЕЗ ИЗМЕНЕНИЙ ---
+// --- интерфейсы User, Role, LoginResponseData ---
 export type Role = 'admin' | 'user';
 export interface User {
   id: string;
@@ -25,9 +25,8 @@ export interface LoginResponseData {
   userId: string;
   email: string;
 }
-// ------------------------------------------------------------------------
 
-// Интерфейс хранилища можно оставить тем же
+// Интерфейс хранилища 
 export interface AuthStore {
   user: User | null;
   isLoading: boolean;
@@ -46,12 +45,11 @@ export interface AuthStore {
   refreshTokens: () => Promise<boolean>;
   initializeAuth: () => void;
   checkAuth: () => Promise<boolean>;
-  setTokens: (tokens: LoginResponseData) => void;
   clearTokens: () => void;
   isTokenExpired: () => boolean;
   getAuthHeaders: () => Record<string, string>;
   
-  // Вспомогательные (если нужны снаружи)
+  // Вспомогательные 
   extractUserFromToken?: () => User | null;
   saveUserToStorage?: () => void;
 }
@@ -61,8 +59,10 @@ export const createAuthStore = (): AuthStore => {
   const savedUserJson = localStorage.getItem('user');
   let initialUser = null;
   try {
-    if (savedUserJson) initialUser = JSON.parse(savedUserJson);
-  } catch (e) { /* ignore */ }
+    if (savedUserJson)
+      initialUser = JSON.parse(savedUserJson);
+      } catch (e) 
+      { /* ignore */ }
 
   const store = {
     user: initialUser as User | null,
@@ -77,22 +77,20 @@ get isAuthenticated(): boolean {
 },
 
     get role(): string {
-      // Роль можно достать из токена keycloak
+      // Роль из токена keycloak
       const realmAccess = keycloak.realmAccess;
       if (realmAccess?.roles?.includes('admin')) return 'admin';
       if (realmAccess?.roles?.includes('user')) return 'user';
       return this.user?.role || 'guest';
     },
 
-    // --- НОВАЯ РЕАЛИЗАЦИЯ МЕТОДОВ ---
-
-    // login теперь вызывает keycloak
-  async login(email: string, password: string): Promise<void> {
+    // login вызывает keycloak
+  async login(name: string, password: string): Promise<void> {
   this.isLoading = true;
   this.error = null;
   
   try {
-    console.log('Attempting login for:', email);
+    console.log('Attempting login for:', name);
     
     // Прямой запрос к Keycloak API через Nginx
     const response = await fetch(`${shopConfig.keycloakUrl}realms/shop/protocol/openid-connect/token`, {
@@ -103,7 +101,7 @@ get isAuthenticated(): boolean {
       body: new URLSearchParams({
         client_id: 'shop-ui',
         grant_type: 'password',
-        username: email,
+        username: name,
         password: password,
       }),
     });
@@ -112,10 +110,10 @@ get isAuthenticated(): boolean {
     console.log('Login response:', data);
 
     if (!response.ok) {
-      throw new Error(data.error_description || data.error || 'Ошибка авторизации');
+      throw new Error('Ошибка авторизации');
     }
 
-    // Сохраняем токен в keycloak instance (если нужно)
+    // Сохраняем токен в keycloak instance 
     // Но keycloak.token не обновится автоматически, поэтому используем runInAction
     
     runInAction(() => {
@@ -132,10 +130,10 @@ get isAuthenticated(): boolean {
           
           this.user = {
             id: tokenData.sub || '',
-            name: tokenData.name || tokenData.preferred_username || email,
+            name: tokenData.name || tokenData.preferred_username || name,
             role: tokenData.realm_access?.roles?.includes('admin') ? 'admin' : 'user',
-            email: tokenData.email || email,
-            username: tokenData.preferred_username || email,
+            email: tokenData.email,
+            username: tokenData.preferred_username || name,
           };
           
           // Сохраняем в localStorage
@@ -150,7 +148,7 @@ get isAuthenticated(): boolean {
 
   } catch (error) {
     runInAction(() => {
-      this.error = error instanceof Error ? error.message : 'Ошибка авторизации';
+      this.error = 'Ошибка авторизации';
       this.isLoading = false;
     });
     console.error('Login error:', error);
@@ -177,7 +175,7 @@ get isAuthenticated(): boolean {
       }
     },
 
-    // registration через Keycloak (если включена self-registration)
+    // registration через Keycloak 
 async registration(data: RegistrationFormData): Promise<void> {
   this.isLoading = true;
   this.error = null;
@@ -186,10 +184,8 @@ async registration(data: RegistrationFormData): Promise<void> {
     await keycloak.register({
       redirectUri: window.location.origin, // Вернуться на главную после регистрации
       locale: 'ru',
-      // Можно передать email как подсказку через loginHint
       loginHint: data.email
     });
-    // После редиректа управление сюда НЕ вернется!
   } catch (error) {
     runInAction(() => {
       this.error = error instanceof Error ? error.message : 'Ошибка регистрации';
@@ -203,8 +199,8 @@ async registration(data: RegistrationFormData): Promise<void> {
     async refreshTokens(): Promise<boolean> {
       if (!keycloak.authenticated) return false;
       try {
-        // updateToken(30) означает "обнови токен, если он истекает через 30 секунд или меньше"
-        const refreshed = await keycloak.updateToken(30);
+        // updateToken(600) означает "обнови токен, если он истекает через 600 секунд или меньше"
+        const refreshed = await keycloak.updateToken(600);
         if (refreshed) {
           runInAction(() => {
             this.accessToken = keycloak.token || null;
@@ -221,9 +217,7 @@ async registration(data: RegistrationFormData): Promise<void> {
 
     // initializeAuth теперь проверяет статус keycloak
     initializeAuth(): void {
-      // keycloak.init должен быть вызван один раз при старте приложения.
-      // Обычно это делается в корневом компоненте (App.tsx), но мы можем сделать это здесь.
-      // Лучше вынести инициализацию в отдельный эффект в App.tsx.
+      // keycloak.init вызывается один раз при старте приложения.
       // Здесь мы просто синхронизируем состояние с keycloak.
       if (keycloak.authenticated) {
         this.user = this.extractUserFromToken();
@@ -258,17 +252,11 @@ async registration(data: RegistrationFormData): Promise<void> {
   }
 },
 
-    // setTokens больше не нужен, так как токенами управляет keycloak.
-    // Оставим для совместимости, но он будет пустым.
-    setTokens(_tokens: LoginResponseData): void {
-      console.warn('setTokens is deprecated. Keycloak manages tokens.');
-    },
-
     clearTokens(): void {
   this.accessToken = null;
   this.user = null;
   localStorage.removeItem('user');
-  localStorage.removeItem('accessToken'); // добавить
+  localStorage.removeItem('accessToken'); 
   // Не очищаем keycloak, так как это его ответственность
 },
 
@@ -303,7 +291,7 @@ async registration(data: RegistrationFormData): Promise<void> {
         name: parsed.name || parsed.preferred_username || '',
         role: parsed.realm_access?.roles?.includes('admin') ? 'admin' : 'user',
         email: parsed.email || '',
-        username: parsed.preferred_username || '',
+        username: parsed.preferred_username || parsed.name,
       };
     },
 

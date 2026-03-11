@@ -1,17 +1,17 @@
+import { observer } from 'mobx-react-lite';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStores } from '../context/RootStoreContext';
 import { Button, TextInput, PasswordInput, Paper, Title, Container } from '@mantine/core';
 
-function LoginPage() {
-    const [email, setEmail] = useState('');
+const LoginPage = observer(() => {
+    const [name, setName] = useState('');
     const [password, setPassword] = useState('');
     const { auth } = useStores();
     const navigate = useNavigate();
 
     useEffect(() => {
-        console.log('LoginPage render, isAuthenticated =', auth.isAuthenticated);
-        console.log('LoginPage render, accessToken =', auth.accessToken);
+        console.log('LoginPage effect, isAuthenticated =', auth.isAuthenticated);
         if (auth.isAuthenticated) {
             console.log('LoginPage: Redirecting to /');
             navigate('/');
@@ -20,8 +20,8 @@ function LoginPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('LoginPage: submitting', email);
-        await auth.login(email, password);
+        console.log('LoginPage: submitting', name);
+        await auth.login(name, password);
         console.log('LoginPage: after login, isAuthenticated =', auth.isAuthenticated);
     };
 
@@ -31,11 +31,11 @@ function LoginPage() {
             <Paper withBorder shadow="md" p={30} mt={30} radius="md">
                 <form onSubmit={handleSubmit}>
                     <TextInput
-                        label="Email"
-                        placeholder="your@email.com"
+                        label="Name"
+                        placeholder="user"
                         required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
                     />
                     <PasswordInput
                         label="Пароль"
@@ -55,6 +55,6 @@ function LoginPage() {
             </Paper>
         </Container>
     );
-}
+});
 
 export default LoginPage;

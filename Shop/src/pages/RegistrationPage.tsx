@@ -10,14 +10,13 @@ const RegistrationPage = observer(() => {
   const { auth } = useStores();
   const navigate = useNavigate();
 
-  // Если пользователь уже аутентифицирован, перенаправляем на главную
   if (auth.isAuthenticated) {
     navigate('/');
     return null;
   }
 
   return (
-      <Container size={600} my={40}>
+    <Container size={600} my={40}>
       <RegistrationHeader/>
       <RegistrationForm />
       <ReturnButton/>

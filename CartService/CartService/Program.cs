@@ -29,7 +29,7 @@ builder.Services
     })
     .AddOpenApi()
     .AddSecuredSwagger()
-    .AddJwtAuthentication()
+    .AddJwtAuthentication(builder.Configuration)
     .AddAuthorization()
     .AddDbContext<EfContext>(options =>
     {
