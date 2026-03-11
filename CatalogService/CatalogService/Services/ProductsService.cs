@@ -5,7 +5,6 @@ using CatalogService.Interfaces;
 using CatalogService.Mappers;
 using CatalogService.Models;
 using MassTransit;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Shop.Core.Messages;
 
 namespace CatalogService.Services
@@ -17,8 +16,9 @@ namespace CatalogService.Services
         private readonly IImageStorage _imageStorage;
         private readonly IBusControl _busControl;
         private readonly string? _queueForSendMessage;
+        private readonly ILogger<ProductsService> _logger;
 
-        public ProductsService(IProductsRepository productsRepository, ICategoriesRepository categoriesRepository, IBusControl busControl, IConfiguration configuration, IImageStorage imageStorage)
+        public ProductsService(IProductsRepository productsRepository, ICategoriesRepository categoriesRepository, IBusControl busControl, IConfiguration configuration, IImageStorage imageStorage, ILogger<ProductsService> logger)
         {
             _productsRepository = productsRepository;
             _categoriesRepository = categoriesRepository;
@@ -26,6 +26,7 @@ namespace CatalogService.Services
             _imageStorage = imageStorage;
             var rmqSettings = configuration.GetSection("RabbitMqConfiguration").Get<RabbitMqConfiguration>();
             _queueForSendMessage = configuration["RMQ_PRODUCT_FROM_CATALOG_QUEUE"] ?? rmqSettings?.ProductsFromCatalogQueue;
+            _logger = logger;
 
             if (string.IsNullOrEmpty(_queueForSendMessage))
             {
@@ -44,9 +45,9 @@ namespace CatalogService.Services
                 {
                     imageUrl = await _imageStorage.SaveAsync(createDto.Image);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    //TODO:log
+                    _logger.LogError(ex, "Error. Emage for product with title: {title} doesn't save.", createDto.ProductTitle);
                 }
             }
 
@@ -61,16 +62,23 @@ namespace CatalogService.Services
                 ProductImageUrl = imageUrl,
             });
 
-            var sendEndpoint = await _busControl.GetSendEndpoint(new Uri($"queue:{_queueForSendMessage}"));
-
-            await sendEndpoint.Send(new CatalogProductMessage
+            try
             {
-                Article = res.Article,
-                EventType = CatalogProductEventType.ProductAddedToCatalog,
-                Price = res.Price,
-                ProductId = res.Id,
-                Title = res.Name
-            });
+                var sendEndpoint = await _busControl.GetSendEndpoint(new Uri($"queue:{_queueForSendMessage}"));
+
+                await sendEndpoint.Send(new CatalogProductMessage
+                {
+                    Article = res.Article,
+                    EventType = CatalogProductEventType.ProductAddedToCatalog,
+                    Price = res.Price,
+                    ProductId = res.Id,
+                    Title = res.Name
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Message about creating product with id: {id}, title: {title}, article: {article} doesn't send.", res.Id, res.Name, res.Article);
+            }
 
             return res.ToDto();
         }
@@ -100,17 +108,24 @@ namespace CatalogService.Services
             }
             catch (Exception ex)
             {
-                //TODO: log
+                _logger.LogError(ex, "Deleting image for product with id: {id}, title: {title}, article: {article} failed", existProduct.Id, existProduct.Name, existProduct.Article);
             }
 
-            var sendEndpoint = await _busControl.GetSendEndpoint(new Uri($"queue:{_queueForSendMessage}"));
-
-            await sendEndpoint.Send(new CatalogProductMessage
+            try
             {
-                Article = existProduct.Article,
-                EventType = CatalogProductEventType.ProductRemovedFromCatalog,
-                ProductId = existProduct.Id,
-            });
+                var sendEndpoint = await _busControl.GetSendEndpoint(new Uri($"queue:{_queueForSendMessage}"));
+
+                await sendEndpoint.Send(new CatalogProductMessage
+                {
+                    Article = existProduct.Article,
+                    EventType = CatalogProductEventType.ProductRemovedFromCatalog,
+                    ProductId = existProduct.Id,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Message about deleting product with id: {id}, title: {title}, article: {article} doesn't send.", existProduct.Id, existProduct.Name, existProduct.Article);
+            }
 
             return true;
         }
@@ -149,14 +164,14 @@ namespace CatalogService.Services
                 }
                 catch (Exception ex)
                 {
-                    //TODO: log
+                    _logger.LogError(ex, "Deleting old image for product with id: {id}, title: {title}, article: {article} failed", existProduct.Id, existProduct.Name, existProduct.Article);
                 }
 
                 return res.ToDto();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                //TODO: logic
+                _logger.LogError(ex, "Updating image for product with id: {id}, title: {title}, article: {article} failed", existProduct.Id, existProduct.Name, existProduct.Article);
                 return null;
             }
         }
@@ -168,44 +183,71 @@ namespace CatalogService.Services
             if (existProduct == null) { return null; }
 
             existProduct.UpdatedAt = DateTime.UtcNow;
-            existProduct.Price = updateDto.Price;
-            existProduct.Article = updateDto.Article;
-            existProduct.Name = updateDto.ProductTitle;
+
+            if (updateDto.Price.HasValue)
+            {
+                existProduct.Price = updateDto.Price.Value;
+            }
+
+            if (updateDto.Article.HasValue)
+            {
+                existProduct.Article = updateDto.Article.Value;
+            }
+
+            if (!string.IsNullOrEmpty(updateDto.ProductTitle))
+            {
+                existProduct.Name = updateDto.ProductTitle;
+            }
 
             if (!string.IsNullOrEmpty(updateDto.ProductDescription))
             {
                 existProduct.Description = updateDto.ProductDescription;
             }
 
-            var existCategory = await _categoriesRepository.GetCategoryByNameAsync(updateDto.ProductCategory);
+            string? oldCategoryName = null;
 
-            if (existCategory == null)
+            if (!string.IsNullOrEmpty(updateDto.ProductCategory))
             {
-                existCategory = await _categoriesRepository.CreateAsync(new Category { Name = updateDto.ProductCategory });
-            }
+                var existCategory = await _categoriesRepository.GetCategoryByNameAsync(updateDto.ProductCategory);
 
-            var oldCategoryName = existProduct.Category.Name;
-            existProduct.Category = existCategory;
+                if (existCategory == null)
+                {
+                    existCategory = await _categoriesRepository.CreateAsync(new Category { Name = updateDto.ProductCategory });
+                }
+
+                oldCategoryName = existProduct.Category.Name;
+                existProduct.Category = existCategory;
+            }
 
             var res = await _productsRepository.UpdateAsync(existProduct);
 
-            var oldCategory = await _categoriesRepository.GetCategoryByNameAsync(oldCategoryName);
-
-            if (oldCategory != null && oldCategory.Products.Count == 0)
+            if (!string.IsNullOrEmpty(oldCategoryName))
             {
-                await _categoriesRepository.DeleteCategoryAsync(oldCategory);
+                var oldCategory = await _categoriesRepository.GetCategoryByNameAsync(oldCategoryName);
+
+                if (oldCategory != null && oldCategory.Products.Count == 0)
+                {
+                    await _categoriesRepository.DeleteCategoryAsync(oldCategory);
+                }
             }
 
-            var sendEndpoint = await _busControl.GetSendEndpoint(new Uri($"queue:{_queueForSendMessage}"));
-
-            await sendEndpoint.Send(new CatalogProductMessage
+            try
             {
-                Article = res.Article,
-                EventType = CatalogProductEventType.ProductChangedInCatalog,
-                ProductId = res.Id,
-                Price = res.Price,
-                Title = res.Name
-            });
+                var sendEndpoint = await _busControl.GetSendEndpoint(new Uri($"queue:{_queueForSendMessage}"));
+
+                await sendEndpoint.Send(new CatalogProductMessage
+                {
+                    Article = res.Article,
+                    EventType = CatalogProductEventType.ProductChangedInCatalog,
+                    ProductId = res.Id,
+                    Price = res.Price,
+                    Title = res.Name
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Message about updating product with id: {id}, title: {title}, article: {article} doesn't send.", existProduct.Id, existProduct.Name, existProduct.Article);
+            }
 
             return res.ToDto();
         }

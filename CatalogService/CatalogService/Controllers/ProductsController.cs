@@ -1,5 +1,6 @@
 using CatalogService.Interfaces;
 using CatalogService.Models;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,11 +17,15 @@ public class ProductsController : ControllerBase
 
     private readonly ILogger<ProductsController> _logger;
     private readonly IProductService _productService;
+    private readonly IValidator<CreateProductDto> _createValidator;
+    private readonly IValidator<UpdateProductDto> _updateValidator;
 
-    public ProductsController(IProductService productService, ILogger<ProductsController> logger)
+    public ProductsController(IProductService productService, ILogger<ProductsController> logger, IValidator<CreateProductDto> createValidator, IValidator<UpdateProductDto> updateValidator)
     {
         _logger = logger;
         _productService = productService;
+        _createValidator = createValidator;
+        _updateValidator = updateValidator;
     }
 
     /// <summary>
@@ -36,6 +41,18 @@ public class ProductsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateAsync([FromForm] CreateProductDto request)
     {
+        var validationResult = await _createValidator.ValidateAsync(request);
+
+        if (!validationResult.IsValid)
+        {
+            foreach (var error in validationResult.Errors)
+            {
+                ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+            }
+
+            return ValidationProblem(ModelState);
+        }
+
         _logger.LogInformation("Try create product with title: {title}", request.ProductTitle);
         var created = await _productService.CreateProductAsync(request);
         return CreatedAtAction(nameof(GetAsync), new { id = created.Id }, created);
@@ -110,6 +127,17 @@ public class ProductsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ProductDto>> UpdateAsync(Guid id, [FromBody] UpdateProductDto request)
     {
+        var validationResult = await _updateValidator.ValidateAsync(request);
+
+        if (!validationResult.IsValid)
+        {
+            foreach (var error in validationResult.Errors)
+            {
+                ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+            }
+
+            return ValidationProblem(ModelState);
+        }
         _logger.LogInformation("Try update product with id: {id}", id);
         var updated = await _productService.UpdateProductAsync(id, request);
         if (updated == null) { return NotFound(); }
