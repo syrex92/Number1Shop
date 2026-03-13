@@ -11,6 +11,9 @@ COPY . .
 # If developer didn't create .env locally, fall back to .env.sample.
 RUN if [ ! -f .env ] && [ -f .env.sample ]; then cp .env.sample .env; fi
 
+# Clear esbuild binary cache to avoid host/binary version mismatch
+RUN rm -rf /root/.cache/esbuild || true
+
 RUN npm run build
 
 EXPOSE 8080

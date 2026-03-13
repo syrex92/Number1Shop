@@ -73,9 +73,13 @@ public class OrdersController : ControllerBase
             await _notifications.PublishAsync(
                 userId: orderCreate.UserId.ToString(),
                 type: "stock.reservation_failed",
-                title: "Не удалось зарезервировать товары",
-                message: ex.Message,
-                data: new { orderId = orderCreate.Id, orderNumber = orderCreate.OrderNumber });
+                title: "Некоторые товары закончились на складе",
+                message: "Заказ не оформлен: для части позиций не хватает остатков. Проверьте корзину — недоступные товары помечены и исключены из оформления.",
+                data: new
+                {
+                    orderId = orderCreate.Id,
+                    orderNumber = orderCreate.OrderNumber
+                });
             return BadRequest("Failed to reserve items: " + ex.Message);
         }
 
@@ -90,8 +94,13 @@ public class OrdersController : ControllerBase
                 userId: orderCreate.UserId.ToString(),
                 type: "stock.confirm_failed",
                 title: "Не удалось подтвердить резерв",
-                message: ex.Message,
-                data: new { orderId = orderCreate.Id, orderNumber = orderCreate.OrderNumber, reservationId });
+                message: "Заказ не оформлен из-за проблемы со складским резервированием. Проверьте корзину — часть товаров могла стать недоступной.",
+                data: new
+                {
+                    orderId = orderCreate.Id,
+                    orderNumber = orderCreate.OrderNumber,
+                    reservationId
+                });
             return BadRequest("Failed to confirm reservation: " + ex.Message + ". Reservation has been cancelled. Reservation ID: " + reservationId);
         }
 

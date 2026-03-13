@@ -33,6 +33,7 @@
     "web-vitals": "^5.1.0"
   },
   "devDependencies": {
+    "esbuild": "0.27.4",
     "@eslint/js": "^9.36.0",
     "@types/node": "^24.6.0",
     "@types/react": "^19.1.16",

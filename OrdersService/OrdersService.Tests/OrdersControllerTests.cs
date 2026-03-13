@@ -52,7 +52,13 @@ public class OrdersControllerTests : IDisposable
         _storageService = new Mock<IStorageService>(MockBehavior.Strict);
         _catalogService = new Mock<ICatalogService>(MockBehavior.Strict);
         _notifications = new Mock<IUiNotificationPublisher>(MockBehavior.Strict);
-        _configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+        _configuration = new Mock<IConfiguration>();
+
+        var allUsersIsAdminSection = new Mock<IConfigurationSection>();
+        allUsersIsAdminSection.SetupGet(s => s.Value).Returns("false");
+        _configuration
+            .Setup(c => c.GetSection("AllUsersIsAdmin"))
+            .Returns(allUsersIsAdminSection.Object);
 
         _notifications
             .Setup(x => x.PublishAsync(
@@ -214,6 +220,12 @@ public class OrdersControllerTests : IDisposable
     public async Task Update_WithValidOrder_ReturnsOkResult()
     {
         // Arrange
+        var adminSection = new Mock<IConfigurationSection>();
+        adminSection.SetupGet(s => s.Value).Returns("true");
+        _configuration
+            .Setup(c => c.GetSection("AllUsersIsAdmin"))
+            .Returns(adminSection.Object);
+
         var order = _fixture.Build<Order>()
             .With(o => o.UserId, _userId)
             .With(o => o.DeliveryAddress, _fixture.Create<Address>())

@@ -29,7 +29,10 @@ function safeParse<T>(value: string | null): T | null {
   }
 }
 
-export const createNotificationStore = (auth: AuthStore) => {
+export const createNotificationStore = (
+  auth: AuthStore,
+  onNotification?: (envelope: UiNotificationEnvelope) => void
+) => {
   const store = {
     items: [] as UiNotification[],
     isConnected: false,
@@ -69,6 +72,14 @@ export const createNotificationStore = (auth: AuthStore) => {
         message: envelope.message,
         autoClose: 6000,
       });
+
+      if (onNotification) {
+        try {
+          onNotification(envelope);
+        } catch {
+          // ignore side-effect errors
+        }
+      }
     },
 
     markRead(id: string) {
