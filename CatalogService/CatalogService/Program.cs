@@ -5,8 +5,11 @@ using CatalogService.DataAccess.Repositories;
 using CatalogService.Helpers;
 using CatalogService.Interfaces;
 using CatalogService.Services;
+using CatalogService.Validators;
+using FluentValidation;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -119,6 +122,8 @@ builder.Services.AddAuthorization(options =>
         .RequireAuthenticatedUser()
         .Build();
 });
+
+builder.Services.AddValidatorsFromAssemblyContaining<AddProductValidator>();
 
 var app = builder.Build();
 

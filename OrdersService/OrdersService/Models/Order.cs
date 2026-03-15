@@ -33,6 +33,7 @@ namespace OrdersService.Models
         public List<OrderItem> Items { get; set; } = new();
 
         [JsonInclude]
+        [SwaggerIgnore]
         public int OrderNumber { get; set; }
 
         [JsonInclude]
@@ -44,6 +45,7 @@ namespace OrdersService.Models
             }
         }
 
+        [SwaggerIgnore]
         public OrderStatus? Status { get; set; } = OrderStatus.New;
     }
     public class OrderUpdate

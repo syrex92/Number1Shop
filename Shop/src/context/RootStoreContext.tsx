@@ -24,14 +24,32 @@ export const RootStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     
     const auth =  createAuthStore(); //createFakeAuthStore();     
     
-  const rootStore = useMemo(() => ({
-    auth: auth,
-    products: createProductsStore(auth),
-    cart: createCartStore(auth),
-    favorites: createFavoritesStore(),
-    orders: createOrdersStore(auth),
-    notifications: createNotificationStore(auth)
-  }), []);
+  const rootStore = useMemo(() => {
+    const cart = createCartStore(auth);
+
+    const notifications = createNotificationStore(auth, (envelope) => {
+      if (
+        envelope.type === "stock.reservation_failed" ||
+        envelope.type === "stock.confirm_failed"
+      ) {
+        const ids = Array.from(cart.items.values())
+          .filter((item) => item.toOrder)
+          .map((item) => item.product.id);
+        if (ids.length > 0) {
+          cart.markItemsUnavailable(ids);
+        }
+      }
+    });
+
+    return {
+      auth,
+      products: createProductsStore(auth),
+      cart,
+      favorites: createFavoritesStore(),
+      orders: createOrdersStore(auth),
+      notifications,
+    };
+  }, []);
 
   // Инициализируем аутентификацию при монтировании провайдера
   useEffect(() => {

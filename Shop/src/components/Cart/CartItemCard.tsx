@@ -1,4 +1,4 @@
-﻿//import {observer} from "mobx-react-lite";
+import {observer} from "mobx-react-lite";
 import {useStores} from "../../context/RootStoreContext.tsx";
 import type {CartItem} from "../../stores/CartStore.tsx";
 import {
@@ -31,7 +31,7 @@ export interface CartItemCardProps {
     cartItem: CartItem;
 }
 
-const CartItemCard = ({cartItem}: CartItemCardProps) => {
+const CartItemCardComponent = ({cartItem}: CartItemCardProps) => {
 
     const {cart} = useStores();
     const {catalogApiUrl, imagesUrl} = shopConfig;
@@ -164,7 +164,12 @@ const CartItemCard = ({cartItem}: CartItemCardProps) => {
 
                 </>
                 :
-                <Card shadow="xs" p="md" radius={"sm"}>
+                <Card
+                    shadow="xs"
+                    p="md"
+                    radius={"sm"}
+                    className={cartItem.unavailable ? "cart-item-unavailable" : undefined}
+                >
                     <Grid>
                         <Grid.Col span={1}>
                             <Checkbox checked={cartItem.toOrder} onChange={(event) => {
@@ -179,7 +184,12 @@ const CartItemCard = ({cartItem}: CartItemCardProps) => {
                         </Grid.Col>
                         <Grid.Col span={6}>
                             <Flex justify={"space-evenly"} align={"flex-start"} direction={"column"}>
-                                <Text size={"xl"} mb={"md"}>{cartItem.product.title}</Text>
+                                <Text size={"xl"} mb={"xs"}>{cartItem.product.title}</Text>
+                                {cartItem.unavailable && (
+                                    <Text size="sm" c="red" fw={500}>
+                                        Недоступен для заказа. Товар закончился.
+                                    </Text>
+                                )}
                                 <Box size={"md"}>
                                     <Spoiler maxHeight={120} showLabel={"показать больше"} hideLabel={"скрыть"}
                                              style={{textAlign: "justify"}}>
@@ -212,7 +222,7 @@ const CartItemCard = ({cartItem}: CartItemCardProps) => {
                             </Flex>
 
                         </Grid.Col>
-                        <Grid.Col span={3}>
+                            <Grid.Col span={3}>
                             <Stack align={"center"}>
                                 <Group justify={"center"} h={30}>
 
@@ -220,7 +230,10 @@ const CartItemCard = ({cartItem}: CartItemCardProps) => {
 
                                     {!exec &&
                                         (<>
-                                            <ActionIcon variant="outline" aria-label="Settings"
+                                            <ActionIcon
+                                                variant="outline"
+                                                aria-label="Settings"
+                                                disabled={exec || cartItem.unavailable}
                                                         onClick={async () => {
                                                             setExec(true);
                                                             try {
@@ -235,7 +248,10 @@ const CartItemCard = ({cartItem}: CartItemCardProps) => {
 
                                             <Text>{cart.getItemQuantity(cartItem.product)}</Text>
 
-                                            <ActionIcon variant="outline" aria-label="Settings"
+                                            <ActionIcon
+                                                variant="outline"
+                                                aria-label="Settings"
+                                                disabled={exec || cartItem.unavailable}
                                                         onClick={async () => {
 
                                                             setExec(true)
@@ -270,5 +286,7 @@ const CartItemCard = ({cartItem}: CartItemCardProps) => {
         </>
     )
 }
+
+const CartItemCard = observer(CartItemCardComponent);
 
 export default CartItemCard;

@@ -12,6 +12,7 @@ export interface CartItem {
     productId: string;
     qty: number;
     toOrder: boolean;
+    unavailable?: boolean;
 }
 
 export interface CartStore {
@@ -35,6 +36,8 @@ export interface CartStore {
     //decrease: (productId: string) => void;
     //increase: (productId: string) => void;
     clear: () => void;
+
+    markItemsUnavailable: (productIds: string[]) => void;
 
     fetchItems: () => Promise<void>;
 
@@ -80,6 +83,16 @@ export const createCartStore = (
             let sum = 0;
             this.items.forEach((v) => (sum += v.product.price * v.qty));
             return sum;
+        },
+
+        markItemsUnavailable(productIds: string[]) {
+            const set = new Set(productIds);
+            this.items.forEach((item, key) => {
+                if (set.has(item.product.id) || set.has(key)) {
+                    item.unavailable = true;
+                    item.toOrder = false;
+                }
+            });
         },
 
         async fetchItems(): Promise<void> {

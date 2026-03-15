@@ -4,6 +4,7 @@ using AutoFixture.AutoMoq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using OrdersService.Data;
 using OrdersService.Interfaces;
@@ -22,6 +23,7 @@ public class OrdersControllerTests : IDisposable
     private readonly Mock<IStorageService> _storageService;
     private readonly Mock<ICatalogService> _catalogService;
     private readonly Mock<IUiNotificationPublisher> _notifications;
+    private readonly Mock<IConfiguration> _configuration;
 
     public OrdersControllerTests()
     {
@@ -50,6 +52,13 @@ public class OrdersControllerTests : IDisposable
         _storageService = new Mock<IStorageService>(MockBehavior.Strict);
         _catalogService = new Mock<ICatalogService>(MockBehavior.Strict);
         _notifications = new Mock<IUiNotificationPublisher>(MockBehavior.Strict);
+        _configuration = new Mock<IConfiguration>();
+
+        var allUsersIsAdminSection = new Mock<IConfigurationSection>();
+        allUsersIsAdminSection.SetupGet(s => s.Value).Returns("false");
+        _configuration
+            .Setup(c => c.GetSection("AllUsersIsAdmin"))
+            .Returns(allUsersIsAdminSection.Object);
 
         _notifications
             .Setup(x => x.PublishAsync(
@@ -62,7 +71,7 @@ public class OrdersControllerTests : IDisposable
             .Returns(Task.CompletedTask);
 
         // Setup controller with dependencies
-        _controller = new OrdersController(_dbContext, _storageService.Object, _catalogService.Object, _notifications.Object);
+        _controller = new OrdersController(_dbContext, _storageService.Object, _catalogService.Object, _notifications.Object, _configuration.Object);
         
         // Setup user context
         _userId = Guid.NewGuid();
@@ -211,6 +220,12 @@ public class OrdersControllerTests : IDisposable
     public async Task Update_WithValidOrder_ReturnsOkResult()
     {
         // Arrange
+        var adminSection = new Mock<IConfigurationSection>();
+        adminSection.SetupGet(s => s.Value).Returns("true");
+        _configuration
+            .Setup(c => c.GetSection("AllUsersIsAdmin"))
+            .Returns(adminSection.Object);
+
         var order = _fixture.Build<Order>()
             .With(o => o.UserId, _userId)
             .With(o => o.DeliveryAddress, _fixture.Create<Address>())
