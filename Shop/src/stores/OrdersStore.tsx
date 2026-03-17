@@ -27,6 +27,7 @@ export interface OrdersStore {
   fetchOrderDetails: (id: string) => Promise<void>;
   cancelOrder: (id: string) => Promise<void>;
   changeStatus: (id: string, status: string) => Promise<void>;
+  clear: () => void;
 }
 
 export const createOrdersStore = (_auth: ReturnType<typeof createAuthStore>): OrdersStore => {
@@ -131,6 +132,11 @@ export const createOrdersStore = (_auth: ReturnType<typeof createAuthStore>): Or
       } finally {
         this.isLoading = false;
       }
+    },
+
+    clear(): void {
+      this.orders = [];
+      this.isAdmin = false;
     }
   };
 

@@ -213,6 +213,13 @@ export const createAuthStore = (): AuthStore => {
         this.user = null;
         this.error = null;
         this.clearTokens();
+        // При выходе очищаем локальный список заказов пользователя
+        try {
+          const root = (window as any).__ROOT_STORE__ as { orders?: { clear: () => void } } | undefined;
+          root?.orders?.clear?.();
+        } catch {
+          // ignore
+        }
       }
     },
 

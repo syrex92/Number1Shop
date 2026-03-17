@@ -1,4 +1,4 @@
-﻿import {observer} from "mobx-react-lite";
+import {observer} from "mobx-react-lite";
 import {useStores} from "../../context/RootStoreContext.tsx";
 import {
     Grid,
@@ -79,6 +79,12 @@ const CartItemsFooter = observer(() => {
         finally {
             setCreatingOrder(false);
             if(created){
+                for (const item of Array.from(cart.items.values())) {
+                    if (item.toOrder) {
+                        await cart.remove(item.product.id, true);
+                    }
+                }
+
                 notifications.show({
                     position: "top-center",
                     color: "green",

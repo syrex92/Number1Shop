@@ -145,10 +145,13 @@ export const createProductsStore = (_auth: ReturnType<typeof createAuthStore>): 
         formData.append("image", data.image);
       }
 
-      fetch(`${catalogApiUrl}/products/`, {
+      fetch(`${catalogApiUrl}products/`, {
         method: "POST",
         body: formData,
-        headers: _auth.getAuthHeaders()
+        //headers: _auth.getAuthHeaders()
+        headers: _auth.accessToken
+          ? { Authorization: `Bearer ${_auth.accessToken}` }
+          : undefined,
       })
         .then((res) => res.json())
         .then(async (res) => {
