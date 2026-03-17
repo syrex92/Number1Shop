@@ -26,6 +26,7 @@ export const RootStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     
   const rootStore = useMemo(() => {
     const cart = createCartStore(auth);
+    const orders = createOrdersStore(auth);
 
     const notifications = createNotificationStore(auth, (envelope) => {
       if (
@@ -46,14 +47,21 @@ export const RootStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       products: createProductsStore(auth),
       cart,
       favorites: createFavoritesStore(),
-      orders: createOrdersStore(auth),
+      orders,
       notifications,
     };
   }, []);
 
   // Инициализируем аутентификацию при монтировании провайдера
   useEffect(() => {
+    (window as any).__ROOT_STORE__ = rootStore;
     rootStore.auth.initializeAuth();
+    return () => {
+      rootStore.orders.clear();
+      if ((window as any).__ROOT_STORE__ === rootStore) {
+        delete (window as any).__ROOT_STORE__;
+      }
+    };
   }, [rootStore.auth]);
 
   return (

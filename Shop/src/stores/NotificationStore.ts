@@ -18,7 +18,11 @@ export interface UiNotification extends UiNotificationEnvelope {
   read: boolean;
 }
 
-const STORAGE_KEY = "shop.notifications.v1";
+const STORAGE_BASE_KEY = "shop.notifications.v1";
+
+function getStorageKey(userId?: string | null): string {
+  return userId ? `${STORAGE_BASE_KEY}:${userId}` : STORAGE_BASE_KEY;
+}
 
 function safeParse<T>(value: string | null): T | null {
   if (!value) return null;
@@ -46,7 +50,8 @@ export const createNotificationStore = (
     },
 
     loadFromStorage() {
-      const saved = safeParse<UiNotification[]>(localStorage.getItem(STORAGE_KEY));
+      const key = getStorageKey(auth.user?.id);
+      const saved = safeParse<UiNotification[]>(localStorage.getItem(key));
       if (saved && Array.isArray(saved)) {
         this.items = saved.slice(0, 50);
       }
@@ -54,7 +59,8 @@ export const createNotificationStore = (
 
     saveToStorage() {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items.slice(0, 50)));
+        const key = getStorageKey(auth.user?.id);
+        localStorage.setItem(key, JSON.stringify(this.items.slice(0, 50)));
       } catch {
         // ignore storage errors
       }
@@ -170,12 +176,31 @@ export const createNotificationStore = (
     () => auth.accessToken,
     async () => {
       if (auth.accessToken && auth.isAuthenticated) {
+        // при успешной аутентификации подгружаем сохранённые уведомления этого пользователя
+        runInAction(() => {
+          store.clear();
+          store.loadFromStorage();
+        });
         await store.connect();
       } else {
         await store.disconnect();
+        runInAction(() => {
+          store.clear(); // очищаем только in-memory, localStorage не трогаем
+        });
       }
     },
     { fireImmediately: true }
+  );
+
+  // Переключение пользователя: отдельное хранилище уведомлений на каждого.
+  reaction(
+    () => auth.user?.id,
+    () => {
+      runInAction(() => {
+        store.clear();
+      });
+      store.loadFromStorage();
+    }
   );
 
   return store;
