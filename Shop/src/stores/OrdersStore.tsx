@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, set } from 'mobx';
 import type createAuthStore from './AuthStore';
 import shopConfig from '../config/shopConfig';
 
@@ -27,6 +27,7 @@ export interface OrdersStore {
   fetchOrderDetails: (id: string) => Promise<void>;
   cancelOrder: (id: string) => Promise<void>;
   changeStatus: (id: string, status: string) => Promise<void>;
+  updateOnNextOpen: () => Promise<void>;
 }
 
 export const createOrdersStore = (_auth: ReturnType<typeof createAuthStore>): OrdersStore => {
@@ -36,6 +37,10 @@ export const createOrdersStore = (_auth: ReturnType<typeof createAuthStore>): Or
     orders: [] as Order[],
     isAdmin: false,
     isLoading: false,
+
+    async updateOnNextOpen(): Promise<void> {
+      this.orders = [];
+    },
 
     async changeStatus(id: string, new_status: string): Promise<void> {
       if (this.isLoading) {

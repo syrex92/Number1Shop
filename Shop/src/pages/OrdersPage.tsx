@@ -26,5 +26,3 @@ const OrdersPage = observer(() => {
 });
 
 export default OrdersPage;
-
-
