@@ -20,7 +20,7 @@ import {logger} from "../../utils/logger.ts";
 
 const CartItemsFooter = observer(() => {
 
-    const {cart, auth} = useStores();
+    const {cart, auth, orders} = useStores();
 
     const {ordersApiUrl} = shopConfig;
 
@@ -85,12 +85,13 @@ const CartItemsFooter = observer(() => {
                     }
                 }
 
+                orders.updateOnNextOpen();
                 notifications.show({
                     position: "top-center",
                     color: "green",
                     title: "Успех",
                     message: 'Заказ успешно оформлен и скоро появится в разделе "Заказы"'
-                })  
+                })
             }
             else{
                 notifications.show({
